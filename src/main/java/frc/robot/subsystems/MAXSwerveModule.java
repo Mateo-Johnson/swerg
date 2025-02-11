@@ -5,6 +5,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.wpilibj.Preferences;
 
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
@@ -28,29 +29,31 @@ public class MAXSwerveModule {
   private final SparkClosedLoopController m_turningClosedLoopController;
 
   private double m_chassisAngularOffset = 0;
-  private final double m_analogEncoderOffset;
+  private double m_analogEncoderOffset;
+  private final String m_moduleName;
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
-  // Add filtering for the analog input
   private double m_lastPosition = 0.0;
   private final LinearFilter m_voltageFilter = LinearFilter.movingAverage(10);
 
   /**
    * Constructs a MAXSwerveModule with a Thrifty absolute encoder
    */
-  public MAXSwerveModule(int drivingCANId, int turningCANId, int analogPort, double chassisAngularOffset, double analogOffset) {
+  public MAXSwerveModule(String moduleName, int drivingCANId, int turningCANId, int analogPort, double chassisAngularOffset) {
+    m_moduleName = moduleName;
     m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
     m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
 
     m_drivingEncoder = m_drivingSpark.getEncoder();
     m_turningEncoder = m_turningSpark.getEncoder();
     m_turningAnalogEncoder = new AnalogInput(analogPort);
-    m_turningAnalogEncoder.setAverageBits(4); // Built-in hardware averaging
+    m_turningAnalogEncoder.setAverageBits(4);
 
     m_drivingClosedLoopController = m_drivingSpark.getClosedLoopController();
     m_turningClosedLoopController = m_turningSpark.getClosedLoopController();
 
-    m_analogEncoderOffset = analogOffset;
+    // Load the stored offset, defaulting to 0 if not calibrated
+    m_analogEncoderOffset = Preferences.getDouble(m_moduleName + "_offset", 0.0);
 
     // Apply configurations
     m_drivingSpark.configure(Configs.MAXSwerveModule.drivingConfig, ResetMode.kResetSafeParameters,
@@ -66,17 +69,44 @@ public class MAXSwerveModule {
   }
 
   /**
-   * Gets the absolute encoder angle in radians with filtering
+   * Calibrates the absolute encoder offset.
+   * Call this method when all modules are physically set to their zero position.
    */
-  public double getAbsoluteEncoderRadians() {
-    // Get filtered voltage
-    double voltage = m_voltageFilter.calculate(m_turningAnalogEncoder.getAverageVoltage());
+  public void calibrateOffset() {
+    // Get the current raw position
+    double rawPosition = getRawEncoderRadians();
     
-    // Convert to position
+    // Calculate the new offset that would make this position read as zero
+    m_analogEncoderOffset = rawPosition;
+    
+    // Save to persistent storage
+    Preferences.setDouble(m_moduleName + "_offset", m_analogEncoderOffset);
+  }
+
+  /**
+   * Gets the raw encoder reading without any offset applied
+   */
+  private double getRawEncoderRadians() {
+    double voltage = m_voltageFilter.calculate(m_turningAnalogEncoder.getAverageVoltage());
     double position = voltage * Configs.MAXSwerveModule.THRIFTY_VOLTAGE_TO_RADIANS;
-    position -= m_analogEncoderOffset;
     
     // Normalize to [0, 2π]
+    position %= 2.0 * Math.PI;
+    if (position < 0.0) {
+      position += 2.0 * Math.PI;
+    }
+    
+    return position;
+  }
+
+  /**
+   * Gets the absolute encoder angle in radians with filtering and offset
+   */
+  private double getAbsoluteEncoderRadians() {
+    double position = getRawEncoderRadians();
+    position -= m_analogEncoderOffset;
+    
+    // Normalize again after applying offset
     position %= 2.0 * Math.PI;
     if (position < 0.0) {
       position += 2.0 * Math.PI;

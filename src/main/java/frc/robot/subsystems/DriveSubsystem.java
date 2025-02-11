@@ -1,9 +1,6 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 
@@ -20,42 +17,45 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
   private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
+      "FrontLeft",
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
-      DriveConstants.kFrontLeftEncoder,
-      DriveConstants.kFrontLeftChassisAngularOffset,
-      1.082996);
+      0,
+      DriveConstants.kFrontLeftChassisAngularOffset);
 
   private final MAXSwerveModule m_frontRight = new MAXSwerveModule(
+      "FrontRight",
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
-      DriveConstants.kFrontRightEncoder,
-      DriveConstants.kFrontRightChassisAngularOffset,
-      1.900925);
+      1,
+      DriveConstants.kFrontRightChassisAngularOffset);
 
   private final MAXSwerveModule m_rearLeft = new MAXSwerveModule(
+      "RearLeft",
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
-      DriveConstants.kRearLeftEncoder,
-      DriveConstants.kBackLeftChassisAngularOffset,
-      2.671853);
+      2,
+      DriveConstants.kBackLeftChassisAngularOffset);
 
   private final MAXSwerveModule m_rearRight = new MAXSwerveModule(
+      "RearRight",
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
-      DriveConstants.kRearRightEncoder,
-      DriveConstants.kBackRightChassisAngularOffset,
-      5.614208); //2.474383
+      3,
+      DriveConstants.kBackRightChassisAngularOffset);
 
   // The gyro sensor
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
+
+  // Timer for initialization delay
+  private final Timer m_initTimer = new Timer();
+  private boolean m_hasCalibrated = false;
 
   // Odometry class for tracking robot pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -72,10 +72,19 @@ public class DriveSubsystem extends SubsystemBase {
   public DriveSubsystem() {
     // Usage reporting for MAXSwerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
+    
+    // Start the initialization timer
+    m_initTimer.start();
   }
 
   @Override
   public void periodic() {
+
+    if (!m_hasCalibrated && m_initTimer.hasElapsed(5.0)) {
+      calibrateModules();
+      m_hasCalibrated = true;
+    }
+
     // Update the odometry in the periodic block
     m_odometry.update(
         Rotation2d.fromDegrees(m_gyro.getAngle()),
@@ -86,10 +95,16 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearRight.getPosition()
         });
         
-        SmartDashboard.putNumber("FL", m_frontLeft.getAbsoluteEncoderRadians());
-        SmartDashboard.putNumber("RL", m_rearLeft.getAbsoluteEncoderRadians());
-        SmartDashboard.putNumber("FR", m_frontRight.getAbsoluteEncoderRadians());
-        SmartDashboard.putNumber("RR", m_rearRight.getAbsoluteEncoderRadians());
+  }
+
+    /**
+   * Calibrates all swerve module encoders
+   */
+  public void calibrateModules() {
+    m_frontLeft.calibrateOffset();
+    m_frontRight.calibrateOffset();
+    m_rearLeft.calibrateOffset();
+    m_rearRight.calibrateOffset();
   }
 
   /**
