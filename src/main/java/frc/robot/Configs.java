@@ -1,8 +1,11 @@
 package frc.robot;
-import com.revrobotics.spark.config.SparkMaxConfig;
+
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import edu.wpi.first.wpilibj.AnalogInput;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
+import edu.wpi.first.wpilibj.AnalogEncoder;
+import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
 
 public final class Configs {
@@ -10,43 +13,61 @@ public final class Configs {
         public static final SparkMaxConfig drivingConfig = new SparkMaxConfig();
         public static final SparkMaxConfig turningConfig = new SparkMaxConfig();
         
-        // Constants for Thrifty encoder conversion
-        public static final double THRIFTY_VOLTAGE_TO_RADIANS = 2 * Math.PI / 5.0; // 5V = 2π radians
+        // Define separate encoder instances for each module
+        private static final AnalogEncoder frontLeftEncoder = new AnalogEncoder(
+            DriveConstants.kFrontLeftEncoder,
+            2 * Math.PI,
+            Math.PI
+        );
         
-        // Filter constant for the analog input (0.0 - 1.0)
-        // Lower = more filtering but more lag
-        public static final double THRIFTY_FILTER_ALPHA = 0.1;
+        private static final AnalogEncoder frontRightEncoder = new AnalogEncoder(
+            DriveConstants.kFrontRightEncoder,
+            2 * Math.PI,
+            Math.PI
+        );
         
+        private static final AnalogEncoder rearLeftEncoder = new AnalogEncoder(
+            DriveConstants.kRearLeftEncoder,
+            2 * Math.PI,
+            Math.PI
+        );
+        
+        private static final AnalogEncoder rearRightEncoder = new AnalogEncoder(
+                DriveConstants.kRearRightEncoder,
+            2 * Math.PI,
+            Math.PI
+        );
+
         static {
-            // Use module constants to calculate conversion factors and feed forward gain.
+            // Driving configuration remains unchanged
             double drivingFactor = ModuleConstants.kWheelDiameterMeters * Math.PI
                     / ModuleConstants.kDrivingMotorReduction;
-            double turningFactor = 2 * Math.PI;
             double drivingVelocityFeedForward = 1 / ModuleConstants.kDriveWheelFreeSpeedRps;
-            
+
             drivingConfig
                     .idleMode(IdleMode.kBrake)
                     .smartCurrentLimit(50);
             drivingConfig.encoder
-                    .positionConversionFactor(drivingFactor) // meters
-                    .velocityConversionFactor(drivingFactor / 60.0); // meters per second
+                    .positionConversionFactor(drivingFactor)
+                    .velocityConversionFactor(drivingFactor / 60.0);
             drivingConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                     .pid(0.04, 0, 0)
                     .velocityFF(drivingVelocityFeedForward)
                     .outputRange(-1, 1);
-                    
+
+            // Turning configuration modified for external analog encoder
             turningConfig
                     .idleMode(IdleMode.kBrake)
                     .smartCurrentLimit(20);
             
-            turningConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    // Adjusted PID values for smoother motionav
-                    .pid(0.5, 0.0, 0.05) // P reduced, added some D for damping
-                    .outputRange(-1, 1)
-                    .positionWrappingEnabled(true)
-                    .positionWrappingInputRange(0, turningFactor);
+            // Configure the turning motor to use the external analog encoder
+        turningConfig.closedLoop
+                .feedbackSensor(FeedbackSensor.kAlternateOrExternalEncoder)
+                .pid(1, 0, 0)
+                .outputRange(-1, 1)
+                .positionWrappingEnabled(true)
+                .positionWrappingInputRange(0, 2 * Math.PI);
         }
     }
 }
