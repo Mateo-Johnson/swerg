@@ -17,7 +17,7 @@ import com.revrobotics.RelativeEncoder;
 
 import frc.robot.Configs;
 
-public class MAXSwerveModule {
+public class Module {
   private final SparkMax m_drivingSpark;
   private final SparkMax m_turningSpark;
 
@@ -39,7 +39,7 @@ public class MAXSwerveModule {
   /**
    * Constructs a MAXSwerveModule with a Thrifty absolute encoder
    */
-  public MAXSwerveModule(String moduleName, int drivingCANId, int turningCANId, int analogPort, double chassisAngularOffset) {
+  public Module(String moduleName, int drivingCANId, int turningCANId, int analogPort, double chassisAngularOffset) {
     m_moduleName = moduleName;
     m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
     m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
