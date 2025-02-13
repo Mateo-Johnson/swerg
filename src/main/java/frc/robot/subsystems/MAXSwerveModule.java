@@ -30,7 +30,6 @@ public class MAXSwerveModule {
   
   private final SimpleMotorFeedforward m_drivingFeedforward;
 
-  private double m_chassisAngularOffset = 0;
   private final double m_analogEncoderOffset;
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
@@ -122,6 +121,7 @@ public class MAXSwerveModule {
 
     double currentAngleRadians = getAngle();
     Rotation2d currentRotation = new Rotation2d(currentAngleRadians);
+    @SuppressWarnings("deprecation")
     SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(desiredState, currentRotation);
     
     // Calculate PID outputs
