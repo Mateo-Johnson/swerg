@@ -34,7 +34,7 @@ public class MAXSwerveModule {
   private final double m_analogEncoderOffset;
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
-  private double m_lastPosition = 0.0;
+  private boolean m_hasBeenInitialized = false;
   private String m_moduleName;
 
   /**
@@ -72,12 +72,23 @@ public class MAXSwerveModule {
     m_turningSpark.configure(Configs.MAXSwerveModule.turningConfig, ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
     
-    // Initialize the relative encoder to match the absolute position
-    m_lastPosition = getAngle();
-    m_turningEncoder.setPosition(m_lastPosition);
+    // Initialize the relative encoder
+    initializeModule();
   }
 
-  public double getAngle() {
+  private void initializeModule() {
+    if (!m_hasBeenInitialized) {
+      // Get the absolute position from the analog encoder
+      double absolutePosition = getAbsoluteAngle();
+      
+      // Set the relative encoder to match the absolute position
+      m_turningEncoder.setPosition(absolutePosition);
+      
+      m_hasBeenInitialized = true;
+    }
+  }
+
+  private double getAbsoluteAngle() {
     double position = m_turningAnalogEncoder.get();
     position *= 2.0 * Math.PI;
     position -= m_analogEncoderOffset;
@@ -88,6 +99,11 @@ public class MAXSwerveModule {
     }
 
     return position;
+  }
+
+  public double getAngle() {
+    // Use the relative encoder for normal operation
+    return m_turningEncoder.getPosition();
   }
 
   public SwerveModuleState getState() {
@@ -101,6 +117,9 @@ public class MAXSwerveModule {
   }
 
   public void setDesiredState(SwerveModuleState desiredState) {
+    // Ensure module is initialized
+    initializeModule();
+
     double currentAngleRadians = getAngle();
     Rotation2d currentRotation = new Rotation2d(currentAngleRadians);
     SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(desiredState, currentRotation);
@@ -135,17 +154,21 @@ public class MAXSwerveModule {
 
   public void resetEncoders() {
     m_drivingEncoder.setPosition(0);
-    m_lastPosition = getAngle();
-    m_turningEncoder.setPosition(m_lastPosition);
+    // Reset using the absolute encoder position
+    double absolutePosition = getAbsoluteAngle();
+    m_turningEncoder.setPosition(absolutePosition);
+    m_hasBeenInitialized = true;
   }
 
   public void updateSmartDashboard() {
     double currentAngleDegrees = Math.toDegrees(getAngle());
     double desiredAngleDegrees = Math.toDegrees(m_desiredState.angle.getRadians());
+    double absoluteAngleDegrees = Math.toDegrees(getAbsoluteAngle());
     
     // Add more detailed debugging info
     SmartDashboard.putNumber(m_moduleName + " Current Angle", currentAngleDegrees);
     SmartDashboard.putNumber(m_moduleName + " Desired Angle", desiredAngleDegrees);
+    SmartDashboard.putNumber(m_moduleName + " Absolute Angle", absoluteAngleDegrees);
     SmartDashboard.putNumber(m_moduleName + " Angle Error", desiredAngleDegrees - currentAngleDegrees);
     SmartDashboard.putNumber(m_moduleName + " Applied Turn Output", m_turningSpark.getAppliedOutput());
     SmartDashboard.putNumber(m_moduleName + " Turn PID Output", m_turningPIDController.calculate(getAngle()));
