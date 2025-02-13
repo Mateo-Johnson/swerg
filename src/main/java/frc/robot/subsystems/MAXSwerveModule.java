@@ -115,7 +115,6 @@ public class MAXSwerveModule {
 
     // Optimize the reference state to avoid spinning further than 90 degrees.
     correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
-
     
     double turningOutput = MathUtil.clamp(m_turningPIDController.calculate(getAngle(), correctedDesiredState.angle.getRadians()), -1.0, 1.0);;
     

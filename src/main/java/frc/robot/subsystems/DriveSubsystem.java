@@ -50,7 +50,7 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
       5.702128716359239,
-      "Rear Right"); 
+      "Rear Right");
 
   // The gyro sensor
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
@@ -83,12 +83,12 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         });
-        
-        SmartDashboard.putNumber("FL", m_frontLeft.getAngle());
-        SmartDashboard.putNumber("RL", m_rearLeft.getAngle());
-        SmartDashboard.putNumber("FR", m_frontRight.getAngle());
-        SmartDashboard.putNumber("RR", m_rearRight.getAngle());
-        m_frontLeft.updateSmartDashboard();
+
+    SmartDashboard.putNumber("FL", m_frontLeft.getAngle());
+    SmartDashboard.putNumber("RL", m_rearLeft.getAngle());
+    SmartDashboard.putNumber("FR", m_frontRight.getAngle());
+    SmartDashboard.putNumber("RR", m_rearRight.getAngle());
+    m_frontLeft.updateSmartDashboard();
   }
 
   /**
@@ -135,8 +135,8 @@ public class DriveSubsystem extends SubsystemBase {
     // Create ChassisSpeeds object with correct coordinate system
     var chassisSpeeds = fieldRelative
         ? ChassisSpeeds.fromFieldRelativeSpeeds(
-            xSpeedDelivered, 
-            ySpeedDelivered, 
+            xSpeedDelivered,
+            ySpeedDelivered,
             rotDelivered,
             Rotation2d.fromDegrees(m_gyro.getAngle()))
         : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered);
@@ -146,7 +146,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     // Desaturate speeds to prevent wheel overspeed
     SwerveDriveKinematics.desaturateWheelSpeeds(
-        swerveModuleStates, 
+        swerveModuleStates,
         DriveConstants.kMaxSpeedMetersPerSecond);
 
     // Set states for each module
@@ -154,7 +154,8 @@ public class DriveSubsystem extends SubsystemBase {
     m_frontRight.setDesiredState(swerveModuleStates[1]);
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
-}
+  }
+
   /**
    * Sets the swerve ModuleStates.
    *

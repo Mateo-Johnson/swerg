@@ -23,7 +23,8 @@ public final class Constants {
         new Translation2d(-kWheelBase / 2, kTrackWidth / 2),
         new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
 
-    // Angular offsets of the modules relative to the chassis in radians DON'T CHANGE
+    // Angular offsets of the modules relative to the chassis in radians DON'T
+    // CHANGE
     public static final double kFrontLeftChassisAngularOffset = 0;
     public static final double kFrontRightChassisAngularOffset = 0;
     public static final double kBackLeftChassisAngularOffset = 0;
@@ -49,17 +50,18 @@ public final class Constants {
     public static final boolean kGyroReversed = false;
   }
 
-public static final class ModuleConstants {
+  public static final class ModuleConstants {
     public static final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
     public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
     // MK4i gear ratio configuration
-    public static final int kDrivingMotorPinionTeeth = 16;  // Standard MK4i pinion
-    public static final double kDrivingMotorReduction = 12.75;  // L3 gear ratio
-    
+    public static final int kDrivingMotorPinionTeeth = 16; // Standard MK4i pinion
+    public static final double kDrivingMotorReduction = 12.75; // L3 gear ratio
+
     // Motor characteristics
     public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60.0;
-    public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters) / kDrivingMotorReduction;
-}
+    public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters)
+        / kDrivingMotorReduction;
+  }
 
   public static final class OIConstants {
     public static final int kDriverControllerPort = 0;
