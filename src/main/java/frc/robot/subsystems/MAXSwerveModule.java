@@ -90,33 +90,44 @@ public class MAXSwerveModule {
   }
 
   public SwerveModuleState getState() {
-    return new SwerveModuleState(m_drivingEncoder.getVelocity(), new Rotation2d(getAngle()));
-  }
+    return new SwerveModuleState(
+        m_drivingEncoder.getVelocity(),
+        new Rotation2d(getAbsoluteAngle())
+    );
+}
 
-  public SwerveModulePosition getPosition() {
-    return new SwerveModulePosition(
-        m_drivingEncoder.getPosition(),
-        new Rotation2d(getAngle()));
-  }
+public SwerveModulePosition getPosition() {
+  return new SwerveModulePosition(
+      m_drivingEncoder.getPosition(),
+      new Rotation2d(getAbsoluteAngle())
+  );
+}
 
   public void setDesiredState(SwerveModuleState desiredState) {
     // Ensure module is initialized
     initializeModule();
     
-    // Apply chassis angular offset to the desired state.
     SwerveModuleState correctedDesiredState = new SwerveModuleState();
     correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
     correctedDesiredState.angle = desiredState.angle;
 
-    // Optimize the reference state to avoid spinning further than 90 degrees.
-    correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
+    // Use absolute encoder position for optimization
+    correctedDesiredState = SwerveModuleState.optimize(correctedDesiredState, 
+        new Rotation2d(getAbsoluteAngle()));
     
-    // Use SparkMax built-in closed loop control for both driving and turning
-    m_drivingClosedLoopController.setReference(correctedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
-    m_turningClosedLoopController.setReference(correctedDesiredState.angle.getRadians(), ControlType.kPosition);
+    m_drivingClosedLoopController.setReference(
+        correctedDesiredState.speedMetersPerSecond, 
+        ControlType.kVelocity
+    );
     
-    m_desiredState = desiredState;
-  }
+    // Use absolute angle for turning control
+    m_turningClosedLoopController.setReference(
+        correctedDesiredState.angle.getRadians(), 
+        ControlType.kPosition
+    );
+    
+    m_desiredState = correctedDesiredState;
+}
 
   public void resetEncoders() {
     m_drivingEncoder.setPosition(0);
@@ -136,5 +147,7 @@ public class MAXSwerveModule {
     SmartDashboard.putNumber(m_moduleName + " Absolute Angle", absoluteAngleDegrees);
     SmartDashboard.putNumber(m_moduleName + " Angle Error", desiredAngleDegrees - currentAngleDegrees);
     SmartDashboard.putNumber(m_moduleName + " Applied Turn Output", m_turningSpark.getAppliedOutput());
+    SmartDashboard.putNumber(m_moduleName + " Raw Analog Voltage", m_turningAnalogEncoder.get());
+    SmartDashboard.putNumber(m_moduleName + " Motor Position", m_turningEncoder.getPosition());
   }
 }

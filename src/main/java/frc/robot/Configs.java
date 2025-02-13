@@ -39,7 +39,7 @@ public final class Configs {
                 
                 turningConfig.closedLoop
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)  // Use the built-in encoder
-                    .pid(1, 0, 0)
+                    .pid(0.5, 0, 0.001)
                     .outputRange(-1, 1)
                     .positionWrappingEnabled(true)
                     .positionWrappingInputRange(0, turningFactor);
