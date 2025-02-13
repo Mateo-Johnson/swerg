@@ -31,8 +31,9 @@ public final class Configs {
                 turningConfig
                     .idleMode(IdleMode.kBrake)
                     .smartCurrentLimit(20);
+                    // Add to your constructor
                 turningConfig.closedLoop
-                    .pid(1, 0, 0)
+                    .pid(1, 0, 1)
                     .outputRange(-1, 1)
                     .positionWrappingEnabled(true)
                     .positionWrappingInputRange(0, 2 * Math.PI);

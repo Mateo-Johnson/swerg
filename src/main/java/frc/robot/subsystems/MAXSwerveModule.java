@@ -4,18 +4,18 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogEncoder;
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 
 import frc.robot.Configs;
+import frc.robot.Constants.ModuleConstants;
 
 public class MAXSwerveModule {
   private final SparkMax m_drivingSpark;
@@ -25,110 +25,129 @@ public class MAXSwerveModule {
   private final RelativeEncoder m_turningEncoder;
   private final AnalogEncoder m_turningAnalogEncoder;
 
-  private final SparkClosedLoopController m_drivingClosedLoopController;
-  private final SparkClosedLoopController m_turningClosedLoopController;
+  private final PIDController m_drivingPIDController;
+  private final PIDController m_turningPIDController;
+  
+  private final SimpleMotorFeedforward m_drivingFeedforward;
 
   private double m_chassisAngularOffset = 0;
   private final double m_analogEncoderOffset;
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
-  // Add filtering for the analog input
   private double m_lastPosition = 0.0;
+  private String m_moduleName;
 
   /**
    * Constructs a MAXSwerveModule with a Thrifty absolute encoder
    */
-  public MAXSwerveModule(int drivingCANId, int turningCANId, int analogPort, double chassisAngularOffset, double analogOffset) {
+  public MAXSwerveModule(int drivingCANId, int turningCANId, int analogPort, double analogOffset, String moduleName) {
     m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
     m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
+    m_moduleName = moduleName;
 
     m_drivingEncoder = m_drivingSpark.getEncoder();
     m_turningEncoder = m_turningSpark.getEncoder();
     m_turningAnalogEncoder = new AnalogEncoder(analogPort);
 
-    m_drivingClosedLoopController = m_drivingSpark.getClosedLoopController();
-    m_turningClosedLoopController = m_turningSpark.getClosedLoopController();
+    // Configure driving PID (P=1, I=0, D=0)
+    m_drivingPIDController = new PIDController(1.0, 0, 0);
+    
+    // Configure turning PID with the correct gains (P=0.04, I=0, D=0)
+    m_turningPIDController = new PIDController(.1, 0, 0);
+
+    // Configure the turning PID controller to be continuous
+    m_turningPIDController.enableContinuousInput(0, 2 * Math.PI);
+
+    // Configure feedforward
+    m_drivingFeedforward = new SimpleMotorFeedforward(
+        0, // kS
+        1 / ModuleConstants.kDriveWheelFreeSpeedRps  // kV
+    );
 
     m_analogEncoderOffset = analogOffset;
 
-    // Apply configurations
+    // Apply non-PID configurations
     m_drivingSpark.configure(Configs.MAXSwerveModule.drivingConfig, ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
     m_turningSpark.configure(Configs.MAXSwerveModule.turningConfig, ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
-
-    m_chassisAngularOffset = chassisAngularOffset;
     
     // Initialize the relative encoder to match the absolute position
     m_lastPosition = getAngle();
     m_turningEncoder.setPosition(m_lastPosition);
   }
 
-  /**
-   * Gets the absolute encoder angle in radians with filtering
-   */
   public double getAngle() {
-    // Get filtered voltage
     double position = m_turningAnalogEncoder.get();
-    
+    position *= 2.0 * Math.PI;
     position -= m_analogEncoderOffset;
     
-    // Normalize to [0, 2π]
     position %= 2.0 * Math.PI;
     if (position < 0.0) {
-      position += 2.0 * Math.PI;
+        position += 2.0 * Math.PI;
     }
 
     return position;
   }
 
-  /**
-   * Returns the current state of the module.
-   *
-   * @return The current state of the module.
-   */
   public SwerveModuleState getState() {
     return new SwerveModuleState(m_drivingEncoder.getVelocity(), new Rotation2d(getAngle()));
   }
 
-  /**
-   * Returns the current position of the module.
-   *
-   * @return The current position of the module.
-   */
   public SwerveModulePosition getPosition() {
     return new SwerveModulePosition(
         m_drivingEncoder.getPosition(),
         new Rotation2d(getAngle()));
   }
 
-  /**
-   * Sets the desired state for the module.
-   *
-   * @param desiredState Desired state with speed and angle.
-   */
   public void setDesiredState(SwerveModuleState desiredState) {
-    // Currently creating a new state object but not really modifying it
-    SwerveModuleState correctedDesiredState = new SwerveModuleState();
-    correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
-    correctedDesiredState.angle = desiredState.angle;
-    
     double currentAngleRadians = getAngle();
+    Rotation2d currentRotation = new Rotation2d(currentAngleRadians);
+    SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(desiredState, currentRotation);
     
-    SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
-        new Rotation2d(currentAngleRadians));
+    // Calculate PID outputs
+    double drivingPIDOutput = m_drivingPIDController.calculate(
+        m_drivingEncoder.getVelocity(),
+        optimizedDesiredState.speedMetersPerSecond
+    );
 
-    // Command driving and turning SPARKS towards their respective setpoints
-    m_drivingClosedLoopController.setReference(optimizedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
-    m_turningClosedLoopController.setReference(optimizedDesiredState.angle.getRadians(), ControlType.kPosition);
-
+    double drivingFeedforward = m_drivingFeedforward.calculate(optimizedDesiredState.speedMetersPerSecond);
+    
+    double turningOutput = m_turningPIDController.calculate(
+        getAngle(),
+        optimizedDesiredState.angle.getRadians()
+    );
+    
+    // Clamp outputs to [-1, 1] range
+    double drivingOutput = clamp(drivingPIDOutput + drivingFeedforward, -1.0, 1.0);
+    turningOutput = clamp(turningOutput, -1.0, 1.0);
+    
+    // Apply the outputs to the motors
+    m_drivingSpark.set(drivingOutput);
+    m_turningSpark.set(turningOutput);
+    
     m_desiredState = desiredState;
   }
 
-  /** Zeroes all the SwerveModule encoders. */
+  private double clamp(double value, double min, double max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
   public void resetEncoders() {
     m_drivingEncoder.setPosition(0);
     m_lastPosition = getAngle();
     m_turningEncoder.setPosition(m_lastPosition);
+  }
+
+  public void updateSmartDashboard() {
+    double currentAngleDegrees = Math.toDegrees(getAngle());
+    double desiredAngleDegrees = Math.toDegrees(m_desiredState.angle.getRadians());
+    
+    // Add more detailed debugging info
+    SmartDashboard.putNumber(m_moduleName + " Current Angle", currentAngleDegrees);
+    SmartDashboard.putNumber(m_moduleName + " Desired Angle", desiredAngleDegrees);
+    SmartDashboard.putNumber(m_moduleName + " Angle Error", desiredAngleDegrees - currentAngleDegrees);
+    SmartDashboard.putNumber(m_moduleName + " Applied Turn Output", m_turningSpark.getAppliedOutput());
+    SmartDashboard.putNumber(m_moduleName + " Turn PID Output", m_turningPIDController.calculate(getAngle()));
   }
 }
