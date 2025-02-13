@@ -1,21 +1,22 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.RelativeEncoder;
-
 import frc.robot.Configs;
-import frc.robot.Constants.ModuleConstants;
+
 
 public class MAXSwerveModule {
   private final SparkMax m_drivingSpark;
@@ -25,10 +26,8 @@ public class MAXSwerveModule {
   private final RelativeEncoder m_turningEncoder;
   private final AnalogEncoder m_turningAnalogEncoder;
 
-  private final PIDController m_drivingPIDController;
+  private final SparkClosedLoopController m_drivingClosedLoopController;
   private final PIDController m_turningPIDController;
-  
-  private final SimpleMotorFeedforward m_drivingFeedforward;
 
   private final double m_analogEncoderOffset;
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
@@ -49,19 +48,10 @@ public class MAXSwerveModule {
     m_turningAnalogEncoder = new AnalogEncoder(analogPort);
 
     // Configure driving PID (P=1, I=0, D=0)
-    m_drivingPIDController = new PIDController(1.0, 0, 0);
+    m_drivingClosedLoopController = m_drivingSpark.getClosedLoopController();
     
-    // Configure turning PID with the correct gains (P=0.04, I=0, D=0)
-    m_turningPIDController = new PIDController(.1, 0, 0);
-
-    // Configure the turning PID controller to be continuous
+    m_turningPIDController = new PIDController(1.0, 0.0, 0.0);
     m_turningPIDController.enableContinuousInput(0, 2 * Math.PI);
-
-    // Configure feedforward
-    m_drivingFeedforward = new SimpleMotorFeedforward(
-        0, // kS
-        1 / ModuleConstants.kDriveWheelFreeSpeedRps  // kV
-    );
 
     m_analogEncoderOffset = analogOffset;
 
@@ -118,38 +108,21 @@ public class MAXSwerveModule {
   public void setDesiredState(SwerveModuleState desiredState) {
     // Ensure module is initialized
     initializeModule();
+    // Apply chassis angular offset to the desired state.
+    SwerveModuleState correctedDesiredState = new SwerveModuleState();
+    correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
+    correctedDesiredState.angle = desiredState.angle;
 
-    double currentAngleRadians = getAngle();
-    Rotation2d currentRotation = new Rotation2d(currentAngleRadians);
-    @SuppressWarnings("deprecation")
-    SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(desiredState, currentRotation);
-    
-    // Calculate PID outputs
-    double drivingPIDOutput = m_drivingPIDController.calculate(
-        m_drivingEncoder.getVelocity(),
-        optimizedDesiredState.speedMetersPerSecond
-    );
+    // Optimize the reference state to avoid spinning further than 90 degrees.
+    correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
 
-    double drivingFeedforward = m_drivingFeedforward.calculate(optimizedDesiredState.speedMetersPerSecond);
     
-    double turningOutput = m_turningPIDController.calculate(
-        getAngle(),
-        optimizedDesiredState.angle.getRadians()
-    );
+    double turningOutput = MathUtil.clamp(m_turningPIDController.calculate(getAngle(), correctedDesiredState.angle.getRadians()), -1.0, 1.0);;
     
-    // Clamp outputs to [-1, 1] range
-    double drivingOutput = clamp(drivingPIDOutput + drivingFeedforward, -1.0, 1.0);
-    turningOutput = clamp(turningOutput, -1.0, 1.0);
-    
-    // Apply the outputs to the motors
-    m_drivingSpark.set(drivingOutput);
+    m_drivingClosedLoopController.setReference(correctedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
     m_turningSpark.set(turningOutput);
     
     m_desiredState = desiredState;
-  }
-
-  private double clamp(double value, double min, double max) {
-    return Math.min(max, Math.max(min, value));
   }
 
   public void resetEncoders() {
