@@ -4,8 +4,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogEncoder;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -125,18 +123,10 @@ public class Module {
     // Get the current angle for optimization
     double currentAngleRadians = getAngle();
 
-    // Debug values to SmartDashboard with module number
-    String prefix = "Module " + moduleNumber + " ";
-    SmartDashboard.putNumber(prefix + "Current Angle (rad)", currentAngleRadians);
-    SmartDashboard.putNumber(prefix + "Current Angle (deg)", Math.toDegrees(currentAngleRadians));
-    SmartDashboard.putNumber(prefix + "Target Angle (deg)", correctedDesiredState.angle.getDegrees());
-
     // Optimize the reference state
     @SuppressWarnings("deprecation")
     SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
             new Rotation2d(currentAngleRadians));
-
-    SmartDashboard.putNumber(prefix + "Optimized Angle (deg)", optimizedDesiredState.angle.getDegrees());
 
     // Command driving and turning SPARKS
     m_drivingClosedLoopController.setReference(optimizedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
@@ -144,8 +134,6 @@ public class Module {
     
     // Store the optimized state instead of the original
     m_desiredState = optimizedDesiredState;
-
-    SmartDashboard.putNumber(prefix + "Reference Angle Set (rad)", optimizedDesiredState.angle.getRadians());
 }
 
     public void resetEncoders() {
