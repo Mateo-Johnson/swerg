@@ -24,29 +24,25 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
-      0,
-      "Front Left");
+      0);
 
   private final MAXSwerveModule m_frontRight = new MAXSwerveModule(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
-      0,
-      "Front Right");
+      0);
 
   private final MAXSwerveModule m_rearLeft = new MAXSwerveModule(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
-      0,
-      "Rear Left");
+      0);
 
   private final MAXSwerveModule m_rearRight = new MAXSwerveModule(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
-      0,
-      "Rear Right");
+      2.471130058127283);
 
   // The gyro sensor
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
@@ -84,7 +80,14 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("RL", m_rearLeft.getAngle());
     SmartDashboard.putNumber("FR", m_frontRight.getAngle());
     SmartDashboard.putNumber("RR", m_rearRight.getAngle());
-    m_frontLeft.updateSmartDashboard();
+    // SmartDashboard.putNumber("FL_raw", m_frontLeft.getRawAngle());
+    // SmartDashboard.putNumber("RL_raw", m_rearLeft.getRawAngle());
+    // SmartDashboard.putNumber("FR_raw", m_frontRight.getRawAngle());
+    // SmartDashboard.putNumber("RR_raw", m_rearRight.getRawAngle());
+    // SmartDashboard.putNumber("FL_radians", m_frontLeft.getRawRadians());
+    // SmartDashboard.putNumber("RL_RR", m_rearLeft.getRawRadians());
+    // SmartDashboard.putNumber("FR_RR", m_frontRight.getRawRadians());
+    // SmartDashboard.putNumber("RR_RR", m_rearRight.getRawRadians());
   }
 
   /**
