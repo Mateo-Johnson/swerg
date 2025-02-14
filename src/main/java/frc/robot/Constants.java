@@ -50,8 +50,8 @@ public final class Constants {
     public static final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
     public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
     // MK4i GEAR RATIO CONFIG (I THINK)
-    public static final int kDrivingMotorPinionTeeth = 16; // STANDARD MK4i PINION
     public static final double kDrivingMotorReduction = 12.75; // L3 RATIO
+    public static final double kTurningMotorReduction = 21.43;
 
     // MOTOR ATTRIBUTES
     public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60.0;

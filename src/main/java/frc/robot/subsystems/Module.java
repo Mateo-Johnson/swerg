@@ -4,6 +4,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogEncoder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -13,22 +15,17 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 
 public class Module {
-    //SPARKS, ENCODERS, CLOSED LOOP CONTROLLERS
     private final SparkMax m_drivingSpark;
     private final SparkMax m_turningSpark;
     private final RelativeEncoder m_drivingEncoder;
     private final RelativeEncoder m_turningEncoder;
+    private final AnalogEncoder m_turningAnalogEncoder;
     private final SparkClosedLoopController m_drivingClosedLoopController;
     private final SparkClosedLoopController m_turningClosedLoopController;
-
-    //ANALOG ENCODER/OFFSET
-    private final AnalogEncoder m_turningAnalogEncoder;
     private final double m_analogEncoderOffset;
-    
     @SuppressWarnings("unused")
     private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
-    //CONSTRUCTOR FOR MODULE
     public Module(int drivingCANId, int turningCANId, int analogPort, double analogOffset) {
         m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
         m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
@@ -39,7 +36,7 @@ public class Module {
         m_turningClosedLoopController = m_turningSpark.getClosedLoopController();
         m_analogEncoderOffset = analogOffset;
 
-        // APPLY CONFIG
+        // Apply configurations
         m_drivingSpark.configure(Config.MAXSwerveModule.drivingConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
         m_turningSpark.configure(Config.MAXSwerveModule.turningConfig, ResetMode.kResetSafeParameters,
@@ -48,81 +45,64 @@ public class Module {
     }
 
     public double getAngle() {
-
-        // GET POSITION [0, 1]
+        // Get position 0-1
         double pos = m_turningAnalogEncoder.get();
-
-        // CONVERT TO RADIANS
+        // Convert to position
         double position = pos * (2*Math.PI);
-
-        // SUBRACT OFFSET
         position = position - m_analogEncoderOffset;
-
-        // NORMALIZE TO [0, 2π]
+        // Normalize to [0, 2π]
         position %= 2.0 * Math.PI;
         if (position < 0.0) {
             position += 2.0 * Math.PI;
         }
-
         return position;
     }
 
     public double getAngleDegrees() {
-
-        // GET POSITION [0, 1]
+        // Get position [0, 1]
         double pos = m_turningAnalogEncoder.get();
-
-        // CONVERT TO RADIANS AND THEN DEGREES
-        double position = Math.toDegrees(pos * (2*Math.PI));
-
-        // SUBTRACT OFFSET
+        // Convert to position [0, 2π]
+        double position = pos * (2*Math.PI);
+        //Subtract Angular Offset
         position = position - m_analogEncoderOffset;
-
-        // NORMALIZE TO [0, 2π]
+        // Normalize to [0, 2π]
         position %= 2.0 * Math.PI;
         if (position < 0.0) {
             position += 2.0 * Math.PI;
         }
-
-        return position;
+        //Convert to degrees
+        return Math.toDegrees(position);
     }
 
     public double getRawRadians() {
-
-        // GET POSITION [0, 1]
+        // Get position 0-1
         double pos = m_turningAnalogEncoder.get();
-
-        // CONVERT TO RADIANS
+        // Convert to position
         double position = pos * (2*Math.PI);
-
-        // NORMALIZE TO [0, 2π]
+        // Normalize to [0, 2π]
         position %= 2.0 * Math.PI;
         if (position < 0.0) {
             position += 2.0 * Math.PI;
         }
-
-        //DO NOT SUBTRACT ANGULAR OFFSET
-
         return position;
     }
 
     public double getRawAngle() {
-        // GET POSITION [0, 1]
         double raw = m_turningAnalogEncoder.get();
         return raw;
     }
 
     private void syncEncoders() {
-        // GET CURRENT ANGLE WITH OFFSET
+        // Get current absolute angle
         double absoluteAngle = getAngle();
 
-        // DISABLE CLOSED LOOP CONTROL TEMPORARILY
+        // Disable closed-loop control temporarily
         m_turningClosedLoopController.setReference(0, ControlType.kDutyCycle);
 
-        // SET RELATIVE ENCODER POSITION TO MATCH ABSOLUTE ENCODER POSITION
+        // Set relative encoder position to match absolute position
         m_turningEncoder.setPosition(absoluteAngle);
 
-        // RE-ENABLE CLOSED LOOP CONTROL
+        // Re-enable closed-loop control
         m_turningClosedLoopController.setReference(absoluteAngle, ControlType.kPosition);
     }
 
@@ -137,24 +117,36 @@ public class Module {
                 new Rotation2d(getAngle() ));
     }
 
-    public void setDesiredState(SwerveModuleState desiredState) {
-        SwerveModuleState correctedDesiredState = new SwerveModuleState();
-        correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
-        correctedDesiredState.angle = desiredState.angle;
+    public void setDesiredState(SwerveModuleState desiredState, int moduleNumber) {
+    SwerveModuleState correctedDesiredState = new SwerveModuleState();
+    correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
+    correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromDegrees(30));
 
-        // GET THE CURRENT ANGLE TO OPTIMIZE
-        double currentAngleRadians = getAngle();
+    // Get the current angle for optimization
+    double currentAngleRadians = getAngle();
 
-        // OPTIMIZE TO STOP FROM SPINNING MORE THAN 90°
-        @SuppressWarnings("deprecation")
-        SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
-                new Rotation2d(currentAngleRadians));
+    // Debug values to SmartDashboard with module number
+    String prefix = "Module " + moduleNumber + " ";
+    SmartDashboard.putNumber(prefix + "Current Angle (rad)", currentAngleRadians);
+    SmartDashboard.putNumber(prefix + "Current Angle (deg)", Math.toDegrees(currentAngleRadians));
+    SmartDashboard.putNumber(prefix + "Target Angle (deg)", correctedDesiredState.angle.getDegrees());
 
-        // COMMAND DRIVING AND TURNING SPARKS TOWARD SETPOINT
-        m_drivingClosedLoopController.setReference(optimizedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
-        m_turningClosedLoopController.setReference(optimizedDesiredState.angle.getRadians(), ControlType.kPosition);
-        m_desiredState = desiredState;
-    }
+    // Optimize the reference state
+    @SuppressWarnings("deprecation")
+    SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
+            new Rotation2d(currentAngleRadians));
+
+    SmartDashboard.putNumber(prefix + "Optimized Angle (deg)", optimizedDesiredState.angle.getDegrees());
+
+    // Command driving and turning SPARKS
+    m_drivingClosedLoopController.setReference(optimizedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
+    m_turningClosedLoopController.setReference(optimizedDesiredState.angle.getRadians(), ControlType.kPosition);
+    
+    // Store the optimized state instead of the original
+    m_desiredState = optimizedDesiredState;
+
+    SmartDashboard.putNumber(prefix + "Reference Angle Set (rad)", optimizedDesiredState.angle.getRadians());
+}
 
     public void resetEncoders() {
         syncEncoders();

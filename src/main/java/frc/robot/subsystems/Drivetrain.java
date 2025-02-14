@@ -136,10 +136,10 @@ public class Drivetrain extends SubsystemBase {
         DriveConstants.kMaxSpeedMetersPerSecond);
 
     // SET STATES FOR EACH MODULE
-    m_frontLeft.setDesiredState(swerveModuleStates[0]);
-    m_frontRight.setDesiredState(swerveModuleStates[1]);
-    m_rearLeft.setDesiredState(swerveModuleStates[2]);
-    m_rearRight.setDesiredState(swerveModuleStates[3]);
+    m_frontLeft.setDesiredState(swerveModuleStates[0], 1);
+    m_frontRight.setDesiredState(swerveModuleStates[1], 2);
+    m_rearLeft.setDesiredState(swerveModuleStates[2], 3);
+    m_rearRight.setDesiredState(swerveModuleStates[3], 4);
   }
 
   /**
@@ -150,10 +150,10 @@ public class Drivetrain extends SubsystemBase {
   public void setModuleStates(SwerveModuleState[] desiredStates) {
     SwerveDriveKinematics.desaturateWheelSpeeds(
         desiredStates, DriveConstants.kMaxSpeedMetersPerSecond);
-    m_frontLeft.setDesiredState(desiredStates[0]);
-    m_frontRight.setDesiredState(desiredStates[1]);
-    m_rearLeft.setDesiredState(desiredStates[2]);
-    m_rearRight.setDesiredState(desiredStates[3]);
+    m_frontLeft.setDesiredState(desiredStates[0], 1);
+    m_frontRight.setDesiredState(desiredStates[1], 2);
+    m_rearLeft.setDesiredState(desiredStates[2], 3);
+    m_rearRight.setDesiredState(desiredStates[3], 4);
   }
 
   /** Resets the drive encoders to currently read a position of 0. */
