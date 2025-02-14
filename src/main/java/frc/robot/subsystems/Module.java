@@ -91,17 +91,23 @@ public class Module {
     }
 
     private void syncEncoders() {
-        // Get current absolute angle
-        double absoluteAngle = getAngle();
+        // Get raw angle without offset
+        double rawAngle = getRawRadians();
 
         // Disable closed-loop control temporarily
         m_turningClosedLoopController.setReference(0, ControlType.kDutyCycle);
 
         // Set relative encoder position to match absolute position
-        m_turningEncoder.setPosition(absoluteAngle);
+        m_turningEncoder.setPosition(rawAngle);
 
-        // Re-enable closed-loop control
-        m_turningClosedLoopController.setReference(absoluteAngle, ControlType.kPosition);
+        // Re-enable closed-loop control with the offset-adjusted target
+        double targetAngle = rawAngle - m_analogEncoderOffset;
+        // Normalize to [0, 2π]
+        targetAngle %= 2.0 * Math.PI;
+        if (targetAngle < 0.0) {
+            targetAngle += 2.0 * Math.PI;
+        }
+        m_turningClosedLoopController.setReference(targetAngle, ControlType.kPosition);
     }
 
     public SwerveModuleState getState() {
