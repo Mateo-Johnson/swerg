@@ -9,28 +9,22 @@ public final class Constants {
 
 
   public static final class DriveConstants {
-    // Driving Parameters - Note that these are not the maximum capable speeds of
-    // the robot, rather the allowed maximum speeds
+    // BE CAREFUL, THESE ARE THE MAX ALLOWED SPEEDS, NOT THE MAX CAPABLE
     public static final double kMaxSpeedMetersPerSecond = 4.8;
-    public static final double kMaxAngularSpeed = 2 * Math.PI; // radians per second
+    public static final double kMaxAngularSpeed = 2 * Math.PI; // RADIANS/SECOND
 
-    // Chassis configuration
-    public static final double kTrackWidth = Units.inchesToMeters(23.75);
-    // Distance between centers of right and left wheels on robot
+    // CHASSIS CONFIG
+    //DISTANCE BETWEEN CENTER OF RIGHT AND LEFT MODULE 
+    public static final double kTrackWidth = Units.inchesToMeters(23.75); // THIS IS CORRECT FOR 2025 DRIVETRAIN
+    // DISTANCE BETWEEN CENTER OF FRONT AND BACK MODULE
     public static final double kWheelBase = Units.inchesToMeters(23.75);
-    // Distance between the centers of front and back wheels on robot
+
+    //CREATE A KINEMATICS OBJECT USING THOSE DIMENSIONS
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
         new Translation2d(kWheelBase / 2, kTrackWidth / 2),
         new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
         new Translation2d(-kWheelBase / 2, kTrackWidth / 2),
         new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
-
-    // Angular offsets of the modules relative to the chassis in radians DON'T
-    // CHANGE
-    public static final double kFrontLeftChassisAngularOffset = 0;
-    public static final double kFrontRightChassisAngularOffset = 0;
-    public static final double kBackLeftChassisAngularOffset = 0;
-    public static final double kBackRightChassisAngularOffset = 0;
 
     // SPARKMAX CAN IDs
     public static final int kFrontLeftDrivingCanId = 10;
@@ -55,18 +49,18 @@ public final class Constants {
   public static final class ModuleConstants {
     public static final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
     public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
-    // MK4i gear ratio configuration
-    public static final int kDrivingMotorPinionTeeth = 16; // Standard MK4i pinion
-    public static final double kDrivingMotorReduction = 12.75; // L3 gear ratio
+    // MK4i GEAR RATIO CONFIG (I THINK)
+    public static final int kDrivingMotorPinionTeeth = 16; // STANDARD MK4i PINION
+    public static final double kDrivingMotorReduction = 12.75; // L3 RATIO
 
-    // Motor characteristics
+    // MOTOR ATTRIBUTES
     public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60.0;
     public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters)
         / kDrivingMotorReduction;
   }
 
   public static final class OIConstants {
-    public static final int kDriverControllerPort = 0;
+    public static final int kDriverControllerPort = 0; //CONTROLLER PORT
     public static final double kDriveDeadband = 0.05;
   }
 
@@ -80,7 +74,7 @@ public final class Constants {
     public static final double kPYController = 1;
     public static final double kPThetaController = 1;
 
-    // Constraint for the motion profiled robot angle controller
+    // CONSTRAIN THE MOTION PROFILED CONTROLLER
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
         kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
   }

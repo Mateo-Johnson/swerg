@@ -11,21 +11,25 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
-import frc.robot.Configs;
 
-public class MAXSwerveModule {
+public class Module {
+    //SPARKS, ENCODERS, CLOSED LOOP CONTROLLERS
     private final SparkMax m_drivingSpark;
     private final SparkMax m_turningSpark;
     private final RelativeEncoder m_drivingEncoder;
     private final RelativeEncoder m_turningEncoder;
-    private final AnalogEncoder m_turningAnalogEncoder;
     private final SparkClosedLoopController m_drivingClosedLoopController;
     private final SparkClosedLoopController m_turningClosedLoopController;
+
+    //ANALOG ENCODER/OFFSET
+    private final AnalogEncoder m_turningAnalogEncoder;
     private final double m_analogEncoderOffset;
+    
     @SuppressWarnings("unused")
     private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
-    public MAXSwerveModule(int drivingCANId, int turningCANId, int analogPort, double analogOffset) {
+    //CONSTRUCTOR FOR MODULE
+    public Module(int drivingCANId, int turningCANId, int analogPort, double analogOffset) {
         m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
         m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
         m_drivingEncoder = m_drivingSpark.getEncoder();
@@ -35,73 +39,90 @@ public class MAXSwerveModule {
         m_turningClosedLoopController = m_turningSpark.getClosedLoopController();
         m_analogEncoderOffset = analogOffset;
 
-        // Apply configurations
-        m_drivingSpark.configure(Configs.MAXSwerveModule.drivingConfig, ResetMode.kResetSafeParameters,
+        // APPLY CONFIG
+        m_drivingSpark.configure(Config.MAXSwerveModule.drivingConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
-        m_turningSpark.configure(Configs.MAXSwerveModule.turningConfig, ResetMode.kResetSafeParameters,
+        m_turningSpark.configure(Config.MAXSwerveModule.turningConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
         syncEncoders();
     }
 
     public double getAngle() {
-        // Get position 0-1
+
+        // GET POSITION [0, 1]
         double pos = m_turningAnalogEncoder.get();
-        // Convert to position
+
+        // CONVERT TO RADIANS
         double position = pos * (2*Math.PI);
+
+        // SUBRACT OFFSET
         position = position - m_analogEncoderOffset;
-        // Normalize to [0, 2π]
+
+        // NORMALIZE TO [0, 2π]
         position %= 2.0 * Math.PI;
         if (position < 0.0) {
             position += 2.0 * Math.PI;
         }
+
         return position;
     }
 
     public double getAngleDegrees() {
-        // Get position [0, 1]
+
+        // GET POSITION [0, 1]
         double pos = m_turningAnalogEncoder.get();
-        // Convert to position [0, 2π]
-        double position = pos * (2*Math.PI);
-        //Subtract Angular Offset
+
+        // CONVERT TO RADIANS AND THEN DEGREES
+        double position = Math.toDegrees(pos * (2*Math.PI));
+
+        // SUBTRACT OFFSET
         position = position - m_analogEncoderOffset;
-        // Normalize to [0, 2π]
+
+        // NORMALIZE TO [0, 2π]
         position %= 2.0 * Math.PI;
         if (position < 0.0) {
             position += 2.0 * Math.PI;
         }
-        //Convert to degrees
-        return Math.toDegrees(position);
+
+        return position;
     }
 
     public double getRawRadians() {
-        // Get position 0-1
+
+        // GET POSITION [0, 1]
         double pos = m_turningAnalogEncoder.get();
-        // Convert to position
+
+        // CONVERT TO RADIANS
         double position = pos * (2*Math.PI);
-        // Normalize to [0, 2π]
+
+        // NORMALIZE TO [0, 2π]
         position %= 2.0 * Math.PI;
         if (position < 0.0) {
             position += 2.0 * Math.PI;
         }
+
+        //DO NOT SUBTRACT ANGULAR OFFSET
+
         return position;
     }
 
     public double getRawAngle() {
+        // GET POSITION [0, 1]
         double raw = m_turningAnalogEncoder.get();
         return raw;
     }
 
     private void syncEncoders() {
-        // Get current absolute angle
+        // GET CURRENT ANGLE WITH OFFSET
         double absoluteAngle = getAngle();
 
-        // Disable closed-loop control temporarily
+        // DISABLE CLOSED LOOP CONTROL TEMPORARILY
         m_turningClosedLoopController.setReference(0, ControlType.kDutyCycle);
 
-        // Set relative encoder position to match absolute position
+        // SET RELATIVE ENCODER POSITION TO MATCH ABSOLUTE ENCODER POSITION
         m_turningEncoder.setPosition(absoluteAngle);
 
-        // Re-enable closed-loop control
+        // RE-ENABLE CLOSED LOOP CONTROL
         m_turningClosedLoopController.setReference(absoluteAngle, ControlType.kPosition);
     }
 
@@ -121,15 +142,15 @@ public class MAXSwerveModule {
         correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
         correctedDesiredState.angle = desiredState.angle;
 
-        // Get the current angle for optimization
+        // GET THE CURRENT ANGLE TO OPTIMIZE
         double currentAngleRadians = getAngle();
 
-        // Optimize the reference state to avoid spinning further than 90 degrees
+        // OPTIMIZE TO STOP FROM SPINNING MORE THAN 90°
         @SuppressWarnings("deprecation")
         SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
                 new Rotation2d(currentAngleRadians));
 
-        // Command driving and turning SPARKS towards their respective setpoints
+        // COMMAND DRIVING AND TURNING SPARKS TOWARD SETPOINT
         m_drivingClosedLoopController.setReference(optimizedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
         m_turningClosedLoopController.setReference(optimizedDesiredState.angle.getRadians(), ControlType.kPosition);
         m_desiredState = desiredState;

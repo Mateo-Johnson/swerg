@@ -1,12 +1,7 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.hal.FRCNetComm.tInstances;
-import edu.wpi.first.hal.FRCNetComm.tResourceType;
-
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
-
-import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -18,36 +13,41 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class DriveSubsystem extends SubsystemBase {
-  // Create MAXSwerveModules
-  private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
+public class Drivetrain extends SubsystemBase {
+  //CREATE MODULES
+
+  //FRONT LEFT
+  private final Module m_frontLeft = new Module(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
       0);
 
-  private final MAXSwerveModule m_frontRight = new MAXSwerveModule(
+  //FRONT RIGHT
+  private final Module m_frontRight = new Module(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
       0);
 
-  private final MAXSwerveModule m_rearLeft = new MAXSwerveModule(
+  //REAR LEFT
+  private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
       0);
 
-  private final MAXSwerveModule m_rearRight = new MAXSwerveModule(
+  //REAR RIGHT
+  private final Module m_rearRight = new Module(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
       2.471130058127283);
 
-  // The gyro sensor
+  //CREATE GYRO (NAVX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 
-  // Odometry class for tracking robot pose
+  //ODOMETRY FOR TRACKING ROBOT
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
       DriveConstants.kDriveKinematics,
       Rotation2d.fromDegrees(m_gyro.getAngle()),
@@ -58,15 +58,9 @@ public class DriveSubsystem extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
-  /** Creates a new DriveSubsystem. */
-  public DriveSubsystem() {
-    // Usage reporting for MAXSwerve template
-    HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
-  }
-
   @Override
   public void periodic() {
-    // Update the odometry in the periodic block
+    //UPDATE THE ODOMETRY IN PERIODIC
     m_odometry.update(
         Rotation2d.fromDegrees(m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -76,18 +70,11 @@ public class DriveSubsystem extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
+    //PRINT ALL OF THE MODULE VALUES IN RAW RADIANS
     SmartDashboard.putNumber("FL", m_frontLeft.getAngle());
     SmartDashboard.putNumber("RL", m_rearLeft.getAngle());
     SmartDashboard.putNumber("FR", m_frontRight.getAngle());
     SmartDashboard.putNumber("RR", m_rearRight.getAngle());
-    // SmartDashboard.putNumber("FL_raw", m_frontLeft.getRawAngle());
-    // SmartDashboard.putNumber("RL_raw", m_rearLeft.getRawAngle());
-    // SmartDashboard.putNumber("FR_raw", m_frontRight.getRawAngle());
-    // SmartDashboard.putNumber("RR_raw", m_rearRight.getRawAngle());
-    // SmartDashboard.putNumber("FL_radians", m_frontLeft.getRawRadians());
-    // SmartDashboard.putNumber("RL_RR", m_rearLeft.getRawRadians());
-    // SmartDashboard.putNumber("FR_RR", m_frontRight.getRawRadians());
-    // SmartDashboard.putNumber("RR_RR", m_rearRight.getRawRadians());
   }
 
   /**
@@ -126,12 +113,12 @@ public class DriveSubsystem extends SubsystemBase {
    *                      field.
    */
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-    // Convert the commanded speeds into the correct units for the drivetrain
+    // CONVERT COMMANDED SPEEDS INTO CORRECT FOR DRIVETRAIN
     double xSpeedDelivered = xSpeed * DriveConstants.kMaxSpeedMetersPerSecond;
     double ySpeedDelivered = ySpeed * DriveConstants.kMaxSpeedMetersPerSecond;
     double rotDelivered = rot * DriveConstants.kMaxAngularSpeed;
 
-    // Create ChassisSpeeds object with correct coordinate system
+    // CREATE CHASSISPEEDS OBJECT WITH CORRECT COORD SYSTEM
     var chassisSpeeds = fieldRelative
         ? ChassisSpeeds.fromFieldRelativeSpeeds(
             xSpeedDelivered,
@@ -140,15 +127,15 @@ public class DriveSubsystem extends SubsystemBase {
             Rotation2d.fromDegrees(m_gyro.getAngle()))
         : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered);
 
-    // Convert to module states
+    // CHANGE TO MODULE STATES
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
 
-    // Desaturate speeds to prevent wheel overspeed
+    // DESATURATE WHEEL SPEEDS
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates,
         DriveConstants.kMaxSpeedMetersPerSecond);
 
-    // Set states for each module
+    // SET STATES FOR EACH MODULE
     m_frontLeft.setDesiredState(swerveModuleStates[0]);
     m_frontRight.setDesiredState(swerveModuleStates[1]);
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
