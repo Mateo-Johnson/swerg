@@ -22,10 +22,12 @@ public class Module {
     private final SparkClosedLoopController m_drivingClosedLoopController;
     private final SparkClosedLoopController m_turningClosedLoopController;
     private final double m_analogEncoderOffset;
+    private final boolean m_isDrivingMotorInverted;  // Flag to track if the driving motor is inverted
     @SuppressWarnings("unused")
     private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
-    public Module(int drivingCANId, int turningCANId, int analogPort, double analogOffset) {
+    // Modified constructor to take in the 'inverted' parameter
+    public Module(int drivingCANId, int turningCANId, int analogPort, double analogOffset, boolean isDrivingMotorInverted) {
         m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
         m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
         m_drivingEncoder = m_drivingSpark.getEncoder();
@@ -34,35 +36,35 @@ public class Module {
         m_drivingClosedLoopController = m_drivingSpark.getClosedLoopController();
         m_turningClosedLoopController = m_turningSpark.getClosedLoopController();
         m_analogEncoderOffset = analogOffset;
+        m_isDrivingMotorInverted = isDrivingMotorInverted; // Set inversion flag
 
         // Apply configurations
         m_drivingSpark.configure(Config.MAXSwerveModule.drivingConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
         m_turningSpark.configure(Config.MAXSwerveModule.turningConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
+
+        // Apply the inversion flag to the motor controller
+        m_drivingSpark.setInverted(m_isDrivingMotorInverted);
+
         syncEncoders();
     }
 
+    // Getter for checking if the driving motor is inverted
+    public boolean isDrivingMotorInverted() {
+        return m_isDrivingMotorInverted;
+    }
+
     public double getAngle() {
-        // Get raw position (0-1)
         double pos = m_turningAnalogEncoder.get();
-        
-        // Convert to full rotation
         double position = pos * (2 * Math.PI);
-        
-        // Apply offset before normalization
         position = position - m_analogEncoderOffset;
-        
-        // Use MathUtil to normalize to [-π, π]
         return MathUtil.angleModulus(position);
     }
 
     public double getRawRadians() {
-        // Get position 0-1
         double pos = m_turningAnalogEncoder.get();
-        // Convert to position
         double position = pos * (2 * Math.PI);
-        // Normalize to [-π, π]
         position = position % (2 * Math.PI);
         if (position > Math.PI) {
             position -= 2 * Math.PI;
@@ -78,18 +80,10 @@ public class Module {
     }
 
     private void syncEncoders() {
-        // Get raw angle without offset
         double angle = getAngle();
-    
-        // Disable closed-loop control temporarily
         m_turningClosedLoopController.setReference(0, ControlType.kDutyCycle);
-    
-        // Set relative encoder position to match absolute position
         m_turningEncoder.setPosition(getAngle());
-    
-        // Apply offset and normalize exactly like getAngle() does
         double targetAngle = angle;
-        
         m_turningClosedLoopController.setReference(targetAngle, ControlType.kPosition);
     }
 
@@ -105,25 +99,23 @@ public class Module {
     }
 
     public void setDesiredState(SwerveModuleState desiredState) {
-        // Apply chassis angular offset to the desired state.
         SwerveModuleState correctedDesiredState = new SwerveModuleState();
         correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
         correctedDesiredState.angle = desiredState.angle;
-    
-        // Optimize the reference state to avoid spinning further than 90 degrees.
+
         correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
-    
-        // Command driving and turning SPARKS towards their respective setpoints.
-        m_drivingClosedLoopController.setReference(correctedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
+
+        // If the driving motor is inverted, we reverse the sign of the desired speed
+        double speedToSet = m_isDrivingMotorInverted ? -correctedDesiredState.speedMetersPerSecond
+                                                     : correctedDesiredState.speedMetersPerSecond;
+        
+        m_drivingClosedLoopController.setReference(speedToSet, ControlType.kVelocity);
         m_turningClosedLoopController.setReference(correctedDesiredState.angle.getRadians(), ControlType.kPosition);
-    
+
         m_desiredState = desiredState;
-      }
+    }
 
     public void resetEncoders() {
         syncEncoders();
     }
-
-    
-    
 }
