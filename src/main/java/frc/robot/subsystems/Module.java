@@ -46,41 +46,29 @@ public class Module {
         // Get position 0-1
         double pos = m_turningAnalogEncoder.get();
         // Convert to position
-        double position = pos * (2*Math.PI);
+        double position = pos * (2 * Math.PI);
         position = position - m_analogEncoderOffset;
-        // Normalize to [0, 2π]
-        position %= 2.0 * Math.PI;
-        if (position < 0.0) {
-            position += 2.0 * Math.PI;
+        // Normalize to [-π, π]
+        position = position % (2 * Math.PI);
+        if (position > Math.PI) {
+            position -= 2 * Math.PI;
+        } else if (position < -Math.PI) {
+            position += 2 * Math.PI;
         }
         return position;
-    }
-
-    public double getAngleDegrees() {
-        // Get position [0, 1]
-        double pos = m_turningAnalogEncoder.get();
-        // Convert to position [0, 2π]
-        double position = pos * (2*Math.PI);
-        //Subtract Angular Offset
-        position = position - m_analogEncoderOffset;
-        // Normalize to [0, 2π]
-        position %= 2.0 * Math.PI;
-        if (position < 0.0) {
-            position += 2.0 * Math.PI;
-        }
-        //Convert to degrees
-        return Math.toDegrees(position);
     }
 
     public double getRawRadians() {
         // Get position 0-1
         double pos = m_turningAnalogEncoder.get();
         // Convert to position
-        double position = pos * (2*Math.PI);
-        // Normalize to [0, 2π]
-        position %= 2.0 * Math.PI;
-        if (position < 0.0) {
-            position += 2.0 * Math.PI;
+        double position = pos * (2 * Math.PI);
+        // Normalize to [-π, π]
+        position = position % (2 * Math.PI);
+        if (position > Math.PI) {
+            position -= 2 * Math.PI;
+        } else if (position < -Math.PI) {
+            position += 2 * Math.PI;
         }
         return position;
     }
@@ -124,7 +112,7 @@ public class Module {
     public void setDesiredState(SwerveModuleState desiredState, int moduleNumber) {
     SwerveModuleState correctedDesiredState = new SwerveModuleState();
     correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
-    correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromDegrees(30));
+    correctedDesiredState.angle = desiredState.angle;
 
     // Get the current angle for optimization
     double currentAngleRadians = getAngle();
