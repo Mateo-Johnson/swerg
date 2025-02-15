@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -43,19 +44,17 @@ public class Module {
     }
 
     public double getAngle() {
-        // Get position 0-1
+        // Get raw position (0-1)
         double pos = m_turningAnalogEncoder.get();
-        // Convert to position
+        
+        // Convert to full rotation
         double position = pos * (2 * Math.PI);
+        
+        // Apply offset before normalization
         position = position - m_analogEncoderOffset;
-        // Normalize to [-π, π]
-        position = position % (2 * Math.PI);
-        if (position > Math.PI) {
-            position -= 2 * Math.PI;
-        } else if (position < -Math.PI) {
-            position += 2 * Math.PI;
-        }
-        return position;
+        
+        // Use MathUtil to normalize to [-π, π]
+        return MathUtil.angleModulus(position);
     }
 
     public double getRawRadians() {
@@ -80,21 +79,17 @@ public class Module {
 
     private void syncEncoders() {
         // Get raw angle without offset
-        double rawAngle = getRawRadians();
-
+        double angle = getAngle();
+    
         // Disable closed-loop control temporarily
         m_turningClosedLoopController.setReference(0, ControlType.kDutyCycle);
-
+    
         // Set relative encoder position to match absolute position
-        m_turningEncoder.setPosition(rawAngle);
-
-        // Re-enable closed-loop control with the offset-adjusted target
-        double targetAngle = rawAngle - m_analogEncoderOffset;
-        // Normalize to [0, 2π]
-        targetAngle %= 2.0 * Math.PI;
-        if (targetAngle < 0.0) {
-            targetAngle += 2.0 * Math.PI;
-        }
+        m_turningEncoder.setPosition(getAngle());
+    
+        // Apply offset and normalize exactly like getAngle() does
+        double targetAngle = angle;
+        
         m_turningClosedLoopController.setReference(targetAngle, ControlType.kPosition);
     }
 
@@ -109,28 +104,26 @@ public class Module {
                 new Rotation2d(getAngle() ));
     }
 
-    public void setDesiredState(SwerveModuleState desiredState, int moduleNumber) {
-    SwerveModuleState correctedDesiredState = new SwerveModuleState();
-    correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
-    correctedDesiredState.angle = desiredState.angle;
-
-    // Get the current angle for optimization
-    double currentAngleRadians = getAngle();
-
-    // Optimize the reference state
-    @SuppressWarnings("deprecation")
-    SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
-            new Rotation2d(currentAngleRadians));
-
-    // Command driving and turning SPARKS
-    m_drivingClosedLoopController.setReference(optimizedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
-    m_turningClosedLoopController.setReference(optimizedDesiredState.angle.getRadians(), ControlType.kPosition);
+    public void setDesiredState(SwerveModuleState desiredState) {
+        // Apply chassis angular offset to the desired state.
+        SwerveModuleState correctedDesiredState = new SwerveModuleState();
+        correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
+        correctedDesiredState.angle = desiredState.angle;
     
-    // Store the optimized state instead of the original
-    m_desiredState = optimizedDesiredState;
-}
+        // Optimize the reference state to avoid spinning further than 90 degrees.
+        correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
+    
+        // Command driving and turning SPARKS towards their respective setpoints.
+        m_drivingClosedLoopController.setReference(correctedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
+        m_turningClosedLoopController.setReference(correctedDesiredState.angle.getRadians(), ControlType.kPosition);
+    
+        m_desiredState = desiredState;
+      }
 
     public void resetEncoders() {
         syncEncoders();
     }
+
+    
+    
 }

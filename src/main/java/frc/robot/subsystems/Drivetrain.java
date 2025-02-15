@@ -9,11 +9,14 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Drivetrain extends SubsystemBase {
+
+  
   //CREATE MODULES
 
   //FRONT LEFT
@@ -21,31 +24,33 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
-      0);
+      -0.188421519729477);
 
   //FRONT RIGHT
   private final Module m_frontRight = new Module(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
-      0);
+      1.926711680315815);
 
   //REAR LEFT
   private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
-      2.761568156184269);
+      -0.411153751164531);
 
   //REAR RIGHT
   private final Module m_rearRight = new Module(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
-      0);
+      2.521702676177288);
 
   //CREATE GYRO (NAVX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
+
+
 
   //ODOMETRY FOR TRACKING ROBOT
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -57,6 +62,10 @@ public class Drivetrain extends SubsystemBase {
           m_rearLeft.getPosition(),
           m_rearRight.getPosition()
       });
+
+  public Drivetrain() {
+    zeroHeading();
+  }
 
   @Override
   public void periodic() {
@@ -75,6 +84,8 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("RL", m_rearLeft.getAngle());
     SmartDashboard.putNumber("FR", m_frontRight.getAngle());
     SmartDashboard.putNumber("RR", m_rearRight.getAngle());
+    double heading = getHeading();
+    SmartDashboard.putNumber("Heading", heading);
   }
 
   /**
@@ -136,10 +147,10 @@ public class Drivetrain extends SubsystemBase {
         DriveConstants.kMaxSpeedMetersPerSecond);
 
     // SET STATES FOR EACH MODULE
-    m_frontLeft.setDesiredState(swerveModuleStates[0], 1);
-    m_frontRight.setDesiredState(swerveModuleStates[1], 2);
-    m_rearLeft.setDesiredState(swerveModuleStates[2], 3);
-    m_rearRight.setDesiredState(swerveModuleStates[3], 4);
+    m_frontLeft.setDesiredState(swerveModuleStates[0]);
+    m_frontRight.setDesiredState(swerveModuleStates[1]);
+    m_rearLeft.setDesiredState(swerveModuleStates[2]);
+    m_rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
   /**
@@ -150,10 +161,10 @@ public class Drivetrain extends SubsystemBase {
   public void setModuleStates(SwerveModuleState[] desiredStates) {
     SwerveDriveKinematics.desaturateWheelSpeeds(
         desiredStates, DriveConstants.kMaxSpeedMetersPerSecond);
-    m_frontLeft.setDesiredState(desiredStates[0], 1);
-    m_frontRight.setDesiredState(desiredStates[1], 2);
-    m_rearLeft.setDesiredState(desiredStates[2], 3);
-    m_rearRight.setDesiredState(desiredStates[3], 4);
+    m_frontLeft.setDesiredState(desiredStates[0]);
+    m_frontRight.setDesiredState(desiredStates[1]);
+    m_rearLeft.setDesiredState(desiredStates[2]);
+    m_rearRight.setDesiredState(desiredStates[3]);
   }
 
   /** Resets the drive encoders to currently read a position of 0. */
