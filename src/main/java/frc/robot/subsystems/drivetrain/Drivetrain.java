@@ -126,7 +126,16 @@ public class Drivetrain extends SubsystemBase {
         pose);
   }
 
-  public void driveWithHeadingLock(double xSpeed, double ySpeed, double targetHeading, boolean fieldRelative) {
+    /**
+   * Method to drive the robot while holding an angle.
+   *
+   * @param xSpeed        Speed of the robot in the x direction (forward).
+   * @param ySpeed        Speed of the robot in the y direction (sideways).
+   * @param targetHeading The heading to hold the drivetrain to
+   * @param fieldRelative Whether the provided x and y speeds are relative to the
+   *                      field.
+   */
+  public void driveHeadingLocked(double xSpeed, double ySpeed, double targetHeading, boolean fieldRelative) {
       // Calculate rotation correction to maintain heading
       double currentHeading = getHeading();
       double rotationCorrection = headingCorrector.calculate(currentHeading, targetHeading);
