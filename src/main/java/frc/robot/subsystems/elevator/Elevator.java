@@ -62,6 +62,15 @@ public class Elevator extends SubsystemBase {
         STALLED
     }
 
+    /**
+     * Constructor for the Elevator subsystem.
+     * Initializes the hardware and the PID controller for motion control.
+     *
+     * @param motor1 The primary SparkMax motor.
+     * @param motor2 The secondary motor controller.
+     * @param heightEncoder The absolute encoder for height tracking.
+     * @param lowerLimit The limit switch to detect the lowest position.
+     */
     public Elevator(
         SparkMax motor1,
         MotorController motor2,
@@ -102,6 +111,10 @@ public class Elevator extends SubsystemBase {
         setState(ElevatorState.IDLE);
     }
 
+    /**
+     * Periodically called to update the elevator subsystem.
+     * It manages the elevator state, checks for stalling, and applies control based on the current state.
+     */
     @Override
     public void periodic() {
         updateTelemetry();
@@ -118,7 +131,11 @@ public class Elevator extends SubsystemBase {
         lastEncoderPosition = getHeight();
     }
 
-    // Manual Control Methods
+    /**
+     * Enables or disables manual control mode for the elevator.
+     *
+     * @param enabled Whether manual control should be enabled.
+     */
     public void setManualControl(boolean enabled) {
         isManualControl = enabled;
         if (enabled) {
@@ -129,6 +146,11 @@ public class Elevator extends SubsystemBase {
         }
     }
 
+    /**
+     * Sets the speed for manual control of the elevator.
+     *
+     * @param speed The speed of the elevator, constrained by the manual speed limit.
+     */
     public void setManualSpeed(double speed) {
         if (!isManualControl) return;
         speed = Math.max(-MANUAL_SPEED_LIMIT, Math.min(MANUAL_SPEED_LIMIT, speed));
@@ -143,7 +165,11 @@ public class Elevator extends SubsystemBase {
         setMotorOutput(manualSpeed);
     }
 
-    // Setpoint Control Methods
+    /**
+     * Moves the elevator to a specified setpoint from the predefined setpoints array.
+     *
+     * @param setpointIndex The index of the setpoint to move to.
+     */
     public void moveToSetpoint(int setpointIndex) {
         if (setpointIndex < 0 || setpointIndex >= SETPOINTS.length) {
             throw new IllegalArgumentException("Invalid setpoint index");
@@ -153,17 +179,27 @@ public class Elevator extends SubsystemBase {
         setState(ElevatorState.MOVING_TO_POSITION);
     }
 
+    /**
+     * Checks if the elevator has reached the setpoint.
+     *
+     * @return True if the elevator has reached the target setpoint, false otherwise.
+     */
     public boolean atSetpoint() {
         return pidController.atGoal();
     }
 
-    // Homing Methods
+    /**
+     * Starts the homing process, moving the elevator down until it reaches the lower limit switch.
+     */
     public void startHoming() {
         isManualControl = false;
         setState(ElevatorState.HOMING);
         setMotorOutput(-0.2); // Moving down at 20% speed until limit switch
     }
 
+    /**
+     * Completes the homing process by resetting the encoder position to 0 when the lower limit is triggered.
+     */
     public void completeHoming() {
         if (currentState == ElevatorState.HOMING && lowerLimit.get()) {
             motor1.getEncoder().setPosition(0);
@@ -171,11 +207,18 @@ public class Elevator extends SubsystemBase {
         }
     }
 
-    // Safety Features
+    /**
+     * Enables or disables the soft limits, which prevent the elevator from moving beyond its safety limits.
+     *
+     * @param enabled Whether to enable soft limits.
+     */
     public void enableSoftLimits(boolean enabled) {
         softLimitsEnabled = enabled;
     }
 
+    /**
+     * Checks if the elevator is stalled based on encoder position and motor output.
+     */
     private void checkStallCondition() {
         double currentPosition = getHeight();
         boolean isMoving = Math.abs(motor1.get()) > 0.1;
@@ -191,7 +234,11 @@ public class Elevator extends SubsystemBase {
         }
     }
 
-    // State Management
+    /**
+     * Sets the current state of the elevator subsystem.
+     *
+     * @param newState The new state to set.
+     */
     public void setState(ElevatorState newState) {
         if (currentState != newState) {
             currentState = newState;
@@ -199,7 +246,10 @@ public class Elevator extends SubsystemBase {
         }
     }
 
-    // Telemetry
+    /**
+     * Updates the telemetry displayed on the SmartDashboard.
+     * Displays the elevator's current state, height, target, and other relevant information.
+     */
     private void updateTelemetry() {
         SmartDashboard.putString("Elevator/State", currentState.toString());
         SmartDashboard.putNumber("Elevator/Height", getHeight());
@@ -210,11 +260,20 @@ public class Elevator extends SubsystemBase {
         SmartDashboard.putNumber("Elevator/Output", motor1.get());
     }
 
-    // Utility Methods
+    /**
+     * Retrieves the current height of the elevator based on the encoder position.
+     *
+     * @return The current height in meters.
+     */
     public double getHeight() {
         return heightEncoder.getPosition();
     }
 
+    /**
+     * Sets the output for the elevator motors.
+     *
+     * @param output The desired output speed for the motors.
+     */
     private void setMotorOutput(double output) {
         if (currentState == ElevatorState.ERROR || currentState == ElevatorState.STALLED) {
             output = 0;
@@ -231,23 +290,45 @@ public class Elevator extends SubsystemBase {
         motor2.set(output);
     }
 
-    // Status Methods
+    /**
+     * Checks if the elevator is at the lower limit position.
+     *
+     * @return True if the elevator is at the lower limit, false otherwise.
+     */
     public boolean isAtLowerLimit() {
         return !lowerLimit.get();
     }
 
+    /**
+     * Retrieves the current setpoint that the elevator is moving towards.
+     *
+     * @return The current setpoint in meters.
+     */
     public double getCurrentSetpoint() {
         return pidController.getGoal().position;
     }
 
+    /**
+     * Retrieves the current state of the elevator subsystem.
+     *
+     * @return The current state.
+     */
     public ElevatorState getCurrentState() {
         return currentState;
     }
 
+    /**
+     * Checks if the elevator is stalled.
+     *
+     * @return True if the elevator is stalled, false otherwise.
+     */
     public boolean isStalled() {
         return isStalled;
     }
 
+    /**
+     * Clears any error or stalled condition, returning the elevator to the idle state.
+     */
     public void clearError() {
         if (currentState == ElevatorState.ERROR || currentState == ElevatorState.STALLED) {
             setState(ElevatorState.IDLE);
@@ -256,7 +337,13 @@ public class Elevator extends SubsystemBase {
         }
     }
 
-    // Configuration Methods
+    /**
+     * Configures the PID controller for the elevator with custom PID values.
+     *
+     * @param p The proportional constant.
+     * @param i The integral constant.
+     * @param d The derivative constant.
+     */
     public void configurePID(double p, double i, double d) {
         var config = new SparkMaxConfig();
         config.closedLoop
@@ -268,10 +355,21 @@ public class Elevator extends SubsystemBase {
         );
     }
 
+    /**
+     * Configures the motion profile constraints for the elevator's motion (max velocity and acceleration).
+     *
+     * @param maxVelocity The maximum velocity in meters per second.
+     * @param maxAcceleration The maximum acceleration in meters per second squared.
+     */
     public void configureMotionConstraints(double maxVelocity, double maxAcceleration) {
         pidController.setConstraints(new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration));
     }
 
+    /**
+     * Configures the encoder conversion factor for the elevator to translate encoder ticks to meters.
+     *
+     * @param metersPerRotation The number of meters per encoder rotation.
+     */
     public void configureEncoderConversion(double metersPerRotation) {
         var config = new SparkMaxConfig();
         config.encoder
