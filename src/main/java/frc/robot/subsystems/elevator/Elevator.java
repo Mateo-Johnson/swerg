@@ -13,7 +13,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-public class ElevatorSubsystem extends SubsystemBase {
+public class Elevator extends SubsystemBase {
     // Hardware
     private final SparkMax motor1;
     private final MotorController motor2;
@@ -62,7 +62,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         STALLED
     }
 
-    public ElevatorSubsystem(
+    public Elevator(
         SparkMax motor1,
         MotorController motor2,
         AbsoluteEncoder heightEncoder,
