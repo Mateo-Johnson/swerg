@@ -45,10 +45,12 @@ public class ElevatorSubsystem extends SubsystemBase {
     private static final double MANUAL_SPEED_LIMIT = 0.8;
     private static final double STALL_THRESHOLD = 0.001; // meters
     private static final int STALL_SAMPLES_THRESHOLD = 50; // 50 * 20ms = 1 second
+    @SuppressWarnings("unused")
     private static final double CURRENT_LIMIT = 40.0; // amps
     
     // State tracking
     private ElevatorState currentState = ElevatorState.IDLE;
+    @SuppressWarnings("unused")
     private double lastStateChangeTime = 0.0;
 
     public enum ElevatorState {
