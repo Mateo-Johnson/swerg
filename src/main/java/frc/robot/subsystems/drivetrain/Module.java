@@ -29,6 +29,7 @@ public class Module {
     private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
     // Modified constructor to take in the 'inverted' parameter
+    @SuppressWarnings("deprecation")
     public Module(int drivingCANId, int turningCANId, int analogPort, double analogOffset, boolean isDrivingMotorInverted) {
         m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
         m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
