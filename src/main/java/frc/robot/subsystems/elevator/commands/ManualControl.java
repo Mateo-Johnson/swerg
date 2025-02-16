@@ -1,15 +1,14 @@
-// ManualElevatorCommand.java
 package frc.robot.subsystems.elevator.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.Elevator.ElevatorState;
 
-public class ManualElevatorCommand extends Command {
+public class ManualControl extends Command {
     private final Elevator m_elevator;
     private final double m_speed;
 
-    public ManualElevatorCommand(Elevator elevator, double speed) {
+    public ManualControl(Elevator elevator, double speed) {
         m_elevator = elevator;
         m_speed = speed;
         addRequirements(m_elevator);
