@@ -42,9 +42,9 @@ public class Module {
         m_isDrivingMotorInverted = isDrivingMotorInverted; // Set inversion flag
 
         // Apply configurations
-        m_drivingSpark.configure(Config.MAXSwerveModule.drivingConfig, ResetMode.kResetSafeParameters,
+        m_drivingSpark.configure(Config.Module.drivingConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
-        m_turningSpark.configure(Config.MAXSwerveModule.turningConfig, ResetMode.kResetSafeParameters,
+        m_turningSpark.configure(Config.Module.turningConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
 
         // Apply the inversion flag to the motor controller
