@@ -2,6 +2,8 @@ package frc.robot.subsystems.drivetrain;
 
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
+
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -53,7 +55,8 @@ public class Drivetrain extends SubsystemBase {
   //CREATE GYRO (NAVX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 
-
+  //PID CONTROLLERS
+  private PIDController headingCorrector = new PIDController(0.1, 0, 0.01);
 
   //ODOMETRY FOR TRACKING ROBOT
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -121,6 +124,18 @@ public class Drivetrain extends SubsystemBase {
             m_rearRight.getPosition()
         },
         pose);
+  }
+
+  public void driveWithHeadingLock(double xSpeed, double ySpeed, double targetHeading, boolean fieldRelative) {
+      // Calculate rotation correction to maintain heading
+      double currentHeading = getHeading();
+      double rotationCorrection = headingCorrector.calculate(currentHeading, targetHeading);
+      
+      // Clamp the rotation correction between -1 and 1
+      rotationCorrection = Math.max(-1, Math.min(1, rotationCorrection));
+      
+      // Use the normal drive method with the correction
+      drive(xSpeed, ySpeed, rotationCorrection, fieldRelative);
   }
 
   /**
