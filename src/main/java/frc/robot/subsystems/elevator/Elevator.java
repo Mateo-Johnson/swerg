@@ -28,6 +28,8 @@ public class Elevator extends SubsystemBase {
     private double lastEncoderPosition = 0.0;
     private boolean isStalled = false;
     private int stallCount = 0;
+    private static final double HOLD_P = 0.5;
+    private double holdPosition = 0.0;
     
     // Constants
     private static final double KP = 1.0;
@@ -59,7 +61,8 @@ public class Elevator extends SubsystemBase {
         MANUAL_CONTROL,
         HOMING,
         ERROR,
-        STALLED
+        STALLED,
+        HOLDING
     }
 
     /**
@@ -119,15 +122,25 @@ public class Elevator extends SubsystemBase {
     public void periodic() {
         updateTelemetry();
         checkStallCondition();
+        
         if (currentState == ElevatorState.ERROR || currentState == ElevatorState.STALLED) {
             setMotorOutput(0);
             return;
         }
-        if (!isManualControl && !lowerLimit.get()) {
+        
+        if (!isManualControl) {
             double currentHeight = getHeight();
-            double output = pidController.calculate(currentHeight);
+            double output;
+            
+            if (currentState == ElevatorState.HOLDING) {
+                output = (holdPosition - currentHeight) * HOLD_P;
+            } else {
+                output = pidController.calculate(currentHeight);
+            }
+            
             setMotorOutput(output);
         }
+        
         lastEncoderPosition = getHeight();
     }
 
@@ -144,6 +157,16 @@ public class Elevator extends SubsystemBase {
         } else {
             setState(ElevatorState.IDLE);
         }
+    }
+
+        /**
+     * Holds the elevator at its current position.
+     */
+    public void hold() {
+        isManualControl = false;
+        holdPosition = getHeight();
+        pidController.setGoal(holdPosition);
+        setState(ElevatorState.HOLDING); // Add HOLDING to the ElevatorState enum
     }
 
     /**
