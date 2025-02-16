@@ -1,23 +1,13 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
-// import edu.wpi.first.math.controller.PIDController;
-// import edu.wpi.first.math.controller.ProfiledPIDController;
-// import edu.wpi.first.math.geometry.Pose2d;
-// import edu.wpi.first.math.geometry.Rotation2d;
-// import edu.wpi.first.math.geometry.Translation2d;
-// import edu.wpi.first.math.trajectory.Trajectory;
-// import edu.wpi.first.math.trajectory.TrajectoryConfig;
-// import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.XboxController;
-import frc.robot.subsystems.drivetrain.Drivetrain;
-import frc.robot.utils.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-// import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-// import java.util.List;
+import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.utils.Constants.OIConstants;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -25,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
  * periodic methods (other than the scheduler calls).  Instead, the structure of the robot
  * (including subsystems, commands, and button mappings) should be declared here.
  */
-public class RobotContainer {
+public class RobotContainer {   
     // The robot's subsystems
     private final Drivetrain m_robotDrive = new Drivetrain();
 
