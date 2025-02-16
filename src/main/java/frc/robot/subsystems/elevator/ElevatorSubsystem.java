@@ -37,7 +37,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private static final double MAX_ACCELERATION = 1.5; // meters per second squared
     
     // Setpoints in meters
-    private static final double[] SETPOINTS = {0.0, 0.5, 1.0, 1.5}; // Ground, Low, Mid, High
+    private static final double[] SETPOINTS = {0.0, 0.5, 1.0, 1.5}; // L1, L2, L3, L4
     
     // Safety limits
     private static final double MIN_HEIGHT = 0.0;  // Lowest position
