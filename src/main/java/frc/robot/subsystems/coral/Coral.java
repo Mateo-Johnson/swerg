@@ -9,7 +9,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -19,6 +19,7 @@ public class Coral extends SubsystemBase {
     private final SparkMax rightMotor;
     private final RelativeEncoder leftEncoder;
     private final RelativeEncoder rightEncoder;
+    private final DigitalInput limitSwitch;
 
     // Control
     private final PIDController leftVelocityPID;
@@ -31,6 +32,7 @@ public class Coral extends SubsystemBase {
     private static final int RIGHT_MOTOR_ID = CoralConstants.rightCoralID;
     private static final double LEFT_GEAR_RATIO = CoralConstants.leftGearRatio;
     private static final double RIGHT_GEAR_RATIO = CoralConstants.rightGearRatio;
+    private static final int LIMIT_SWITCH_PORT = CoralConstants.limitSwitchPort;
 
     // Speed Constants (in RPM at the roller)
     private static final double intake_speed = CoralConstants.intake_speed;
@@ -62,6 +64,7 @@ public class Coral extends SubsystemBase {
         rightMotor = new SparkMax(RIGHT_MOTOR_ID, MotorType.kBrushless);
         leftEncoder = leftMotor.getEncoder();
         rightEncoder = rightMotor.getEncoder();
+        limitSwitch = new DigitalInput(LIMIT_SWITCH_PORT);
         
         // Configure left motor
         SparkMaxConfig leftConfig = new SparkMaxConfig();
@@ -106,6 +109,10 @@ public class Coral extends SubsystemBase {
         SmartDashboard.putNumber("Intake Target Velocity", targetVelocity);
         SmartDashboard.putNumber("Left Motor Current", leftMotor.getOutputCurrent());
         SmartDashboard.putNumber("Right Motor Current", rightMotor.getOutputCurrent());
+    }
+
+    public boolean hasGamePiece() {
+        return limitSwitch.get();
     }
     
     // Control Methods

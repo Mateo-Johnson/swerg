@@ -87,6 +87,7 @@ public final class Constants {
     // Motor IDs
     public static final int leftCoralID = 10;  // Update with actual CAN ID
     public static final int rightCoralID = 11; // Update with actual CAN ID
+    public static final int limitSwitchPort = 1;
 
     // Mechanical Configuration
     public static final double leftGearRatio = 5.0;  // Update with actual left gear ratio
@@ -111,5 +112,11 @@ public final class Constants {
     
     // Tuning Constants
     public static final double velocityTolerance = 50.0; // RPM tolerance for isAtTargetVelocity
-}
+  }
+
+  public static final class ElevatorConstants {
+    public static final int leftCANId = 11;
+    public static final int rightCANId = 12;
+    public static final int limitSwitchPort = 0;
+  }
 }

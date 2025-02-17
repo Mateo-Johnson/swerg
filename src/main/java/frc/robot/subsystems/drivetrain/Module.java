@@ -30,6 +30,7 @@ public class Module {
 
     // Modified constructor to take in the 'inverted' parameter
     @SuppressWarnings("deprecation")
+    
     public Module(int drivingCANId, int turningCANId, int analogPort, double analogOffset, boolean isDrivingMotorInverted) {
         m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
         m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);

@@ -3,8 +3,10 @@ package frc.robot.subsystems.elevator;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.utils.Constants.ElevatorConstants;
+
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
@@ -16,7 +18,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Elevator extends SubsystemBase {
     // Hardware
     private final SparkMax motor1;
-    private final MotorController motor2;
+    private final SparkMax motor2;
     private final AbsoluteEncoder heightEncoder;
     private final DigitalInput lowerLimit;
     
@@ -65,24 +67,17 @@ public class Elevator extends SubsystemBase {
         HOLDING
     }
 
-    /**
-     * Constructor for the Elevator subsystem.
-     * Initializes the hardware and the PID controller for motion control.
-     *
-     * @param motor1 The primary SparkMax motor.
-     * @param motor2 The secondary motor controller.
-     * @param heightEncoder The absolute encoder for height tracking.
-     * @param lowerLimit The limit switch to detect the lowest position.
-     */
-    public Elevator(
-        SparkMax motor1,
-        MotorController motor2,
-        AbsoluteEncoder heightEncoder,
-        DigitalInput lowerLimit) {
-        this.motor1 = motor1;
-        this.motor2 = motor2;
-        this.heightEncoder = heightEncoder;
-        this.lowerLimit = lowerLimit;
+
+    public Elevator() { 
+        
+        motor1 = new SparkMax(ElevatorConstants.leftCANId, MotorType.kBrushless);
+        motor2 = new SparkMax(ElevatorConstants.rightCANId, MotorType.kBrushless);
+
+        heightEncoder = motor1.getAbsoluteEncoder();
+        
+        // Initialize the limit switch with the provided port
+        this.lowerLimit = new DigitalInput(0);
+    
         
         // Configure the motor controller
         var config = new SparkMaxConfig();
