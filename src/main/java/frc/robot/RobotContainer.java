@@ -6,8 +6,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.subsystems.coral.Coral;
-import frc.robot.subsystems.coral.commands.CoralCommands;
+// import frc.robot.subsystems.coral.Coral;
+// import frc.robot.subsystems.coral.commands.CoralCommands;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.ElevatorCommands;
@@ -23,7 +23,7 @@ public class RobotContainer {
     // The robot's subsystems
     private final Drivetrain m_drivetrain = new Drivetrain();
     private final Elevator m_elevator = new Elevator();
-    private final Coral m_coral = new Coral();
+    // private final Coral m_coral = new Coral();
 
     // The driver's controller
     CommandXboxController primary = new CommandXboxController(OIConstants.kDriverControllerPort);
@@ -46,10 +46,10 @@ public class RobotContainer {
                             m_drivetrain));
 
         // COMMAND THE ELEVATOR TO HOLD IF NOT DOING ANYTHING ELSE
-        m_elevator.setDefaultCommand(ElevatorCommands.elevatorHold(m_elevator));
+        // m_elevator.setDefaultCommand(ElevatorCommands.elevatorHold(m_elevator));
 
         // COMMAND THE CORAL INTAKE TO STORE WHEN NOT DOING ANYTHING ELSE
-        m_coral.setDefaultCommand(CoralCommands.hold(m_coral));
+        // m_coral.setDefaultCommand(CoralCommands.hold(m_coral));
 
         
     }
@@ -64,7 +64,7 @@ public class RobotContainer {
      * {@link JoystickButton}.
      */
     private void configureButtonBindings() {
-        primary.rightTrigger().whileTrue(CoralCommands.intakeEject(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
+        // primary.rightTrigger().whileTrue(CoralCommands.intakeEject(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
         primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
         primary.leftBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
         
