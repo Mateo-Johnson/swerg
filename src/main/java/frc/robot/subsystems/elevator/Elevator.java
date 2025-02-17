@@ -70,8 +70,8 @@ public class Elevator extends SubsystemBase {
 
     public Elevator() { 
         
-        motor1 = new SparkMax(ElevatorConstants.leftCANId, MotorType.kBrushless);
-        motor2 = new SparkMax(ElevatorConstants.rightCANId, MotorType.kBrushless);
+        motor1 = new SparkMax(ElevatorConstants.rightCANId, MotorType.kBrushless);
+        motor2 = new SparkMax(ElevatorConstants.leftCANId, MotorType.kBrushless);
 
         heightEncoder = motor1.getAbsoluteEncoder();
         

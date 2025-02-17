@@ -65,8 +65,8 @@ public class RobotContainer {
      */
     private void configureButtonBindings() {
         // primary.rightTrigger().whileTrue(CoralCommands.intakeEject(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
-        primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
-        primary.leftBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
+        primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+        primary.leftBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, -0.2)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
         
         // POV CONTROL FOR ELEVATOR
         // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
