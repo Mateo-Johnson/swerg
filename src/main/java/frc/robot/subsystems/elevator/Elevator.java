@@ -98,6 +98,8 @@ public class Elevator extends SubsystemBase {
             com.revrobotics.spark.SparkMax.ResetMode.kResetSafeParameters,
             com.revrobotics.spark.SparkMax.PersistMode.kPersistParameters
         );
+
+        configureEncoderConversion(0.011642);
         
         // Configure PID with motion profiling
         TrapezoidProfile.Constraints constraints =
@@ -115,6 +117,7 @@ public class Elevator extends SubsystemBase {
      */
     @Override
     public void periodic() {
+        // UPDATE SMARTDASHBOARD CALLS
         updateTelemetry();
         checkStallCondition();
         
@@ -137,6 +140,9 @@ public class Elevator extends SubsystemBase {
         }
         
         lastEncoderPosition = getHeight();
+
+
+
     }
 
     /**
