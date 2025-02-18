@@ -28,6 +28,7 @@ public class Elevator extends SubsystemBase {
     // LOGGING STUFF
     private PrintWriter logWriter;
     private boolean isLogging = false;
+    @SuppressWarnings("unused")
     private static final String USB_PATH = "/media/sda1/"; // Common USB mount point on RoboRIO
     private String loggingPath;
     private static final int MAX_LOG_SIZE_MB = 100; // Maximum log file size
