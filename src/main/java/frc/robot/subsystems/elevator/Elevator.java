@@ -166,15 +166,32 @@ public class Elevator extends SubsystemBase {
     public void setManualSpeed(double speed) {
         if (!isManualControl) return;
         speed = Math.max(-MANUAL_SPEED_LIMIT, Math.min(MANUAL_SPEED_LIMIT, speed));
-        if (softLimitsEnabled) {
-            if ((getHeight() >= MAX_HEIGHT && speed > 0) ||
-                (getHeight() <= MIN_HEIGHT && speed < 0) ||
-                (!lowerLimit.get() && speed < 0)) {
-                speed = 0.0;
-            }
-        }
+        // if (softLimitsEnabled) {
+        //     if ((getHeight() >= MAX_HEIGHT && speed > 0) ||
+        //         (getHeight() <= MIN_HEIGHT && speed < 0) ||
+        //         (!lowerLimit.get() && speed < 0)) {
+        //         speed = 0.0;
+        //     }
+        // }
         manualSpeed = speed;
-        setMotorOutput(manualSpeed);
+        setMotorOutputUnchecked(manualSpeed);
+    }
+
+    /**
+     * Sets the output for the elevator motors without any safety checks or limits.
+     * WARNING: This function bypasses all safety features and should be used with extreme caution.
+     *
+     * @param output The desired output speed for the motors.
+     */
+    private void setMotorOutputUnchecked(double output) {
+        // Check lower limit switch - prevent downward motion if triggered
+        if (!lowerLimit.get() && output < 0) {
+            output = 0;
+        }
+        // Invert the output here - this is where we handle the direction
+        output = -output;
+        motor1.set(output);
+        motor2.set(output);
     }
 
     /**
