@@ -27,11 +27,13 @@ public final class Constants {
         new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
 
     // SPARKMAX CAN IDs
+    // DRIVING
     public static final int kFrontLeftDrivingCanId = 10;
     public static final int kRearLeftDrivingCanId = 8;
     public static final int kFrontRightDrivingCanId = 4;
     public static final int kRearRightDrivingCanId = 5;
 
+    // TURNING
     public static final int kFrontLeftTurningCanId = 9;
     public static final int kRearLeftTurningCanId = 7;
     public static final int kFrontRightTurningCanId = 3;
@@ -43,6 +45,7 @@ public final class Constants {
     public static final int kRearLeftEncoder = 2;
     public static final int kRearRightEncoder = 3;
 
+    //IS THE GYRO REVERSED
     public static final boolean kGyroReversed = false;
   }
 
@@ -85,9 +88,9 @@ public final class Constants {
 
   public static final class CoralConstants {
     // Motor IDs
-    public static final int leftCoralID = 10;  // Update with actual CAN ID
-    public static final int rightCoralID = 11; // Update with actual CAN ID
-    public static final int limitSwitchPort = 1;
+    public static final int leftCoralID = 21;  // Update with actual CAN ID
+    public static final int rightCoralID = 22; // Update with actual CAN ID
+    public static final int intakeLimitSwitchPort = 1;
 
     // Mechanical Configuration
     public static final double leftGearRatio = 5.0;  // Update with actual left gear ratio
@@ -118,5 +121,11 @@ public final class Constants {
     public static final int leftCANId = 11;
     public static final int rightCANId = 12;
     public static final int limitSwitchPort = 0;
+  }
+
+  public static final class AlgaeConstants {
+    public static final int algaeIntakeCANId = 31;
+    public static final int algaePivotCANId = 32;
+
   }
 }

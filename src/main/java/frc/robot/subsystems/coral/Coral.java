@@ -32,7 +32,7 @@ public class Coral extends SubsystemBase {
     private static final int RIGHT_MOTOR_ID = CoralConstants.rightCoralID;
     private static final double LEFT_GEAR_RATIO = CoralConstants.leftGearRatio;
     private static final double RIGHT_GEAR_RATIO = CoralConstants.rightGearRatio;
-    private static final int LIMIT_SWITCH_PORT = CoralConstants.limitSwitchPort;
+    private static final int LIMIT_SWITCH_PORT = CoralConstants.intakeLimitSwitchPort;
 
     // Speed Constants (in RPM at the roller)
     private static final double intake_speed = CoralConstants.intake_speed;
