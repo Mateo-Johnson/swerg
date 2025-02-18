@@ -9,7 +9,6 @@ import frc.robot.utils.Constants.ElevatorConstants;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -37,15 +36,15 @@ public class Elevator extends SubsystemBase {
     private static final double KP = 1.0;
     private static final double KI = 0.0;
     private static final double KD = 0.0;
-    private static final double MAX_VELOCITY = 2.0; // meters per second
-    private static final double MAX_ACCELERATION = 1.5; // meters per second squared
+    private static final double MAX_VELOCITY = 2.0; // revolutions per second
+    private static final double MAX_ACCELERATION = 1.5; // revolutions per second squared
     
-    // Setpoints in meters
-    private static final double[] SETPOINTS = {0.0, 0.5, 1.0, 1.5}; // L1, L2, L3, L4
+    // Setpoints in revolutions
+    private static final double[] SETPOINTS = {0.0, 0.25, 0.5, 0.75}; // L1, L2, L3, L4
     
-    // Safety limits
+    // Safety limits in revolutions
     private static final double MIN_HEIGHT = 0.0;  // Lowest position
-    private static final double MAX_HEIGHT = 1.6;  // Highest position
+    private static final double MAX_HEIGHT = 1.0;  // Highest position
     private static final double MANUAL_SPEED_LIMIT = 0.8;
     private static final double STALL_THRESHOLD = 0.001; // meters
     private static final int STALL_SAMPLES_THRESHOLD = 50; // 50 * 20ms = 1 second
@@ -68,46 +67,35 @@ public class Elevator extends SubsystemBase {
     }
 
 
-    public Elevator() { 
-        
+    public Elevator() {
         motor1 = new SparkMax(ElevatorConstants.rightCANId, MotorType.kBrushless);
         motor2 = new SparkMax(ElevatorConstants.leftCANId, MotorType.kBrushless);
-
         heightEncoder = motor1.getAbsoluteEncoder();
-        
+
         // Initialize the limit switch with the provided port
         this.lowerLimit = new DigitalInput(0);
-    
         
-        // Configure the motor controller
         var config = new SparkMaxConfig();
         config
             .inverted(true)
             .idleMode(IdleMode.kBrake);
-            
+        // Use raw encoder counts initially
         config.encoder
-            .positionConversionFactor(0.001)
-            .velocityConversionFactor(0.001);
-            
-        config.closedLoop
-            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pid(KP, KI, KD);
+            .positionConversionFactor(1.0)
+            .velocityConversionFactor(1.0);
             
         motor1.configure(
             config,
             com.revrobotics.spark.SparkMax.ResetMode.kResetSafeParameters,
             com.revrobotics.spark.SparkMax.PersistMode.kPersistParameters
         );
-
-        configureEncoderConversion(0.011642);
         
         // Configure PID with motion profiling
         TrapezoidProfile.Constraints constraints =
             new TrapezoidProfile.Constraints(MAX_VELOCITY, MAX_ACCELERATION);
         pidController = new ProfiledPIDController(KP, KI, KD, constraints);
-        pidController.setTolerance(0.02);
+        pidController.setTolerance(0.02); // Tolerance in revolutions
         
-        // Initialize state
         setState(ElevatorState.IDLE);
     }
 
@@ -290,7 +278,7 @@ public class Elevator extends SubsystemBase {
      * @return The current height in meters.
      */
     public double getHeight() {
-        return heightEncoder.getPosition();
+        return heightEncoder.getPosition() / 8192; // COUNTS PER REVOLUTION
     }
 
     /**
