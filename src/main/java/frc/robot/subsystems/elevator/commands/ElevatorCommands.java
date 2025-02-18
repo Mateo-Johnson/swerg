@@ -30,9 +30,9 @@ public class ElevatorCommands {
 
             @Override
             public void end(boolean interrupted) {
-                elevator.setManualControl(false); // Disable manual control
                 elevator.setManualSpeed(0); // Stop elevator movement
-                elevator.hold(); // Hold the elevator's current position
+                elevator.setManualControl(false); // Disable manual control
+                // elevator.hold(); // Hold the elevator's current position
             }
 
             @Override
