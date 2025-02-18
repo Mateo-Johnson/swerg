@@ -155,7 +155,7 @@ public class Elevator extends SubsystemBase {
         isManualControl = false;
         holdPosition = getHeight();
         pidController.setGoal(holdPosition);
-        setState(ElevatorState.HOLDING); // Add HOLDING to the ElevatorState enum
+        setState(ElevatorState.HOLDING);
     }
 
     /**
