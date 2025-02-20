@@ -56,18 +56,6 @@ public class Module {
         return MathUtil.angleModulus(position);
     }
 
-    public double getRawRadians() {
-        double pos = m_turningAnalogEncoder.get();
-        double position = pos * (2 * Math.PI);
-        position = position % (2 * Math.PI);
-        if (position > Math.PI) {
-            position -= 2 * Math.PI;
-        } else if (position < -Math.PI) {
-            position += 2 * Math.PI;
-        }
-        return position;
-    }
-
     public double getRawAngle() {
         double raw = m_turningAnalogEncoder.get();
         return raw;
