@@ -73,19 +73,19 @@ public class Module {
         return raw;
     }
 
+    // THIS WILL CAUSE MOST OF THE ZEROING ISSUES
     private void syncEncoders() {
-        if (m_turningEncoder.getVelocity() >= 0.5) {
-            return;
-        }
+        // Get the current absolute angle from the analog encoder
+        double currentAngle = getAngle();
         
-        double turnEncoderPosition = m_turningEncoder.getPosition();
-        double absoluteEncoderPosition = getAngle();
-        double diff = absoluteEncoderPosition - turnEncoderPosition;
+        // Set the turning encoder position to match the absolute encoder
+        m_turningEncoder.setPosition(currentAngle);
         
-        if (Math.abs(diff) > 0.02) {
-            m_turningEncoder.setPosition(getAngle());
-            m_turningClosedLoopController.setReference(getAngle(), ControlType.kPosition);
-        }
+        // Reset only the driving encoder
+        m_drivingEncoder.setPosition(0);
+        
+        // Command the module to move to zero position
+        m_turningClosedLoopController.setReference(0, ControlType.kPosition);
     }
 
     public SwerveModuleState getState() {
