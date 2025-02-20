@@ -25,7 +25,7 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
-      -0.188421519729477,
+      2.951966605130458,
       false);
 
   //FRONT RIGHT
@@ -33,15 +33,15 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
-      1.926711680315815,
-      false);
+      -1.205683591482298,
+      true);
 
   //REAR LEFT
   private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
-      -0.411153751164531,
+      2.817023518656739,
       false);
 
   //REAR RIGHT
@@ -49,8 +49,8 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
-      2.521702676177288,
-      false);
+      -0.52612546889644,
+      true);
 
   //CREATE GYRO (NAVX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
