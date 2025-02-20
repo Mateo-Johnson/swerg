@@ -24,14 +24,10 @@ public class Module {
     private final SparkClosedLoopController m_drivingClosedLoopController;
     private final SparkClosedLoopController m_turningClosedLoopController;
     private final double m_analogEncoderOffset;
-    private final boolean m_isDrivingMotorInverted;  // Flag to track if the driving motor is inverted
     @SuppressWarnings("unused")
     private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
-    // Modified constructor to take in the 'inverted' parameter
-    @SuppressWarnings("deprecation")
-    
-    public Module(int drivingCANId, int turningCANId, int analogPort, double analogOffset, boolean isDrivingMotorInverted) {
+    public Module(int drivingCANId, int turningCANId, int analogPort, double analogOffset) {
         m_drivingSpark = new SparkMax(drivingCANId, MotorType.kBrushless);
         m_turningSpark = new SparkMax(turningCANId, MotorType.kBrushless);
         m_drivingEncoder = m_drivingSpark.getEncoder();
@@ -40,23 +36,15 @@ public class Module {
         m_drivingClosedLoopController = m_drivingSpark.getClosedLoopController();
         m_turningClosedLoopController = m_turningSpark.getClosedLoopController();
         m_analogEncoderOffset = analogOffset;
-        m_isDrivingMotorInverted = isDrivingMotorInverted; // Set inversion flag
 
         // Apply configurations
         m_drivingSpark.configure(Config.Module.drivingConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
         m_turningSpark.configure(Config.Module.turningConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
-
-        // Apply the inversion flag to the motor controller
-        m_drivingSpark.setInverted(m_isDrivingMotorInverted);
-
+                
+        // Reset the encoders during initialization
         syncEncoders();
-    }
-
-    // Getter for checking if the driving motor is inverted
-    public boolean isDrivingMotorInverted() {
-        return m_isDrivingMotorInverted;
     }
 
     public double getAngle() {
@@ -84,9 +72,11 @@ public class Module {
     }
 
     private void syncEncoders() {
+        // Reset the encoder positions to 0 on initialization
         double angle = getAngle();
         m_turningClosedLoopController.setReference(0, ControlType.kDutyCycle);
-        m_turningEncoder.setPosition(getAngle());
+        m_turningEncoder.setPosition(0);  // Reset turning encoder to zero
+        m_drivingEncoder.setPosition(0); // Reset driving encoder to zero
         double targetAngle = angle;
         m_turningClosedLoopController.setReference(targetAngle, ControlType.kPosition);
     }
@@ -99,7 +89,7 @@ public class Module {
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
                 m_drivingEncoder.getPosition(),
-                new Rotation2d(getAngle() ));
+                new Rotation2d(getAngle()));
     }
 
     public void setDesiredState(SwerveModuleState desiredState) {
@@ -108,18 +98,18 @@ public class Module {
         correctedDesiredState.angle = desiredState.angle;
 
         correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
-
-        // If the driving motor is inverted, we reverse the sign of the desired speed
-        double speedToSet = m_isDrivingMotorInverted ? -correctedDesiredState.speedMetersPerSecond
-                                                     : correctedDesiredState.speedMetersPerSecond;
         
-        m_drivingClosedLoopController.setReference(speedToSet, ControlType.kVelocity);
+        m_drivingClosedLoopController.setReference(correctedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
         m_turningClosedLoopController.setReference(correctedDesiredState.angle.getRadians(), ControlType.kPosition);
 
         m_desiredState = desiredState;
     }
 
+    public void resetWheels() {
+        setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
+    }
+
     public void resetEncoders() {
-        syncEncoders();
+        syncEncoders(); // This will reset the encoder values to zero
     }
 }

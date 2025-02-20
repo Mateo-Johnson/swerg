@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 // import frc.robot.subsystems.coral.Coral;
 // import frc.robot.subsystems.coral.commands.CoralCommands;
 import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.subsystems.drivetrain.commands.DriveCommands;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.ElevatorCommands;
 import frc.robot.utils.Constants.OIConstants;
@@ -39,7 +40,7 @@ public class RobotContainer {
                 // LEFT STICK CONTROLS TRANSLATION
                 // RIGHT STICK (LEFT/RIGHT) CONTROL TURNING
                 new RunCommand(() -> m_drivetrain.drive(
-                                (MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband)),
+                                MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband),
                                 -MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband),
                                 -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband),
                                 true),
@@ -67,7 +68,7 @@ public class RobotContainer {
         // primary.rightTrigger().whileTrue(CoralCommands.intakeEject(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
 
 
-        // primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+        primary.b().whileTrue(DriveCommands.zeroWheels(m_drivetrain)); // silly
         // primary.leftBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, -0.2)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
         
         // POV CONTROL FOR ELEVATOR

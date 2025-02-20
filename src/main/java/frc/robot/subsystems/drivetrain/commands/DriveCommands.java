@@ -180,4 +180,19 @@ public class DriveCommands {
             }
         };
     }
+
+    public static Command zeroWheels(Drivetrain drivetrain) {
+        return new Command() {
+            @Override
+            public void initialize() {
+                // Reset all modules to zero speed and zero angle
+                drivetrain.resetWheels();
+            }
+    
+            @Override
+            public boolean isFinished() {
+                return true; // Command completes immediately
+            }
+        };
+    }
 }

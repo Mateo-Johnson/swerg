@@ -10,7 +10,7 @@ public final class Constants {
 
   public static final class DriveConstants {
     // BE CAREFUL, THESE ARE THE MAX ALLOWED SPEEDS, NOT THE MAX CAPABLE
-    public static final double kMaxSpeedMetersPerSecond = 4.8;
+    public static final double kMaxSpeedMetersPerSecond = 5.1;
     public static final double kMaxAngularSpeed = 2 * Math.PI; // RADIANS/SECOND
 
     // CHASSIS CONFIG
