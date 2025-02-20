@@ -46,7 +46,7 @@ public class Module {
                 
         // m_desiredState.angle = new Rotation2d(m_turningEncoder.getPosition()); // MAYBE MOVE THIS BENEATH SYNC
         // Reset the encoders during initialization
-        syncEncoders();
+        syncAndZeroEncoders();
     }
 
     public double getAngle() {
@@ -74,7 +74,7 @@ public class Module {
     }
 
     // THIS WILL CAUSE MOST OF THE ZEROING ISSUES
-    private void syncEncoders() {
+    private void syncAndZeroEncoders() {
         // Get the current absolute angle from the analog encoder
         double currentAngle = getAngle();
         
@@ -86,6 +86,21 @@ public class Module {
         
         // Command the module to move to zero position
         m_turningClosedLoopController.setReference(0, ControlType.kPosition);
+    }
+
+    private void syncEncoders() {
+        if (m_turningEncoder.getVelocity() >= 0.5) {
+            return;
+        }
+
+        double turnEncoderPosition = m_turningEncoder.getPosition();
+        double absoluteEncoderPosition = getAngle();
+        double diff = absoluteEncoderPosition - turnEncoderPosition;
+
+        if (Math.abs(diff) > 0.02) {
+            m_turningEncoder.setPosition(getAngle());
+            m_turningClosedLoopController.setReference(getAngle(), ControlType.kPosition);
+        }
     }
 
     public SwerveModuleState getState() {
@@ -117,6 +132,6 @@ public class Module {
     }
 
     public void resetEncoders() {
-        syncEncoders(); // This will reset the encoder values to zero
+        syncAndZeroEncoders(); // This will reset the encoder values to zero
     }
 }
