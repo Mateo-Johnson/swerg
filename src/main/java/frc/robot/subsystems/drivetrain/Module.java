@@ -43,6 +43,7 @@ public class Module {
         m_turningSpark.configure(Config.Module.turningConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
                 
+        // m_desiredState.angle = new Rotation2d(m_turningEncoder.getPosition());
         // Reset the encoders during initialization
         syncEncoders();
     }
@@ -74,7 +75,7 @@ public class Module {
     private void syncEncoders() {
         // Reset the encoder positions to 0 on initialization
         double angle = getAngle();
-        m_turningClosedLoopController.setReference(0, ControlType.kDutyCycle);
+        m_turningClosedLoopController.setReference(0, ControlType.kPosition);
         m_turningEncoder.setPosition(0);  // Reset turning encoder to zero
         m_drivingEncoder.setPosition(0); // Reset driving encoder to zero
         double targetAngle = angle;
