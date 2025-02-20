@@ -62,18 +62,12 @@ public class Module {
     }
 
     // THIS WILL CAUSE MOST OF THE ZEROING ISSUES
-    private void syncAndZeroEncoders() {
-        // Get the current absolute angle from the analog encoder
-        double currentAngle = getAngle();
-        
-        // Set the turning encoder position to match the absolute encoder
-        m_turningEncoder.setPosition(currentAngle);
-        
+    private void syncAndZeroEncoders() {      
         // Reset only the driving encoder
         m_drivingEncoder.setPosition(0);
         
         // Command the module to move to zero position
-        m_turningClosedLoopController.setReference(0, ControlType.kPosition);
+        m_turningClosedLoopController.setReference(-m_analogEncoderOffset, ControlType.kPosition);
     }
 
     private void syncEncoders() {
