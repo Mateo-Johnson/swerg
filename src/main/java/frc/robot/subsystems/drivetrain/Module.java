@@ -44,7 +44,7 @@ public class Module {
         m_turningSpark.configure(Config.Module.turningConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
                 
-        // m_desiredState.angle = new Rotation2d(m_turningEncoder.getPosition());
+        // m_desiredState.angle = new Rotation2d(m_turningEncoder.getPosition()); // MAYBE MOVE THIS BENEATH SYNC
         // Reset the encoders during initialization
         syncEncoders();
     }
