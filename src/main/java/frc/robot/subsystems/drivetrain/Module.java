@@ -74,13 +74,18 @@ public class Module {
     }
 
     private void syncEncoders() {
-        // Reset the encoder positions to 0 on initialization
-        double angle = getAngle();
-        m_turningClosedLoopController.setReference(0, ControlType.kPosition);
-        m_turningEncoder.setPosition(0);  // Reset turning encoder to zero
-        m_drivingEncoder.setPosition(0); // Reset driving encoder to zero
-        double targetAngle = angle;
-        m_turningClosedLoopController.setReference(targetAngle, ControlType.kPosition);
+        if (m_turningEncoder.getVelocity() >= 0.5) {
+            return;
+        }
+        
+        double turnEncoderPosition = m_turningEncoder.getPosition();
+        double absoluteEncoderPosition = getAngle();
+        double diff = absoluteEncoderPosition - turnEncoderPosition;
+        
+        if (Math.abs(diff) > 0.02) {
+            m_turningEncoder.setPosition(getAngle());
+            m_turningClosedLoopController.setReference(getAngle(), ControlType.kPosition);
+        }
     }
 
     public SwerveModuleState getState() {
