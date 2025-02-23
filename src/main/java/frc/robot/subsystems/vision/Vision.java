@@ -5,58 +5,63 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import frc.robot.utils.LimelightLib;
-import frc.robot.utils.LimelightLib.LimelightResults;
+// import frc.robot.utils.LimelightLib.LimelightResults;
 import frc.robot.utils.LimelightLib.PoseEstimate;
 
 public class Vision extends SubsystemBase {
     private final String limelightName;
     
-    private static final double CAMERA_HEIGHT_METERS = 0.5; // Adjust based on robot
-    private static final double CAMERA_FORWARD_METERS = 0.3; // Adjust based on robot
-    private static final double CAMERA_SIDESWAY_METERS = 0.0; // Adjust based on robot
-    private static final double CAMERA_PITCH_DEGREES = 30.0; // Adjust based on robot
-    private static final double CAMERA_ROLL_DEGREES = 0.0; // Adjust based on robot
-    private static final double CAMERA_YAW_DEGREES = 0.0; // Adjust based on robot
-
-    /**
-     * Creates a new Vision Subsystem with a custom Limelight name
-     * @param limelightName The name of the Limelight camera to use
-     */
-    public Vision(String limelightName) {
-        this.limelightName = limelightName;
+        private double tx;
+        private double ty;
+        private double ta;
+        private boolean hasTarget;
         
-        // Configure camera pose relative to robot
-        LimelightLib.setCameraPose_RobotSpace(
-            limelightName,
-            CAMERA_FORWARD_METERS,
-            CAMERA_SIDESWAY_METERS,
-            CAMERA_HEIGHT_METERS,
-            CAMERA_ROLL_DEGREES,
-            CAMERA_PITCH_DEGREES,
-            CAMERA_YAW_DEGREES
-        );
-
-        // Set LED mode to pipeline control
-        LimelightLib.setLEDMode_PipelineControl(limelightName);
-    }
-
-    @Override
-    public void periodic() {
-        updateVisionData();
-    }
-
-    private void updateVisionData() {
+        private static final double CAMERA_HEIGHT_METERS = 0.5; // Adjust based on robot
+        private static final double CAMERA_FORWARD_METERS = 0.3; // Adjust based on robot
+        private static final double CAMERA_SIDESWAY_METERS = 0.0; // Adjust based on robot
+        private static final double CAMERA_PITCH_DEGREES = 30.0; // Adjust based on robot
+        private static final double CAMERA_ROLL_DEGREES = 0.0; // Adjust based on robot
+        private static final double CAMERA_YAW_DEGREES = 0.0; // Adjust based on robot
+    
+        /**
+         * Creates a new Vision Subsystem with a custom Limelight name
+         * @param limelightName The name of the Limelight camera to use
+         */
+        public Vision(String limelightName) {
+            this.limelightName = limelightName;
+            
+            // Configure camera pose relative to robot
+            LimelightLib.setCameraPose_RobotSpace(
+                limelightName,
+                CAMERA_FORWARD_METERS,
+                CAMERA_SIDESWAY_METERS,
+                CAMERA_HEIGHT_METERS,
+                CAMERA_ROLL_DEGREES,
+                CAMERA_PITCH_DEGREES,
+                CAMERA_YAW_DEGREES
+            );
+    
+            // Set LED mode to pipeline control
+            LimelightLib.setLEDMode_PipelineControl(limelightName);
+        }
+    
+        @Override
+        public void periodic() {
+            updateVisionData();
+        }
+    
+        private void updateVisionData() {
         // Get basic targeting data
-        double tx = LimelightLib.getTX(limelightName);
-        double ty = LimelightLib.getTY(limelightName);
-        double ta = LimelightLib.getTA(limelightName);
-        boolean hasTarget = LimelightLib.getTV(limelightName);
+        tx = LimelightLib.getTX(limelightName);
+        ty = LimelightLib.getTY(limelightName);
+        ta = LimelightLib.getTA(limelightName);
+        hasTarget = LimelightLib.getTV(limelightName);
 
-        // Get detailed results
-        LimelightResults results = LimelightLib.getLatestResults(limelightName);
+        // // Get detailed results
+        // LimelightResults results = LimelightLib.getLatestResults(limelightName);
 
-        // Get pose estimate (for localization)
-        PoseEstimate poseEstimate = LimelightLib.getBotPoseEstimate_wpiBlue(limelightName);
+        // // Get pose estimate (for localization)
+        // PoseEstimate poseEstimate = LimelightLib.getBotPoseEstimate_wpiBlue(limelightName);
     }
 
 
@@ -121,7 +126,7 @@ public Pose3d getCurrentPosition() {
      * @return tx value in degrees (-27 to 27 degrees typically)
      */
     public double getTX() {
-        return LimelightLib.getTX(limelightName);
+        return tx;
     }
 
     /**
@@ -129,7 +134,7 @@ public Pose3d getCurrentPosition() {
      * @return ty value in degrees (-20.5 to 20.5 degrees typically)
      */
     public double getTY() {
-        return LimelightLib.getTY(limelightName);
+        return ty;
     }
 
     /**
@@ -137,7 +142,7 @@ public Pose3d getCurrentPosition() {
      * @return ta value (0.0 to 100.0)
      */
     public double getTA() {
-        return LimelightLib.getTA(limelightName);
+        return ta;
     }
 
     /**
@@ -145,6 +150,6 @@ public Pose3d getCurrentPosition() {
      * @return true if has target, false otherwise
      */
     public boolean getTV() {
-        return LimelightLib.getTV(limelightName);
+        return hasTarget;
     }
 }
