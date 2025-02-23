@@ -19,9 +19,9 @@ public class Vision extends SubsystemBase {
         private static final double CAMERA_HEIGHT_METERS = 0.5; // Adjust based on robot
         private static final double CAMERA_FORWARD_METERS = 0.3; // Adjust based on robot
         private static final double CAMERA_SIDESWAY_METERS = 0.0; // Adjust based on robot
-        private static final double CAMERA_PITCH_DEGREES = 30.0; // Adjust based on robot
-        private static final double CAMERA_ROLL_DEGREES = 0.0; // Adjust based on robot
-        private static final double CAMERA_YAW_DEGREES = 0.0; // Adjust based on robot
+        private static final double CAMERA_PITCH_DEGREES = 30.0; 
+        private static final double CAMERA_ROLL_DEGREES = 0.0; 
+        private static final double CAMERA_YAW_DEGREES = 0.0; 
     
         /**
          * Creates a new Vision Subsystem with a custom Limelight name
