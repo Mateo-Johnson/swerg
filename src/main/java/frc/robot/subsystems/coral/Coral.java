@@ -2,14 +2,14 @@ package frc.robot.subsystems.coral;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.CoralConstants;
-
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Counter;
+import edu.wpi.first.wpilibj.Counter.Mode;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -19,20 +19,25 @@ public class Coral extends SubsystemBase {
     private final SparkMax rightMotor;
     private final RelativeEncoder leftEncoder;
     private final RelativeEncoder rightEncoder;
-    private final DigitalInput limitSwitch;
+    private final Counter maxSonarPWM;
 
     // Control
     private final PIDController leftVelocityPID;
     private final PIDController rightVelocityPID;
     private double targetVelocity = CoralConstants.targetVelocity;
     private IntakeMode currentMode = IntakeMode.STOPPED;
+    private double lastDistance = 0;
 
     // Constants
     private static final int LEFT_MOTOR_ID = CoralConstants.leftCoralID;
     private static final int RIGHT_MOTOR_ID = CoralConstants.rightCoralID;
     private static final double LEFT_GEAR_RATIO = CoralConstants.leftGearRatio;
     private static final double RIGHT_GEAR_RATIO = CoralConstants.rightGearRatio;
-    private static final int LIMIT_SWITCH_PORT = CoralConstants.intakeLimitSwitchPort;
+    private static final int MAXSONAR_PWM_PORT = CoralConstants.intakeLimitSwitchPort;
+
+    // MaxSonar Constants
+    private static final double MAXSONAR_SCALE_FACTOR = 147.0; // microseconds per inch
+    private static final double DISTANCE_THRESHOLD = 4.0; // inches
 
     // Speed Constants (in RPM at the roller)
     private static final double intake_speed = CoralConstants.intake_speed;
@@ -47,8 +52,8 @@ public class Coral extends SubsystemBase {
     private static final double kF = CoralConstants.kF;
 
     // Current limiting
-    private static final int SCL = CoralConstants.SCL; // amps
-    private static final int FCL = CoralConstants.FCL; // amps
+    private static final int SCL = CoralConstants.SCL;
+    private static final int FCL = CoralConstants.FCL;
     
     public enum IntakeMode {
         INTAKING,
@@ -64,7 +69,11 @@ public class Coral extends SubsystemBase {
         rightMotor = new SparkMax(RIGHT_MOTOR_ID, MotorType.kBrushless);
         leftEncoder = leftMotor.getEncoder();
         rightEncoder = rightMotor.getEncoder();
-        limitSwitch = new DigitalInput(LIMIT_SWITCH_PORT);
+        
+        // Initialize MaxSonar PWM counter
+        maxSonarPWM = new Counter(Mode.kSemiperiod);
+        maxSonarPWM.setUpSource(MAXSONAR_PWM_PORT);
+        maxSonarPWM.setSemiPeriodMode(true);
         
         // Configure left motor
         SparkMaxConfig leftConfig = new SparkMaxConfig();
@@ -89,11 +98,24 @@ public class Coral extends SubsystemBase {
     
     @Override
     public void periodic() {
-        // Update motors based on current mode
+        // Update sensor reading
+        updateSensorReading();
+        
+        // Auto control based on sensor reading
+        if (hasGamePiece()) {
+            if (currentMode != IntakeMode.FAST_EJECTING) {
+                fastEject();
+            }
+        } else {
+            if (currentMode != IntakeMode.INTAKING) {
+                intake();
+            }
+        }
+
+        // Update motors
         double leftCurrentVelocity = leftEncoder.getVelocity();
         double rightCurrentVelocity = rightEncoder.getVelocity();
         
-        // Calculate motor outputs with separate feedforward for each gear ratio
         double leftOutput = leftVelocityPID.calculate(leftCurrentVelocity, targetVelocity) + 
                           (targetVelocity * kF * (LEFT_GEAR_RATIO / RIGHT_GEAR_RATIO));
         double rightOutput = rightVelocityPID.calculate(rightCurrentVelocity, targetVelocity) + 
@@ -102,17 +124,29 @@ public class Coral extends SubsystemBase {
         leftMotor.set(leftOutput);
         rightMotor.set(rightOutput);
         
-        // Log data to SmartDashboard
+        // Log data
         SmartDashboard.putString("Intake Mode", currentMode.toString());
         SmartDashboard.putNumber("Left Intake Velocity", leftCurrentVelocity);
         SmartDashboard.putNumber("Right Intake Velocity", rightCurrentVelocity);
         SmartDashboard.putNumber("Intake Target Velocity", targetVelocity);
+        SmartDashboard.putNumber("Distance to Game Piece (inches)", getDistance());
+        SmartDashboard.putBoolean("Game Piece Detected", hasGamePiece());
         SmartDashboard.putNumber("Left Motor Current", leftMotor.getOutputCurrent());
         SmartDashboard.putNumber("Right Motor Current", rightMotor.getOutputCurrent());
     }
 
+    private void updateSensorReading() {
+        // Get the pulse width in microseconds and convert to distance
+        double pulseWidth = maxSonarPWM.getPeriod() * 1_000_000; // Convert to microseconds
+        lastDistance = pulseWidth / MAXSONAR_SCALE_FACTOR; // Convert to inches
+    }
+
+    public double getDistance() {
+        return lastDistance;
+    }
+
     public boolean hasGamePiece() {
-        return limitSwitch.get();
+        return getDistance() < DISTANCE_THRESHOLD;
     }
     
     // Control Methods
