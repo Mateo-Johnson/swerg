@@ -9,9 +9,9 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 // import frc.robot.subsystems.coral.Coral;
 // import frc.robot.subsystems.coral.commands.CoralCommands;
 import frc.robot.subsystems.drivetrain.Drivetrain;
-import frc.robot.subsystems.drivetrain.commands.DriveCommands;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.ElevatorCommands;
+import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
 
 /*
@@ -27,7 +27,7 @@ public class RobotContainer {
     // private final Coral m_coral = new Coral();
 
     // The driver's controller
-    CommandXboxController primary = new CommandXboxController(OIConstants.kDriverControllerPort);
+    private final CommandXboxController primary = Constants.primary;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -67,9 +67,7 @@ public class RobotContainer {
     private void configureButtonBindings() {
         // primary.rightTrigger().whileTrue(CoralCommands.intakeEject(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
 
-
-        primary.b().whileTrue(DriveCommands.zeroWheels(m_drivetrain)); // silly
-        // primary.leftBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, -0.2)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
+        primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
         
         // POV CONTROL FOR ELEVATOR
         // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));

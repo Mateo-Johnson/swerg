@@ -5,8 +5,11 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 public final class Constants {
+
+  public static CommandXboxController primary = new CommandXboxController(OIConstants.kDriverControllerPort);
 
 
   public static final class DriveConstants {
