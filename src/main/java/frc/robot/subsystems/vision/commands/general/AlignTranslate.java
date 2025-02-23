@@ -6,26 +6,54 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.utils.Constants.PIDConstants;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
+/**
+ * A command that aligns the robot's position to a target position using PID control.
+ * This command handles x and y translation to reach the target pose, without considering rotation.
+ * The command uses separate PID controllers for x and y axes to compute the necessary drive outputs.
+ * 
+ * <p>The command will continuously attempt to maintain the target position until interrupted
+ * or explicitly ended by another command. The drive outputs are clamped between -1 and 1
+ * to ensure safe operation.
+ *
+ * @see Command
+ * @see Drivetrain
+ * @see PIDController
+ */
 public class AlignTranslate extends Command {
   private final Pose2d target;
   private final Drivetrain drivetrain;
   private final PIDController translatePID = PIDConstants.translateController;
-  /** Creates a new AlignRotate. */
-  public AlignTranslate(Pose2d target, Drivetrain drivetrain) {
-    // Use addRequirements() here to declare subsystem dependencies.
+
+  /**
+   * Creates a new AlignTranslate command.
+   *
+   * @param target The target pose to align to (only x and y coordinates are used)
+   * @param tolerance The tolerance on the current measure in this case it is meters (0.01 = 1 cm)
+   * @param drivetrain The drivetrain subsystem to control
+   */
+  public AlignTranslate(Pose2d target, double tolerance, Drivetrain drivetrain) {
     this.target = target;
     this.drivetrain = drivetrain;
     addRequirements(drivetrain);
 
-    translatePID.setTolerance(0.01); // 0.01 unit of the current measure, in this case it is meters (1 cm)
+    translatePID.setTolerance(tolerance);
   }
 
-  // Called when the command is initially scheduled.
+  /**
+   * Called when the command is initially scheduled.
+   * This method is called once when the command is scheduled.
+   */
   @Override
   public void initialize() {}
 
-  // Called every time the scheduler runs while the command is scheduled.
+  /**
+   * Called every time the scheduler runs while the command is scheduled.
+   * This method:
+   * 1. Gets the current and target positions
+   * 2. Calculates PID outputs for x and y axes
+   * 3. Clamps outputs between -1 and 1
+   * 4. Applies the calculated outputs to the drivetrain
+   */
   @Override
   public void execute() {
     double xTarget = target.getX();
@@ -42,15 +70,26 @@ public class AlignTranslate extends Command {
     drivetrain.drive(xOutput, yOutput, 0, false);
   }
 
-  // Called once the command ends or is interrupted.
+  /**
+   * Called once the command ends or is interrupted.
+   * Stops the drivetrain to ensure the robot doesn't continue moving.
+   *
+   * @param interrupted Whether the command was interrupted (true) or completed normally (false)
+   */
   @Override
   public void end(boolean interrupted) {
     drivetrain.drive(0, 0, 0, false);
   }
 
-  // Returns true when the command should end.
+  /**
+   * Returns whether the command should end.
+   * Currently always returns false, meaning the command will run indefinitely
+   * until interrupted.
+   *
+   * @return false, indicating the command should continue running
+   */
   @Override
   public boolean isFinished() {
-    return false;
+    return translatePID.atSetpoint();
   }
 }

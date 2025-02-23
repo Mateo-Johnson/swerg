@@ -10,14 +10,21 @@ public class AlignRotate extends Command {
   private final double angle;
   private final Drivetrain drivetrain;
   private final PIDController rotatePID = PIDConstants.rotateController;
-  /** Creates a new AlignRotate. */
-  public AlignRotate(double angle, Drivetrain drivetrain) {
+
+  /**
+   * Creates a new AlignRotate command.
+   *
+   * @param angle The target angle to align to the robot to (robot relative)
+   * @param tolerance The tolerance on the current measure in this case it is degrees (1 = 1°)
+   * @param drivetrain The drivetrain subsystem to control
+   */
+  public AlignRotate(double angle, double tolerance, Drivetrain drivetrain) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.angle = angle;
     this.drivetrain = drivetrain;
     addRequirements(drivetrain);
 
-    rotatePID.setTolerance(1); // 1 unit of the current measure, in this case it is degrees (1°)
+    rotatePID.setTolerance(tolerance); 
   }
 
   // Called when the command is initially scheduled.
@@ -45,6 +52,6 @@ public class AlignRotate extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return rotatePID.atSetpoint();
   }
 }

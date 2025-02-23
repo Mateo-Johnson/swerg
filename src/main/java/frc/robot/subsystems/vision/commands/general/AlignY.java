@@ -11,15 +11,23 @@ public class AlignY extends Command {
   private final Drivetrain drivetrain;
   private final PIDController yPID = PIDConstants.yPID;
   private final double currentMeasure;
-  /** Creates a new AlignRotate. */
-  public AlignY(double target, double currentMeasure, Drivetrain drivetrain) {
+
+  /**
+   * Creates a new AlignY command.
+   *
+   * @param target The target y-position to align to
+   * @param currentMeasure The current measurement value to use for alignment
+   * @param tolerance The tolerance on the current measure in this case it is meters (0.01 = 1 cm) 
+   * @param drivetrain The drivetrain subsystem to control
+   */
+  public AlignY(double target, double currentMeasure, double tolerance, Drivetrain drivetrain) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.target = target;
     this.drivetrain = drivetrain;
     this.currentMeasure = currentMeasure;
     addRequirements(drivetrain);
 
-    yPID.setTolerance(0.01); // 0.01 unit of the current measure, in this case it is meters (1 cm)
+    yPID.setTolerance(tolerance);
   }
 
   // Called when the command is initially scheduled.
@@ -46,6 +54,6 @@ public class AlignY extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return yPID.atSetpoint();
   }
 }
