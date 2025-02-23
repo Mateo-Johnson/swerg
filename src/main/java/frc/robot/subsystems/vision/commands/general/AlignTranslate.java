@@ -1,24 +1,23 @@
-package frc.robot.subsystems.vision.commands;
+package frc.robot.subsystems.vision.commands.general;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class AlignY extends Command {
-  private final double target;
+public class AlignTranslate extends Command {
+  private final Pose2d target;
   private final Drivetrain drivetrain;
-  private final PIDController yPID = new PIDController(0.0, 0.0, 0.0);
-  private final double currentMeasure;
+  private final PIDController translatePID = new PIDController(0.0, 0.0, 0.0);
   /** Creates a new AlignRotate. */
-  public AlignY(double target, double currentMeasure, Drivetrain drivetrain) {
+  public AlignTranslate(Pose2d target, Drivetrain drivetrain) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.target = target;
     this.drivetrain = drivetrain;
-    this.currentMeasure = currentMeasure;
     addRequirements(drivetrain);
 
-    yPID.setTolerance(0.01); // 0.01 unit of the current measure, in this case it is meters (1 cm)
+    translatePID.setTolerance(0.01); // 0.01 unit of the current measure, in this case it is meters (1 cm)
   }
 
   // Called when the command is initially scheduled.
@@ -28,12 +27,18 @@ public class AlignY extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double yTarget = target;
-    double current = currentMeasure;
-    double output = yPID.calculate(current, yTarget);
-    output = Math.max(-1, Math.min(1, output));
+    double xTarget = target.getX();
+    double yTarget = target.getY();
+    double xCurrent = drivetrain.getPose().getX();
+    double yCurrent = drivetrain.getPose().getY();
 
-    drivetrain.drive(0, output, 0, false);
+    double xOutput = translatePID.calculate(xCurrent, xTarget);
+    xOutput = Math.max(-1, Math.min(1, xOutput));
+
+    double yOutput = translatePID.calculate(yCurrent, yTarget);
+    yOutput = Math.max(-1, Math.min(1, yOutput));
+
+    drivetrain.drive(xOutput, yOutput, 0, false);
   }
 
   // Called once the command ends or is interrupted.

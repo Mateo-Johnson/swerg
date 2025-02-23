@@ -1,23 +1,24 @@
-package frc.robot.subsystems.vision.commands;
+package frc.robot.subsystems.vision.commands.general;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class AlignTranslate extends Command {
-  private final Pose2d target;
+public class AlignX extends Command {
+  private final double target;
   private final Drivetrain drivetrain;
-  private final PIDController translatePID = new PIDController(0.0, 0.0, 0.0);
+  private final PIDController xPID = new PIDController(0.0, 0.0, 0.0);
+  private final double currentMeasure;
   /** Creates a new AlignRotate. */
-  public AlignTranslate(Pose2d target, Drivetrain drivetrain) {
+  public AlignX(double target, double currentMeasure, Drivetrain drivetrain) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.target = target;
     this.drivetrain = drivetrain;
+    this.currentMeasure = currentMeasure;
     addRequirements(drivetrain);
 
-    translatePID.setTolerance(0.01); // 0.01 unit of the current measure, in this case it is meters (1 cm)
+    xPID.setTolerance(0.01); // 0.01 unit of the current measure, in this case it is meters (1 cm)
   }
 
   // Called when the command is initially scheduled.
@@ -27,18 +28,12 @@ public class AlignTranslate extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double xTarget = target.getX();
-    double yTarget = target.getY();
-    double xCurrent = drivetrain.getPose().getX();
-    double yCurrent = drivetrain.getPose().getY();
+    double xTarget = target;
+    double current = currentMeasure;
+    double output = xPID.calculate(current, xTarget);
+    output = Math.max(-1, Math.min(1, output));
 
-    double xOutput = translatePID.calculate(xCurrent, xTarget);
-    xOutput = Math.max(-1, Math.min(1, xOutput));
-
-    double yOutput = translatePID.calculate(yCurrent, yTarget);
-    yOutput = Math.max(-1, Math.min(1, yOutput));
-
-    drivetrain.drive(xOutput, yOutput, 0, false);
+    drivetrain.drive(output, 0, 0, false);
   }
 
   // Called once the command ends or is interrupted.

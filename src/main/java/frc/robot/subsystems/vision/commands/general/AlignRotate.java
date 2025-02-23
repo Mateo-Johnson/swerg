@@ -1,4 +1,4 @@
-package frc.robot.subsystems.vision.commands;
+package frc.robot.subsystems.vision.commands.general;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;

@@ -1,24 +1,24 @@
-package frc.robot.subsystems.vision.commands;
+package frc.robot.subsystems.vision.commands.general;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class AlignX extends Command {
+public class AlignY extends Command {
   private final double target;
   private final Drivetrain drivetrain;
-  private final PIDController xPID = new PIDController(0.0, 0.0, 0.0);
+  private final PIDController yPID = new PIDController(0.0, 0.0, 0.0);
   private final double currentMeasure;
   /** Creates a new AlignRotate. */
-  public AlignX(double target, double currentMeasure, Drivetrain drivetrain) {
+  public AlignY(double target, double currentMeasure, Drivetrain drivetrain) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.target = target;
     this.drivetrain = drivetrain;
     this.currentMeasure = currentMeasure;
     addRequirements(drivetrain);
 
-    xPID.setTolerance(0.01); // 0.01 unit of the current measure, in this case it is meters (1 cm)
+    yPID.setTolerance(0.01); // 0.01 unit of the current measure, in this case it is meters (1 cm)
   }
 
   // Called when the command is initially scheduled.
@@ -28,12 +28,12 @@ public class AlignX extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double xTarget = target;
+    double yTarget = target;
     double current = currentMeasure;
-    double output = xPID.calculate(current, xTarget);
+    double output = yPID.calculate(current, yTarget);
     output = Math.max(-1, Math.min(1, output));
 
-    drivetrain.drive(output, 0, 0, false);
+    drivetrain.drive(0, output, 0, false);
   }
 
   // Called once the command ends or is interrupted.
