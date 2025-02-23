@@ -182,9 +182,9 @@ public class Elevator extends SubsystemBase {
      */
     private void setMotorOutputUnchecked(double output) {
         // Check lower limit switch - prevent downward motion if triggered
-        if (lowerLimit.get() && output < 0) {
-            output = 0;
-        }
+        // if (lowerLimit.get() && output < 0) {
+        //     output = 0;
+        // }
         // Invert the output here - this is where we handle the direction
         output = -output;
         motor1.set(output);
