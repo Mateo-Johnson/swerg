@@ -1,5 +1,6 @@
 package frc.robot.utils;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -127,5 +128,12 @@ public final class Constants {
     public static final int algaeIntakeCANId = 31;
     public static final int algaePivotCANId = 32;
 
+  }
+
+  public static final class PIDConstants {
+    public static final PIDController translateController = new PIDController(0, 0, 0);
+    public static final PIDController rotateController = new PIDController(0, 0, 0);
+    public static PIDController xPID = new PIDController(0, 0, 0);
+    public static PIDController yPID = new PIDController(0, 0, 0);
   }
 }

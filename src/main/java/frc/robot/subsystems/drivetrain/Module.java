@@ -1,4 +1,4 @@
-// NOTE. IF IT DOES NOT WORK, REVERT TO WORKING CHANGES
+// NOTE. IF IT DOES NOT WORK, REVERT TO WORKING CHANGES. ALSO TRY JUST REMOVING THE SYNC ENCODERS PART?
 package frc.robot.subsystems.drivetrain;
 
 import edu.wpi.first.math.MathUtil;

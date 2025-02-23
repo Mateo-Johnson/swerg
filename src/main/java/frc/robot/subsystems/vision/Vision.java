@@ -115,4 +115,36 @@ public Pose3d getCurrentPosition() {
         new Rotation3d(poseEstimate.pose.getRotation())  // Direct conversion from Rotation2d to Rotation3d
     );
 }
+
+    /**
+     * Gets the horizontal offset from the crosshair to the target in degrees
+     * @return tx value in degrees (-27 to 27 degrees typically)
+     */
+    public double getTX() {
+        return LimelightLib.getTX(limelightName);
+    }
+
+    /**
+     * Gets the vertical offset from the crosshair to the target in degrees
+     * @return ty value in degrees (-20.5 to 20.5 degrees typically)
+     */
+    public double getTY() {
+        return LimelightLib.getTY(limelightName);
+    }
+
+    /**
+     * Gets the target's area (0% of image to 100% of image)
+     * @return ta value (0.0 to 100.0)
+     */
+    public double getTA() {
+        return LimelightLib.getTA(limelightName);
+    }
+
+    /**
+     * Gets whether the limelight has any valid targets
+     * @return true if has target, false otherwise
+     */
+    public boolean getTV() {
+        return LimelightLib.getTV(limelightName);
+    }
 }

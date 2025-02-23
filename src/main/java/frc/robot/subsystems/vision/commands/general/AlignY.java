@@ -3,12 +3,13 @@ package frc.robot.subsystems.vision.commands.general;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.utils.Constants.PIDConstants;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AlignY extends Command {
   private final double target;
   private final Drivetrain drivetrain;
-  private final PIDController yPID = new PIDController(0.0, 0.0, 0.0);
+  private final PIDController yPID = PIDConstants.yPID;
   private final double currentMeasure;
   /** Creates a new AlignRotate. */
   public AlignY(double target, double currentMeasure, Drivetrain drivetrain) {

@@ -4,12 +4,13 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.utils.Constants.PIDConstants;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AlignTranslate extends Command {
   private final Pose2d target;
   private final Drivetrain drivetrain;
-  private final PIDController translatePID = new PIDController(0.0, 0.0, 0.0);
+  private final PIDController translatePID = PIDConstants.translateController;
   /** Creates a new AlignRotate. */
   public AlignTranslate(Pose2d target, Drivetrain drivetrain) {
     // Use addRequirements() here to declare subsystem dependencies.
