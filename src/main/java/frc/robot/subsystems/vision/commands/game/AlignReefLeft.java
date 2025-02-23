@@ -35,7 +35,7 @@ public class AlignReefLeft extends Command {
     double tX = m_vision.getTX();
     double setpoint = 0;
     
-    new AlignX(setpoint, tX, 0.5, m_drivetrain).schedule();
+    new AlignX(setpoint, tX, 0.1, m_drivetrain).schedule();
   }
 
   // Called once the command ends or is interrupted.

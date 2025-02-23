@@ -29,7 +29,7 @@ public class AlignX extends Command {
    *
    * @param target The target x-position to align to
    * @param currentMeasure The current measurement value to use for alignment
-   * @param tolerance The tolerance on the current measure in this case it is meters (0.01 = 1 cm) 
+   * @param tolerance The tolerance on the current measure in this case it is generally meters (0.01 = 1 cm) 
    * @param drivetrain The drivetrain subsystem to control
    */
   public AlignX(double target, double currentMeasure, double tolerance, Drivetrain drivetrain) {

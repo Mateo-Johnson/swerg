@@ -15,7 +15,7 @@ public class AlignRotate extends Command {
    * Creates a new AlignRotate command.
    *
    * @param angle The target angle to align to the robot to (robot relative)
-   * @param tolerance The tolerance on the current measure in this case it is degrees (1 = 1°)
+   * @param tolerance The tolerance on the current measure in this case it is generally degrees (1 = 1°)
    * @param drivetrain The drivetrain subsystem to control
    */
   public AlignRotate(double angle, double tolerance, Drivetrain drivetrain) {
