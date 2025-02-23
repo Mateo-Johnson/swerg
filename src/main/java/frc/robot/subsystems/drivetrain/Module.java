@@ -70,20 +70,20 @@ public class Module {
         m_turningClosedLoopController.setReference(-m_analogEncoderOffset, ControlType.kPosition);
     }
 
-    private void syncEncoders() {
-        if (m_turningEncoder.getVelocity() >= 0.5) {
-            return;
-        }
+    // private void syncEncoders() {
+    //     if (m_turningEncoder.getVelocity() >= 0.5) {
+    //         return;
+    //     }
 
-        double turnEncoderPosition = m_turningEncoder.getPosition();
-        double absoluteEncoderPosition = getAngle();
-        double diff = absoluteEncoderPosition - turnEncoderPosition;
+    //     double turnEncoderPosition = m_turningEncoder.getPosition();
+    //     double absoluteEncoderPosition = getAngle();
+    //     double diff = absoluteEncoderPosition - turnEncoderPosition;
 
-        if (Math.abs(diff) > 0.02) {
-            m_turningEncoder.setPosition(getAngle());
-            m_turningClosedLoopController.setReference(getAngle(), ControlType.kPosition);
-        }
-    }
+    //     if (Math.abs(diff) > 0.02) {
+    //         m_turningEncoder.setPosition(getAngle());
+    //         m_turningClosedLoopController.setReference(getAngle(), ControlType.kPosition);
+    //     }
+    // }
 
     public SwerveModuleState getState() {
         return new SwerveModuleState(m_drivingEncoder.getVelocity(),
