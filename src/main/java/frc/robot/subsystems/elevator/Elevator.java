@@ -3,37 +3,16 @@ package frc.robot.subsystems.elevator;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.ElevatorConstants;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Elevator extends SubsystemBase {
-
-    // LOGGING STUFF
-    private PrintWriter logWriter;
-    private boolean isLogging = false;
-    @SuppressWarnings("unused")
-    private static final String USB_PATH = "/media/sda1/"; // Common USB mount point on RoboRIO
-    private String loggingPath;
-    private static final int MAX_LOG_SIZE_MB = 100; // Maximum log file size
-    private long logStartTime;
-
     // Hardware
     private final SparkMax motor1;
     private final SparkMax motor2;
@@ -127,12 +106,6 @@ public class Elevator extends SubsystemBase {
         // UPDATE SMARTDASHBOARD CALLS
         updateTelemetry();
         checkStallCondition();
-
-        // LOGGING
-        if (isLogging) {
-            logData("");
-        }
-        
         if (currentState == ElevatorState.ERROR || currentState == ElevatorState.STALLED) {
             setMotorOutput(0);
             return;
@@ -209,7 +182,7 @@ public class Elevator extends SubsystemBase {
      */
     private void setMotorOutputUnchecked(double output) {
         // Check lower limit switch - prevent downward motion if triggered
-        if (!lowerLimit.get() && output < 0) {
+        if (lowerLimit.get() && output < 0) {
             output = 0;
         }
         // Invert the output here - this is where we handle the direction
@@ -351,7 +324,7 @@ public class Elevator extends SubsystemBase {
         if (softLimitsEnabled) {
             if (getHeight() >= MAX_HEIGHT && output > 0) output = 0;
             if (getHeight() <= MIN_HEIGHT && output < 0) output = 0;
-            if (!lowerLimit.get() && output < 0) output = 0;
+            if (lowerLimit.get() && output < 0) output = 0;
         }
         // Invert the output here - this is where we handle the direction
         output = -output;
@@ -365,7 +338,7 @@ public class Elevator extends SubsystemBase {
      * @return True if the elevator is at the lower limit, false otherwise.
      */
     public boolean isAtLowerLimit() {
-        return !lowerLimit.get();
+        return lowerLimit.get();
     }
 
     /**
@@ -449,144 +422,5 @@ public class Elevator extends SubsystemBase {
             com.revrobotics.spark.SparkMax.ResetMode.kNoResetSafeParameters,
             com.revrobotics.spark.SparkMax.PersistMode.kNoPersistParameters
         );
-    }
-
-       /**
-     * Finds and returns the path to the USB drive, or falls back to RoboRIO storage
-     */
-    private String findLoggingPath() {
-        // Check common USB mount points
-        String[] usbPaths = {
-            "/media/sda1/",
-            "/media/sdb1/",
-            "/media/usb0/",
-            "/media/usb1/"
-        };
-
-        for (String path : usbPaths) {
-            File usbDir = new File(path);
-            if (usbDir.exists() && usbDir.canWrite()) {
-                // Create a logs directory on the USB if it doesn't exist
-                File logsDir = new File(path + "logs");
-                if (!logsDir.exists()) {
-                    logsDir.mkdirs();
-                }
-                System.out.println("USB drive found at: " + path);
-                return logsDir.getAbsolutePath() + "/";
-            }
-        }
-
-        // Fallback to RoboRIO if no USB is found
-        System.out.println("No USB drive found, falling back to RoboRIO storage");
-        Path rioPath = Paths.get(Filesystem.getOperatingDirectory().getPath(), "logs");
-        if (!rioPath.toFile().exists()) {
-            rioPath.toFile().mkdirs();
-        }
-        return rioPath.toString() + "/";
-    }
-
-    /**
-     * Starts logging elevator data to the USB drive or RoboRIO
-     */
-    public void startLogging() {
-        try {
-            // Find appropriate logging location
-            loggingPath = findLoggingPath();
-            
-            // Create filename with timestamp
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-            String timestamp = sdf.format(new Date());
-            String filename = loggingPath + "elevator_log_" + timestamp + ".csv";
-            
-            // Check available space
-            File logDir = new File(loggingPath);
-            long usableSpace = logDir.getUsableSpace();
-            if (usableSpace < MAX_LOG_SIZE_MB * 1024 * 1024) {
-                System.err.println("Warning: Low storage space for logging");
-                // Could implement auto-cleanup of old logs here
-            }
-            
-            // Create CSV file with headers
-            logWriter = new PrintWriter(new FileWriter(filename, true)); // true for append mode
-            logWriter.println("Timestamp,State,Height,TargetHeight,Output,Current1,Current2,Voltage1,Voltage2," +
-                            "Temperature1,Temperature2,LowerLimit,IsStalled,StallCount,ManualControl,SoftLimits," +
-                            "Events,StorageLocation");
-            
-            isLogging = true;
-            logStartTime = System.currentTimeMillis();
-            logData("LOGGING_STARTED," + loggingPath);
-            
-            System.out.println("Logging started at: " + filename);
-            
-        } catch (IOException e) {
-            System.err.println("Failed to start logging: " + e.getMessage());
-            // Try fallback to RoboRIO if USB fails
-            if (loggingPath.startsWith("/media/")) {
-                loggingPath = Paths.get(Filesystem.getOperatingDirectory().getPath(), "logs").toString() + "/";
-                startLogging(); // Recursive call with RoboRIO path
-            }
-        }
-    }
-
-    /**
-     * Safely stops logging and closes the file
-     */
-    public void stopLogging() {
-        if (isLogging && logWriter != null) {
-            logData("LOGGING_STOPPED,");
-            logWriter.flush();
-            logWriter.close();
-            isLogging = false;
-            
-            // Calculate and log session duration
-            long duration = System.currentTimeMillis() - logStartTime;
-            System.out.println("Logging session completed. Duration: " + (duration / 1000) + " seconds");
-        }
-    }
-
-    /**
-     * Logs current elevator data with storage location tracking
-     */
-    private void logData(String event) {
-        if (!isLogging || logWriter == null) return;
-        
-        try {
-            StringBuilder sb = new StringBuilder();
-            double timestamp = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
-            
-            // Build the same CSV string as before
-            sb.append(String.format("%.3f,", timestamp));
-            sb.append(currentState.toString()).append(",");
-            sb.append(String.format("%.4f,", getHeight()));
-            sb.append(String.format("%.4f,", getCurrentSetpoint()));
-            sb.append(String.format("%.4f,", motor1.get()));
-            sb.append(String.format("%.2f,", motor1.getOutputCurrent()));
-            sb.append(String.format("%.2f,", motor2.getOutputCurrent()));
-            sb.append(String.format("%.2f,", motor1.getBusVoltage()));
-            sb.append(String.format("%.2f,", motor2.getBusVoltage()));
-            sb.append(String.format("%.1f,", motor1.getMotorTemperature()));
-            sb.append(String.format("%.1f,", motor2.getMotorTemperature()));
-            sb.append(lowerLimit.get()).append(",");
-            sb.append(isStalled).append(",");
-            sb.append(stallCount).append(",");
-            sb.append(isManualControl).append(",");
-            sb.append(softLimitsEnabled).append(",");
-            sb.append(event);
-            
-            logWriter.println(sb.toString());
-            
-            // Periodically flush to ensure data is written
-            if (timestamp % 1.0 < 0.02) { // Flush every second approximately
-                logWriter.flush();
-            }
-            
-        } catch (Exception e) {
-            System.err.println("Failed to log data: " + e.getMessage());
-            stopLogging();
-            // Attempt to restart logging if it was a temporary error
-            if (isLogging) {
-                startLogging();
-            }
-        }
     }
 }

@@ -19,7 +19,7 @@ public class Vision extends SubsystemBase {
     private static final double CAMERA_YAW_DEGREES = 0.0; // Adjust based on robot
 
     /**
-     * Creates a new VisionSubsystem with a custom Limelight name
+     * Creates a new Vision Subsystem with a custom Limelight name
      * @param limelightName The name of the Limelight camera to use
      */
     public Vision(String limelightName) {
