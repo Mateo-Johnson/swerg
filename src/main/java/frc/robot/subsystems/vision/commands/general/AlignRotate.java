@@ -5,9 +5,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.utils.Constants.PIDConstants;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AlignRotate extends Command {
   private final double angle;
+  private final double currentMeasure;
   private final Drivetrain drivetrain;
   private final PIDController rotatePID = PIDConstants.rotateController;
 
@@ -19,8 +19,20 @@ public class AlignRotate extends Command {
    * @param drivetrain The drivetrain subsystem to control
    */
   public AlignRotate(double angle, double tolerance, Drivetrain drivetrain) {
-    // Use addRequirements() here to declare subsystem dependencies.
+    this(angle, tolerance, drivetrain.getHeading(), drivetrain);
+  }
+
+  /**
+   * Creates a new AlignRotate command.
+   *
+   * @param angle The target angle to align to the robot to (robot relative)
+   * @param currentMeasure The current measure of the angle.
+   * @param tolerance The tolerance on the current measure in this case it is generally degrees (1 = 1°)
+   * @param drivetrain The drivetrain subsystem to control
+   */
+  public AlignRotate(double angle, double tolerance, double currentMeasure, Drivetrain drivetrain) {
     this.angle = angle;
+    this.currentMeasure = currentMeasure;
     this.drivetrain = drivetrain;
     addRequirements(drivetrain);
 
@@ -35,7 +47,7 @@ public class AlignRotate extends Command {
   @Override
   public void execute() {
     double targetAngle = angle;
-    double currentAngle = drivetrain.getHeading();
+    double currentAngle = currentMeasure;  // Use the passed currentMeasure
 
     double output = rotatePID.calculate(currentAngle, targetAngle);
     output = Math.max(-1, Math.min(1, output));

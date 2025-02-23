@@ -1,21 +1,25 @@
 package frc.robot.subsystems.vision.commands.game;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.vision.Vision;
-import frc.robot.subsystems.vision.commands.general.AlignX;
+import frc.robot.utils.Constants.PIDConstants;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AlignReefLeft extends Command {
   /** Creates a new AlignReefLeft. */
   private final Drivetrain m_drivetrain;
   private final Vision m_vision;
+  private final PIDController reefPID = PIDConstants.xPID;
 
   public AlignReefLeft(Drivetrain drivetrain, Vision vision) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.m_drivetrain = drivetrain;
     this.m_vision = vision;
     addRequirements(drivetrain, vision);
+
+    reefPID.setTolerance(0.1);
   }
 
   // Called when the command is initially scheduled.
@@ -26,18 +30,22 @@ public class AlignReefLeft extends Command {
   @Override
   public void execute() {
     double tX = m_vision.getTX();
-    double setpoint = -5;
-    
-    new AlignX(setpoint, tX, 0.1, m_drivetrain).schedule();
+    double setpoint = 5;
+    double output = reefPID.calculate(tX, setpoint);
+    output = Math.max(-1, Math.min(1, output));
+
+    m_drivetrain.drive(0, output, 0, false);
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    m_drivetrain.drive(0, 0, 0, true);
+  }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return reefPID.atSetpoint();
   }
 }
