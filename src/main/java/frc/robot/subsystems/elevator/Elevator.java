@@ -4,6 +4,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.utils.Constants.ElevatorConstants;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -71,6 +72,8 @@ public class Elevator extends SubsystemBase {
     HOLDING
   }
 
+  private RobotContainer m_robotContainer;
+
   public Elevator() {
     motor1 = new SparkMax(ElevatorConstants.rightCANId, MotorType.kBrushless);
     motor2 = new SparkMax(ElevatorConstants.leftCANId, MotorType.kBrushless);
@@ -116,6 +119,9 @@ public class Elevator extends SubsystemBase {
       setMotorOutput(0);
       return;
     }
+
+      m_robotContainer.setSlowMode(!lowerLimit.get()); // SET SLOW MODE IN ROBOT CONTAINER TO WHATEVER THE LIMIT SWITCH ISNT (SLOW IF ELEVATOR UP)
+    
 
     if (!isManualControl) {
       double currentHeight = getHeight();

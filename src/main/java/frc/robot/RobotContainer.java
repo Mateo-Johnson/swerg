@@ -88,6 +88,15 @@ public class RobotContainer {
 
   }
 
+  // Public methods to safely get and set slowMode
+  public boolean isSlowMode() {
+      return slowMode;
+  }
+
+  public void setSlowMode(boolean enabled) {
+      slowMode = enabled;
+  }
+
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *
