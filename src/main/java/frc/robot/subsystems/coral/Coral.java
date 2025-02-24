@@ -2,12 +2,15 @@ package frc.robot.subsystems.coral;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.CoralConstants;
+
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.Counter;
 import edu.wpi.first.wpilibj.Counter.Mode;
 import edu.wpi.first.math.controller.PIDController;
@@ -19,7 +22,7 @@ public class Coral extends SubsystemBase {
   private final SparkMax rightMotor;
   private final RelativeEncoder leftEncoder;
   private final RelativeEncoder rightEncoder;
-  private final Counter maxSonarPWM;
+  private AnalogInput sonarSensor;
 
   // Control
   private final PIDController leftVelocityPID;
@@ -33,7 +36,6 @@ public class Coral extends SubsystemBase {
   private static final int RIGHT_MOTOR_ID = CoralConstants.rightCoralID;
   private static final double LEFT_GEAR_RATIO = CoralConstants.leftGearRatio;
   private static final double RIGHT_GEAR_RATIO = CoralConstants.rightGearRatio;
-  private static final int MAXSONAR_PWM_PORT = CoralConstants.intakeLimitSwitchPort;
 
   // MaxSonar Constants
   private static final double MAXSONAR_SCALE_FACTOR = 147.0; // microseconds per inch
@@ -70,10 +72,8 @@ public class Coral extends SubsystemBase {
     leftEncoder = leftMotor.getEncoder();
     rightEncoder = rightMotor.getEncoder();
 
-    // Initialize MaxSonar PWM counter
-    maxSonarPWM = new Counter(Mode.kSemiperiod);
-    maxSonarPWM.setUpSource(MAXSONAR_PWM_PORT);
-    maxSonarPWM.setSemiPeriodMode(true);
+    // Initialize MaxSonar sensor
+    sonarSensor = new AnalogInput(4);
 
     // Configure left motor
     SparkMaxConfig leftConfig = new SparkMaxConfig();
@@ -137,8 +137,8 @@ public class Coral extends SubsystemBase {
 
   private void updateSensorReading() {
     // Get the pulse width in microseconds and convert to distance
-    double pulseWidth = maxSonarPWM.getPeriod() * 1_000_000; // Convert to microseconds
-    lastDistance = pulseWidth / MAXSONAR_SCALE_FACTOR; // Convert to inches
+    double voltage = sonarSensor.getVoltage();
+    lastDistance = voltage / 0.00977; // DISTANCE CM
   }
 
   public double getDistance() {
