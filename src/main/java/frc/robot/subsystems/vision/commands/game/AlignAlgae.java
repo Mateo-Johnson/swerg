@@ -5,12 +5,11 @@ import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.commands.general.AlignRotate;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AlignAlgae extends Command {
   /** Creates a new AlignReefLeft. */
   private final Drivetrain m_drivetrain;
   private final Vision m_vision;
-  private AlignRotate alignRotateCommand;  // Declare AlignRotate command
+  private AlignRotate alignRotateCommand; // Declare AlignRotate command
 
   public AlignAlgae(Drivetrain drivetrain, Vision vision) {
     // Use addRequirements() here to declare subsystem dependencies.
@@ -24,10 +23,10 @@ public class AlignAlgae extends Command {
   public void initialize() {
     double tX = m_vision.getTX();
     double setpoint = 0;
-    
+
     // Create the AlignRotate command
     alignRotateCommand = new AlignRotate(setpoint, 0.1, tX, m_drivetrain);
-    
+
     // Schedule the AlignRotate command to run
     alignRotateCommand.schedule();
   }

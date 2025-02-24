@@ -36,7 +36,7 @@ public class AlignRotate extends Command {
     this.drivetrain = drivetrain;
     addRequirements(drivetrain);
 
-    rotatePID.setTolerance(tolerance); 
+    rotatePID.setTolerance(tolerance);
   }
 
   // Called when the command is initially scheduled.
@@ -47,7 +47,7 @@ public class AlignRotate extends Command {
   @Override
   public void execute() {
     double targetAngle = angle;
-    double currentAngle = currentMeasure;  // Use the passed currentMeasure
+    double currentAngle = currentMeasure; // Use the passed currentMeasure
 
     double output = rotatePID.calculate(currentAngle, targetAngle);
     output = Math.max(-1, Math.min(1, output));

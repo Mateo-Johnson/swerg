@@ -6,7 +6,6 @@ import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.utils.Constants.PIDConstants;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AlignReefLeft extends Command {
   /** Creates a new AlignReefLeft. */
   private final Drivetrain m_drivetrain;

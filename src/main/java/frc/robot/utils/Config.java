@@ -7,40 +7,40 @@ import frc.robot.utils.Constants.ModuleConstants;
 
 public final class Config {
 
-    public static final class Module {
-        public static final SparkMaxConfig drivingConfig = new SparkMaxConfig();
-        public static final SparkMaxConfig turningConfig = new SparkMaxConfig();
+  public static final class Module {
+    public static final SparkMaxConfig drivingConfig = new SparkMaxConfig();
+    public static final SparkMaxConfig turningConfig = new SparkMaxConfig();
 
-        static {
-            // Use module constants to calculate conversion factors and feed forward gain.
-            double drivingFactor = ModuleConstants.kWheelDiameterMeters * Math.PI
-                    / ModuleConstants.kDrivingMotorReduction;
-            double drivingVelocityFeedForward = 1 / ModuleConstants.kDriveWheelFreeSpeedRps;
+    static {
+      // Use module constants to calculate conversion factors and feed forward gain.
+      double drivingFactor = ModuleConstants.kWheelDiameterMeters * Math.PI /
+        ModuleConstants.kDrivingMotorReduction;
+      double drivingVelocityFeedForward = 1 / ModuleConstants.kDriveWheelFreeSpeedRps;
 
-            drivingConfig
-                    .idleMode(IdleMode.kBrake)
-                    .smartCurrentLimit(50);
-            drivingConfig.encoder
-                    .positionConversionFactor(drivingFactor) // meters
-                    .velocityConversionFactor(drivingFactor / 60.0); // meters per second
-            drivingConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.04, 0, 0)
-                    .velocityFF(drivingVelocityFeedForward)
-                    .outputRange(-1, 1);
+      drivingConfig
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(50);
+      drivingConfig.encoder
+        .positionConversionFactor(drivingFactor) // meters
+        .velocityConversionFactor(drivingFactor / 60.0); // meters per second
+      drivingConfig.closedLoop
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .pid(0.04, 0, 0)
+        .velocityFF(drivingVelocityFeedForward)
+        .outputRange(-1, 1);
 
-            turningConfig
-                    .idleMode(IdleMode.kBrake)
-                    .smartCurrentLimit(20);
-            turningConfig.encoder
-                    .positionConversionFactor(2 * Math.PI / ModuleConstants.kTurningMotorReduction) // rotations
-                    .velocityConversionFactor(2 * Math.PI / (ModuleConstants.kTurningMotorReduction * 60.0)); // rotations per second
-            turningConfig.closedLoop
-                    .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                    .pid(0.5, 0, 0.02)
-                    .outputRange(-1, 1)
-                    .positionWrappingEnabled(true)
-                    .positionWrappingInputRange(0, (2*Math.PI));
-        }
+      turningConfig
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(20);
+      turningConfig.encoder
+        .positionConversionFactor(2 * Math.PI / ModuleConstants.kTurningMotorReduction) // rotations
+        .velocityConversionFactor(2 * Math.PI / (ModuleConstants.kTurningMotorReduction * 60.0)); // rotations per second
+      turningConfig.closedLoop
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .pid(0.5, 0, 0.02)
+        .outputRange(-1, 1)
+        .positionWrappingEnabled(true)
+        .positionWrappingInputRange(0, (2 * Math.PI));
     }
+  }
 }
