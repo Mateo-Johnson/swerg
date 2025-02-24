@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -30,31 +31,33 @@ public class RobotContainer {
 
   // The driver's controller
   private final CommandXboxController primary = Constants.primary;
+  private boolean slowMode = false; // Variable to track slow mode state
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
-  public RobotContainer() {
+
+   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
 
     m_drivetrain.setDefaultCommand( // IF THE DRIVETRAIN ISN'T DOING ANYTHING ELSE, DO THIS
-      // LEFT STICK CONTROLS TRANSLATION
-      // RIGHT STICK (LEFT/RIGHT) CONTROL TURNING
-      new RunCommand(() -> m_drivetrain.drive(
-          MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband),
-          -MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband),
-          -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband),
-          true),
-        m_drivetrain));
+        new RunCommand(() -> {
+            double speedModifier = slowMode ? 0.5 : 1.0; // Reduce speed if slow mode is on
+            m_drivetrain.drive(
+                MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband) * speedModifier,
+                -MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband) * speedModifier,
+                -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband) * speedModifier,
+                true);
+        }, m_drivetrain)
+    );
 
     // COMMAND THE ELEVATOR TO HOLD IF NOT DOING ANYTHING ELSE
     // m_elevator.setDefaultCommand(ElevatorCommands.elevatorHold(m_elevator));
 
     // COMMAND THE CORAL INTAKE TO STORE WHEN NOT DOING ANYTHING ELSE
     // m_coral.setDefaultCommand(CoralCommands.hold(m_coral));
-
-  }
+}
 
   /**
    * Use this method to define your button->command mappings. Buttons can be
@@ -66,15 +69,22 @@ public class RobotContainer {
    * {@link JoystickButton}.
    */
   private void configureButtonBindings() {
-    // primary.rightTrigger().whileTrue(new AutoIntakeCommand(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
 
+    // DRIVETRAIN COMMANDS
+    primary.b().onTrue(new InstantCommand(() -> slowMode = !slowMode)); // B BUTTON TO ENABLE/DISABLE SLOW MODE
+
+    // ELEVATOR COMMANDS
     primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
-
-    // POV CONTROL FOR ELEVATOR
     // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
     // primary.povRight().whileTrue(ElevatorCommands.moveToL3(m_elevator));
     // primary.povDown().whileTrue(ElevatorCommands.moveToL2(m_elevator));
     // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
+
+    // CORAL COMMANDS
+    // primary.rightTrigger().whileTrue(new AutoIntakeCommand(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
+
+    // ALGAE COMMANDS
+
 
   }
 
