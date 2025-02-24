@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.subsystems.coral.Coral;
+import frc.robot.subsystems.coral.commands.AutoIntakeCommand;
 // import frc.robot.subsystems.coral.Coral;
 // import frc.robot.subsystems.coral.commands.CoralCommands;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -24,7 +26,7 @@ public class RobotContainer {
     // The robot's subsystems
     private final Drivetrain m_drivetrain = new Drivetrain();
     private final Elevator m_elevator = new Elevator();
-    // private final Coral m_coral = new Coral();
+    private final Coral m_coral = new Coral();
 
     // The driver's controller
     private final CommandXboxController primary = Constants.primary;
@@ -65,7 +67,7 @@ public class RobotContainer {
      * {@link JoystickButton}.
      */
     private void configureButtonBindings() {
-        // primary.rightTrigger().whileTrue(CoralCommands.intakeEject(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
+        // primary.rightTrigger().whileTrue(new AutoIntakeCommand(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
 
         primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
         
