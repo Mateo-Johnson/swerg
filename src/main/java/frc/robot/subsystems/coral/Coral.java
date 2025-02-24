@@ -9,10 +9,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.Counter;
-import edu.wpi.first.wpilibj.Counter.Mode;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -38,7 +35,6 @@ public class Coral extends SubsystemBase {
   private static final double RIGHT_GEAR_RATIO = CoralConstants.rightGearRatio;
 
   // MaxSonar Constants
-  private static final double MAXSONAR_SCALE_FACTOR = 147.0; // microseconds per inch
   private static final double DISTANCE_THRESHOLD = 4.0; // inches
 
   // Speed Constants (in RPM at the roller)
