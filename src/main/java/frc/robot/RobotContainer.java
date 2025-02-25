@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.subsystems.coral.Coral;
-import frc.robot.subsystems.coral.commands.AutoIntakeCommand;
+import frc.robot.subsystems.coral.RunCoralIntake;
 // import frc.robot.subsystems.coral.Coral;
 // import frc.robot.subsystems.coral.commands.CoralCommands;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -74,29 +74,20 @@ public class RobotContainer {
     primary.b().onTrue(new InstantCommand(() -> slowMode = !slowMode)); // B BUTTON TO ENABLE/DISABLE SLOW MODE
 
     // ELEVATOR COMMANDS
-    primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+    primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+    primary.leftBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, -0.07)); // RIGHT BUMPER TO MOVE ELEVATOR UP
     // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
     // primary.povRight().whileTrue(ElevatorCommands.moveToL3(m_elevator));
     // primary.povDown().whileTrue(ElevatorCommands.moveToL2(m_elevator));
     // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
 
     // CORAL COMMANDS
-    // primary.rightTrigger().whileTrue(new AutoIntakeCommand(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
+    primary.rightTrigger().whileTrue(new RunCoralIntake(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
 
     // ALGAE COMMANDS
 
 
   }
-
-  // Public methods to safely get and set slowMode
-  public boolean isSlowMode() {
-      return slowMode;
-  }
-
-  public void setSlowMode(boolean enabled) {
-      slowMode = enabled;
-  }
-
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *

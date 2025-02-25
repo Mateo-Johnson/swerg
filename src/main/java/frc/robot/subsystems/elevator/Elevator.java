@@ -37,7 +37,7 @@ public class Elevator extends SubsystemBase {
   private static final double KD = 0.0;
   private static final double MAX_VELOCITY = 2.0; // revolutions per second
   private static final double MAX_ACCELERATION = 1.5; // revolutions per second squared
-  private static final double GRAVITY_COMPENSATION = 0.1; // Initial estimate, tune this value
+  private static final double GRAVITY_COMPENSATION = 0.06; // Initial estimate, tune this value
   private boolean gravityCompEnabled = true;
 
   // Setpoints in revolutions
@@ -119,8 +119,6 @@ public class Elevator extends SubsystemBase {
       setMotorOutput(0);
       return;
     }
-
-      m_robotContainer.setSlowMode(!lowerLimit.get()); // SET SLOW MODE IN ROBOT CONTAINER TO WHATEVER THE LIMIT SWITCH ISNT (SLOW IF ELEVATOR UP)
     
 
     if (!isManualControl) {

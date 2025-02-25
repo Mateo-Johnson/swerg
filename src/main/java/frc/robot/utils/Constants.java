@@ -91,8 +91,8 @@ public final class Constants {
 
   public static final class CoralConstants {
     // Motor IDs
-    public static final int leftCoralID = 21; // Update with actual CAN ID
-    public static final int rightCoralID = 22; // Update with actual CAN ID
+    public static final int leftCoralID = 35; // Update with actual CAN ID
+    public static final int rightCoralID = 36; // Update with actual CAN ID
     public static final int intakeLimitSwitchPort = 1;
 
     // Mechanical Configuration
