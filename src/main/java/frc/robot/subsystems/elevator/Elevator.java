@@ -22,7 +22,6 @@ public class Elevator extends SubsystemBase {
   private final PIDController pidController;
   private boolean isManualControl = false;
   private double manualSpeed = 0.0;
-  private boolean softLimitsEnabled = true;
   private double lastEncoderPosition = 0.0;
   private boolean isStalled = false;
   private int stallCount = 0;
