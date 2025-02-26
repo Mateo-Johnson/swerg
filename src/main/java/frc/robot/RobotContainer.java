@@ -73,7 +73,7 @@ public class RobotContainer {
 
     // ELEVATOR COMMANDS
     primary.rightBumper().whileTrue(new ManualMove(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
-    primary.leftBumper().whileTrue(new ManualMove(m_elevator, -0.07)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+    primary.leftBumper().whileTrue(new ManualMove(m_elevator, -0.06)); // RIGHT BUMPER TO MOVE ELEVATOR UP
     
     // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
     // primary.povRight().whileTrue(ElevatorCommands.moveToL3(m_elevator));
