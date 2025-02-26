@@ -1,13 +1,13 @@
-package frc.robot.subsystems.coral;
+package frc.robot.subsystems.coral.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.coral.Coral;
 
-public class RunCoralIntake extends Command {
+public class Intake extends Command {
   private final Coral m_coral;
   private final double intakeSpeed = 0.4; // Adjust this value as needed
   
-  public RunCoralIntake(Coral subsystem) {
+  public Intake(Coral subsystem) {
     m_coral = subsystem;
     addRequirements(subsystem);
   }

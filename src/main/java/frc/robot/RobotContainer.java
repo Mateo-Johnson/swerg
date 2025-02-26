@@ -8,12 +8,10 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.subsystems.coral.Coral;
-import frc.robot.subsystems.coral.RunCoralIntake;
-// import frc.robot.subsystems.coral.Coral;
-// import frc.robot.subsystems.coral.commands.CoralCommands;
+import frc.robot.subsystems.coral.commands.Both;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
-import frc.robot.subsystems.elevator.commands.ElevatorCommands;
+import frc.robot.subsystems.elevator.commands.ManualMove;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
 
@@ -74,15 +72,16 @@ public class RobotContainer {
     primary.b().onTrue(new InstantCommand(() -> slowMode = !slowMode)); // B BUTTON TO ENABLE/DISABLE SLOW MODE
 
     // ELEVATOR COMMANDS
-    primary.rightBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
-    primary.leftBumper().whileTrue(ElevatorCommands.elevatorManualMove(m_elevator, -0.07)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+    primary.rightBumper().whileTrue(new ManualMove(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+    primary.leftBumper().whileTrue(new ManualMove(m_elevator, -0.07)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+    
     // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
     // primary.povRight().whileTrue(ElevatorCommands.moveToL3(m_elevator));
     // primary.povDown().whileTrue(ElevatorCommands.moveToL2(m_elevator));
     // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
 
     // CORAL COMMANDS
-    primary.rightTrigger().whileTrue(new RunCoralIntake(m_coral)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
+    primary.rightTrigger().whileTrue(new Both(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
 
     // ALGAE COMMANDS
 

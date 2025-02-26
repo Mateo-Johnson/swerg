@@ -4,7 +4,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotContainer;
 import frc.robot.utils.Constants.ElevatorConstants;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -71,8 +70,6 @@ public class Elevator extends SubsystemBase {
     STALLED,
     HOLDING
   }
-
-  private RobotContainer m_robotContainer;
 
   public Elevator() {
     motor1 = new SparkMax(ElevatorConstants.rightCANId, MotorType.kBrushless);
@@ -190,9 +187,9 @@ public class Elevator extends SubsystemBase {
    */
   private void setMotorOutputUnchecked(double output) {
     // Check lower limit switch - prevent downward motion if triggered
-    // if (lowerLimit.get() && output < 0) {
-    //     output = 0;
-    // }
+    if (lowerLimit.get() && output < 0) {
+        output = 0;
+    }
     // Invert the output here - this is where we handle the direction
     output = -output;
     motor1.set(output);

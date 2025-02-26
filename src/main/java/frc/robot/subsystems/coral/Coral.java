@@ -2,18 +2,19 @@ package frc.robot.subsystems.coral;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.CoralConstants;
-
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Coral extends SubsystemBase {
   // Hardware
   private final SparkMax leftMotor;
   private final SparkMax rightMotor;
+  private AnalogInput sonar;
   
   // Motor IDs
   private static final int LEFT_MOTOR_ID = CoralConstants.leftCoralID;
@@ -25,6 +26,7 @@ public class Coral extends SubsystemBase {
 
   // Simple speed control
   private double motorSpeed = 0.0;
+
 
   public enum MotorDirection {
     FORWARD,
@@ -38,6 +40,7 @@ public class Coral extends SubsystemBase {
     // Initialize motors
     leftMotor = new SparkMax(LEFT_MOTOR_ID, MotorType.kBrushless);
     rightMotor = new SparkMax(RIGHT_MOTOR_ID, MotorType.kBrushless);
+    sonar = new AnalogInput(4);
 
     // Configure left motor
     SparkMaxConfig leftConfig = new SparkMaxConfig();
@@ -61,10 +64,10 @@ public class Coral extends SubsystemBase {
     rightMotor.set(0.2 * motorSpeed);
     
     // Log data
-    SmartDashboard.putString("Coral Direction", currentDirection.toString());
-    SmartDashboard.putNumber("Coral Motor Speed", motorSpeed);
-    SmartDashboard.putNumber("Left Motor Current", leftMotor.getOutputCurrent());
-    SmartDashboard.putNumber("Right Motor Current", rightMotor.getOutputCurrent());
+    SmartDashboard.putString("Coral/Coral Direction", currentDirection.toString());
+    SmartDashboard.putNumber("Coral/Coral Motor Speed", motorSpeed);
+    SmartDashboard.putNumber("Coral/Left Motor Output", leftMotor.getAppliedOutput());
+    SmartDashboard.putNumber("Coral/Right Motor Output", rightMotor.getAppliedOutput());
   }
 
   // Simple control methods
@@ -83,7 +86,14 @@ public class Coral extends SubsystemBase {
     currentDirection = MotorDirection.STOPPED;
   }
   
-  // Getter methods
+  // GETTER METHODS
+  public double getSonarDistance() {
+    double voltage = sonar.getVoltage();
+
+    // Adjust scaling
+    return voltage = voltage / 0.0098;
+  }
+
   public MotorDirection getCurrentDirection() {
     return currentDirection;
   }
