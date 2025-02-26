@@ -68,12 +68,9 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
-    // DRIVETRAIN COMMANDS
-    primary.b().onTrue(new InstantCommand(() -> slowMode = !slowMode)); // B BUTTON TO ENABLE/DISABLE SLOW MODE
-
     // ELEVATOR COMMANDS
     primary.rightBumper().whileTrue(new ManualMove(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
-    primary.leftBumper().whileTrue(new ManualMove(m_elevator, -0.06)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+    primary.leftBumper().whileTrue(new ManualMove(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR UP
     
     // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
     // primary.povRight().whileTrue(ElevatorCommands.moveToL3(m_elevator));
@@ -82,6 +79,8 @@ public class RobotContainer {
 
     // CORAL COMMANDS
     primary.rightTrigger().whileTrue(new Both(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
+
+    primary.b().whileTrue(new InstantCommand(() -> m_drivetrain.resetWheels()));
 
     // ALGAE COMMANDS
 

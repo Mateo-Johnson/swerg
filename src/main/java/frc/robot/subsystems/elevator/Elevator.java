@@ -32,7 +32,7 @@ public class Elevator extends SubsystemBase {
   private static final double KP = 1.0;
   private static final double KI = 0.0;
   private static final double KD = 0.0;
-  private static final double GRAVITY_COMPENSATION = 0.06;
+  private static final double GRAVITY_COMPENSATION = 0.05;
   private boolean gravityCompEnabled = true;
   private static final double POSITION_TOLERANCE = 0.02;
 
@@ -90,6 +90,9 @@ public class Elevator extends SubsystemBase {
     pidController = new PIDController(KP, KI, KD);
     pidController.setTolerance(POSITION_TOLERANCE);
 
+    // Explicitly enable gravity compensation by default
+    gravityCompEnabled = true;
+
     setState(ElevatorState.IDLE);
   }
 
@@ -121,7 +124,7 @@ public class Elevator extends SubsystemBase {
         setMotorOutput(-0.2);
       }
     } else {
-      // In IDLE state, stop motors
+      // In IDLE state, apply gravity compensation to hold position
       setMotorOutput(0);
     }
 
@@ -290,15 +293,11 @@ public class Elevator extends SubsystemBase {
       output = 0;
     }
 
-    // Apply soft limits
-    if (softLimitsEnabled) {
-      if (getHeight() >= MAX_HEIGHT && output > 0) output = 0;
-      if (getHeight() <= MIN_HEIGHT && output < 0) output = 0;
-      if (lowerLimit.get() && output < 0) output = 0;
-    }
+      if (lowerLimit.get() && output < 0) {
+        output = 0;
+      }
 
-    // Add gravity compensation when enabled
-    if (gravityCompEnabled && output != 0) {
+    if (gravityCompEnabled) {
       output += GRAVITY_COMPENSATION;
     }
 
