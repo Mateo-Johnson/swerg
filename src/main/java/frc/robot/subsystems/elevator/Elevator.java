@@ -154,13 +154,8 @@ public class Elevator extends SubsystemBase {
     // Limit the speed to safe values
     speed = Math.max(-MANUAL_SPEED_LIMIT, Math.min(MANUAL_SPEED_LIMIT, speed));
     
-    // Apply soft limits if enabled
-    if (softLimitsEnabled) {
-      if ((getHeight() >= MAX_HEIGHT && speed > 0) ||
-          (getHeight() <= MIN_HEIGHT && speed < 0) ||
-          (lowerLimit.get() && speed < 0)) {
+   if (lowerLimit.get() && speed < 0) {
         speed = 0.0;
-      }
     }
     
     manualSpeed = speed;
@@ -232,15 +227,6 @@ public class Elevator extends SubsystemBase {
 
     // Set to error state
     setState(ElevatorState.ERROR);
-  }
-
-  /**
-   * Enables or disables the soft limits, which prevent the elevator from moving beyond its safety limits.
-   *
-   * @param enabled Whether to enable soft limits.
-   */
-  public void enableSoftLimits(boolean enabled) {
-    softLimitsEnabled = enabled;
   }
 
   /**
