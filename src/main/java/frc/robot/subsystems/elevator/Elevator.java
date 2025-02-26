@@ -1,7 +1,6 @@
 package frc.robot.subsystems.elevator;
 
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.ElevatorConstants;
@@ -20,24 +19,22 @@ public class Elevator extends SubsystemBase {
   private final DigitalInput lowerLimit;
 
   // Control
-  private final ProfiledPIDController pidController;
+  private final PIDController pidController;
   private boolean isManualControl = false;
   private double manualSpeed = 0.0;
   private boolean softLimitsEnabled = true;
   private double lastEncoderPosition = 0.0;
   private boolean isStalled = false;
   private int stallCount = 0;
-  private static final double HOLD_P = 0.5;
-  private double holdPosition = 0.0;
+  private double targetPosition = 0.0;
 
   // Constants
   private static final double KP = 1.0;
   private static final double KI = 0.0;
   private static final double KD = 0.0;
-  private static final double MAX_VELOCITY = 2.0; // revolutions per second
-  private static final double MAX_ACCELERATION = 1.5; // revolutions per second squared
-  private static final double GRAVITY_COMPENSATION = 0.06; // Initial estimate, tune this value
+  private static final double GRAVITY_COMPENSATION = 0.06;
   private boolean gravityCompEnabled = true;
+  private static final double POSITION_TOLERANCE = 0.02;
 
   // Setpoints in revolutions
   private static final double[] SETPOINTS = {
@@ -51,15 +48,11 @@ public class Elevator extends SubsystemBase {
   private static final double MIN_HEIGHT = 0.0; // Lowest position
   private static final double MAX_HEIGHT = 1.0; // Highest position
   private static final double MANUAL_SPEED_LIMIT = 0.8;
-  private static final double STALL_THRESHOLD = 0.001; // meters
+  private static final double STALL_THRESHOLD = 0.001; // movement threshold
   private static final int STALL_SAMPLES_THRESHOLD = 50; // 50 * 20ms = 1 second
-  @SuppressWarnings("unused")
-  private static final double CURRENT_LIMIT = 40.0; // amps
 
   // State tracking
   private ElevatorState currentState = ElevatorState.IDLE;
-  @SuppressWarnings("unused")
-  private double lastStateChangeTime = 0.0;
 
   public enum ElevatorState {
     IDLE,
@@ -67,8 +60,7 @@ public class Elevator extends SubsystemBase {
     MANUAL_CONTROL,
     HOMING,
     ERROR,
-    STALLED,
-    HOLDING
+    STALLED
   }
 
   public Elevator() {
@@ -94,45 +86,46 @@ public class Elevator extends SubsystemBase {
       com.revrobotics.spark.SparkMax.PersistMode.kPersistParameters
     );
 
-    // Configure PID with motion profiling
-    TrapezoidProfile.Constraints constraints =
-      new TrapezoidProfile.Constraints(MAX_VELOCITY, MAX_ACCELERATION);
-    pidController = new ProfiledPIDController(KP, KI, KD, constraints);
-    pidController.setTolerance(0.02); // Tolerance in revolutions
+    // Configure PID controller (simpler without motion profiling)
+    pidController = new PIDController(KP, KI, KD);
+    pidController.setTolerance(POSITION_TOLERANCE);
 
     setState(ElevatorState.IDLE);
   }
 
-  /**
-   * Periodically called to update the elevator subsystem.
-   * It manages the elevator state, checks for stalling, and applies control based on the current state.
-   */
   @Override
   public void periodic() {
-    // UPDATE SMARTDASHBOARD CALLS
     updateTelemetry();
     checkStallCondition();
+    
     if (currentState == ElevatorState.ERROR || currentState == ElevatorState.STALLED) {
       setMotorOutput(0);
       return;
     }
-    
 
-    if (!isManualControl) {
+    // Simple control logic
+    if (isManualControl) {
+      // In manual mode, just apply the manual speed
+      setMotorOutput(manualSpeed);
+    } else if (currentState == ElevatorState.MOVING_TO_POSITION) {
+      // Simple PID control based on the difference between current position and target
       double currentHeight = getHeight();
-      double output;
-
-      if (currentState == ElevatorState.HOLDING) {
-        output = (holdPosition - currentHeight) * HOLD_P;
+      double pidOutput = pidController.calculate(currentHeight, targetPosition);
+      setMotorOutput(pidOutput);
+    } else if (currentState == ElevatorState.HOMING) {
+      if (lowerLimit.get()) {
+        // If lower limit is triggered during homing, stop and reset
+        completeHoming();
       } else {
-        output = pidController.calculate(currentHeight);
+        // Continue moving down slowly during homing
+        setMotorOutput(-0.2);
       }
-
-      setMotorOutput(output);
+    } else {
+      // In IDLE state, stop motors
+      setMotorOutput(0);
     }
 
     lastEncoderPosition = getHeight();
-
   }
 
   /**
@@ -151,49 +144,26 @@ public class Elevator extends SubsystemBase {
   }
 
   /**
-   * Holds the elevator at its current position.
-   */
-  public void hold() {
-    isManualControl = false;
-    holdPosition = getHeight();
-    pidController.setGoal(holdPosition);
-    setState(ElevatorState.HOLDING);
-  }
-
-  /**
    * Sets the speed for manual control of the elevator.
    *
    * @param speed The speed of the elevator, constrained by the manual speed limit.
    */
   public void setManualSpeed(double speed) {
     if (!isManualControl) return;
+    
+    // Limit the speed to safe values
     speed = Math.max(-MANUAL_SPEED_LIMIT, Math.min(MANUAL_SPEED_LIMIT, speed));
-    // if (softLimitsEnabled) {
-    //     if ((getHeight() >= MAX_HEIGHT && speed > 0) ||
-    //         (getHeight() <= MIN_HEIGHT && speed < 0) ||
-    //         (!lowerLimit.get() && speed < 0)) {
-    //         speed = 0.0;
-    //     }
-    // }
-    manualSpeed = speed;
-    setMotorOutputUnchecked(manualSpeed);
-  }
-
-  /**
-   * Sets the output for the elevator motors without any safety checks or limits.
-   * WARNING: This function bypasses all safety features and should be used with extreme caution.
-   *
-   * @param output The desired output speed for the motors.
-   */
-  private void setMotorOutputUnchecked(double output) {
-    // Check lower limit switch - prevent downward motion if triggered
-    if (lowerLimit.get() && output < 0) {
-        output = 0;
+    
+    // Apply soft limits if enabled
+    if (softLimitsEnabled) {
+      if ((getHeight() >= MAX_HEIGHT && speed > 0) ||
+          (getHeight() <= MIN_HEIGHT && speed < 0) ||
+          (lowerLimit.get() && speed < 0)) {
+        speed = 0.0;
+      }
     }
-    // Invert the output here - this is where we handle the direction
-    output = -output;
-    motor1.set(output);
-    motor2.set(output);
+    
+    manualSpeed = speed;
   }
 
   /**
@@ -205,18 +175,30 @@ public class Elevator extends SubsystemBase {
     if (setpointIndex < 0 || setpointIndex >= SETPOINTS.length) {
       throw new IllegalArgumentException("Invalid setpoint index");
     }
+    
     isManualControl = false;
-    pidController.setGoal(SETPOINTS[setpointIndex]);
+    targetPosition = SETPOINTS[setpointIndex];
+    setState(ElevatorState.MOVING_TO_POSITION);
+  }
+  
+  /**
+   * Sets a custom position target for the elevator.
+   * 
+   * @param position The target position in revolutions.
+   */
+  public void setTargetPosition(double position) {
+    isManualControl = false;
+    targetPosition = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, position));
     setState(ElevatorState.MOVING_TO_POSITION);
   }
 
   /**
-   * Checks if the elevator has reached the setpoint.
+   * Checks if the elevator has reached the target position.
    *
-   * @return True if the elevator has reached the target setpoint, false otherwise.
+   * @return True if the elevator has reached the target position, false otherwise.
    */
   public boolean atSetpoint() {
-    return pidController.atGoal();
+    return Math.abs(getHeight() - targetPosition) < POSITION_TOLERANCE;
   }
 
   /**
@@ -225,17 +207,15 @@ public class Elevator extends SubsystemBase {
   public void startHoming() {
     isManualControl = false;
     setState(ElevatorState.HOMING);
-    setMotorOutput(-0.2); // Moving down at 20% speed until limit switch
   }
 
   /**
    * Completes the homing process by resetting the encoder position to 0 when the lower limit is triggered.
    */
   public void completeHoming() {
-    if (currentState == ElevatorState.HOMING && lowerLimit.get()) {
-      motor1.getEncoder().setPosition(0);
-      setState(ElevatorState.IDLE);
-    }
+    motor1.getEncoder().setPosition(0);
+    setMotorOutput(0);
+    setState(ElevatorState.IDLE);
   }
 
   /**
@@ -243,11 +223,11 @@ public class Elevator extends SubsystemBase {
    */
   public void emergencyStop() {
     // Immediately stop all motion
-    setMotorOutputUnchecked(0);
+    setMotorOutput(0);
     motor1.disable();
     motor2.disable();
 
-    // Disable manual control and PID
+    // Disable manual control
     isManualControl = false;
 
     // Set to error state
@@ -269,6 +249,7 @@ public class Elevator extends SubsystemBase {
   private void checkStallCondition() {
     double currentPosition = getHeight();
     boolean isMoving = Math.abs(motor1.get()) > 0.1;
+    
     if (isMoving && Math.abs(currentPosition - lastEncoderPosition) < STALL_THRESHOLD) {
       stallCount++;
       if (stallCount > STALL_SAMPLES_THRESHOLD) {
@@ -287,32 +268,27 @@ public class Elevator extends SubsystemBase {
    * @param newState The new state to set.
    */
   public void setState(ElevatorState newState) {
-    if (currentState != newState) {
-      currentState = newState;
-      lastStateChangeTime = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
-    }
+    currentState = newState;
   }
 
   /**
    * Updates the telemetry displayed on the SmartDashboard.
-   * Displays the elevator's current state, height, target, and other relevant information.
    */
   private void updateTelemetry() {
     SmartDashboard.putString("Elevator/State", currentState.toString());
     SmartDashboard.putNumber("Elevator/Height", getHeight());
-    SmartDashboard.putNumber("Elevator/Target", getCurrentSetpoint());
+    SmartDashboard.putNumber("Elevator/Target", targetPosition);
     SmartDashboard.putBoolean("Elevator/AtSetpoint", atSetpoint());
     SmartDashboard.putBoolean("Elevator/LowerLimit", isAtLowerLimit());
     SmartDashboard.putBoolean("Elevator/Stalled", isStalled);
     SmartDashboard.putNumber("Elevator/Output", motor1.get());
     SmartDashboard.putBoolean("Elevator/GravityCompEnabled", gravityCompEnabled);
-    SmartDashboard.putNumber("Elevator/GravityCompValue", GRAVITY_COMPENSATION);
   }
 
   /**
    * Retrieves the current height of the elevator based on the encoder position.
    *
-   * @return The current height in meters.
+   * @return The current height in revolutions.
    */
   public double getHeight() {
     return heightEncoder.getPosition() / 8192; // COUNTS PER REVOLUTION
@@ -340,7 +316,7 @@ public class Elevator extends SubsystemBase {
       output += GRAVITY_COMPENSATION;
     }
 
-    // Invert the output here - this is where we handle the direction
+    // Invert the output for motor direction
     output = -output;
 
     // Clamp final output to valid range
@@ -368,12 +344,12 @@ public class Elevator extends SubsystemBase {
   }
 
   /**
-   * Retrieves the current setpoint that the elevator is moving towards.
+   * Gets the current target position.
    *
-   * @return The current setpoint in meters.
+   * @return The target position in revolutions.
    */
-  public double getCurrentSetpoint() {
-    return pidController.getGoal().position;
+  public double getTargetPosition() {
+    return targetPosition;
   }
 
   /**
@@ -413,40 +389,6 @@ public class Elevator extends SubsystemBase {
    * @param d The derivative constant.
    */
   public void configurePID(double p, double i, double d) {
-    var config = new SparkMaxConfig();
-    config.closedLoop
-      .pid(p, i, d);
-    motor1.configure(
-      config,
-      com.revrobotics.spark.SparkMax.ResetMode.kNoResetSafeParameters,
-      com.revrobotics.spark.SparkMax.PersistMode.kNoPersistParameters
-    );
-  }
-
-  /**
-   * Configures the motion profile constraints for the elevator's motion (max velocity and acceleration).
-   *
-   * @param maxVelocity The maximum velocity in meters per second.
-   * @param maxAcceleration The maximum acceleration in meters per second squared.
-   */
-  public void configureMotionConstraints(double maxVelocity, double maxAcceleration) {
-    pidController.setConstraints(new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration));
-  }
-
-  /**
-   * Configures the encoder conversion factor for the elevator to translate encoder ticks to meters.
-   *
-   * @param metersPerRotation The number of meters per encoder rotation.
-   */
-  public void configureEncoderConversion(double metersPerRotation) {
-    var config = new SparkMaxConfig();
-    config.encoder
-      .positionConversionFactor(metersPerRotation)
-      .velocityConversionFactor(metersPerRotation);
-    motor1.configure(
-      config,
-      com.revrobotics.spark.SparkMax.ResetMode.kNoResetSafeParameters,
-      com.revrobotics.spark.SparkMax.PersistMode.kNoPersistParameters
-    );
+    pidController.setPID(p, i, d);
   }
 }
