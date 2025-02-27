@@ -30,7 +30,7 @@ public class Elevator extends SubsystemBase {
   private boolean wasLimitPressed = false; // For edge detection
 
   // Constants
-  private static final double KP = 1.0;
+  private static final double KP = 0.0;
   private static final double KI = 0.0;
   private static final double KD = 0.0;
   private static final double GRAVITY_COMPENSATION = 0.05;
