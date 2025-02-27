@@ -4,35 +4,41 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.coral.Coral;
 
 public class Intake extends Command {
-  private final Coral m_coral;
-  private final double intakeSpeed = 0.4; // Adjust this value as needed
-  
-  public Intake(Coral subsystem) {
-    m_coral = subsystem;
-    addRequirements(subsystem);
-  }
-  
-  @Override
-  public void initialize() {
-    // Start the intake when the command begins
-    m_coral.forward(intakeSpeed);
-  }
-  
-  @Override
-  public void execute() {
-    // Command continuously runs the intake
-    // Nothing additional needed here as the motor continues at the set speed
-  }
-  
-  @Override
-  public void end(boolean interrupted) {
-    // Stop the intake when the command ends
-    m_coral.stop();
-  }
-  
-  @Override
-  public boolean isFinished() {
-    // This will run until interrupted (when the button is released)
-    return false;
-  }
+    private final Coral coral;
+    private final double speed;
+    
+    /**
+     * Command to move the Coral subsystem forward to test PID values
+     * 
+     * @param coral The Coral subsystem
+     * @param 
+     */
+    public Intake(Coral coral, double speed) {
+        this.coral = coral;
+        this.speed = speed;
+        addRequirements(coral);
+    }
+    
+    @Override
+    public void initialize() {
+        // Start moving forward
+        coral.forward(speed);
+    }
+    
+    @Override
+    public void execute() {
+        // Command runs continuously until interrupted
+    }
+    
+    @Override
+    public void end(boolean interrupted) {
+        // Stop motors
+        coral.stop();
+    }
+    
+    @Override
+    public boolean isFinished() {
+        // This command runs until interrupted
+        return false;
+    }
 }

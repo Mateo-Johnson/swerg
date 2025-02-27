@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.subsystems.coral.Coral;
-import frc.robot.subsystems.coral.commands.Both;
+import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.ManualMove;
@@ -87,19 +87,10 @@ public class RobotContainer {
     // primary.povDown().whileTrue(ElevatorCommands.moveToL2(m_elevator));
     // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
 
-
     // CORAL COMMANDS
-    primary.rightTrigger().whileTrue(new Both(m_coral, 0.3)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
-
-
-    primary.b().whileTrue(new InstantCommand(() -> m_drivetrain.resetWheels()));
-
+    primary.rightTrigger().whileTrue(new Intake(m_coral, 0.5)); // RIGHT TRIGGER TO INTAKE CORAL
 
     // ALGAE COMMANDS
-
-
-
-
   }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
