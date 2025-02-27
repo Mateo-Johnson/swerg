@@ -1,5 +1,6 @@
 package frc.robot;
 
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -15,6 +16,7 @@ import frc.robot.subsystems.elevator.commands.ManualMove;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
 
+
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -27,17 +29,21 @@ public class RobotContainer {
   private final Elevator m_elevator = new Elevator();
   private final Coral m_coral = new Coral();
 
+
   // The driver's controller
   private final CommandXboxController primary = Constants.primary;
   private boolean slowMode = false; // Variable to track slow mode state
+
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
 
+
    public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
+
 
     m_drivetrain.setDefaultCommand( // IF THE DRIVETRAIN ISN'T DOING ANYTHING ELSE, DO THIS
         new RunCommand(() -> {
@@ -50,12 +56,15 @@ public class RobotContainer {
         }, m_drivetrain)
     );
 
+
     // COMMAND THE ELEVATOR TO HOLD IF NOT DOING ANYTHING ELSE
     // m_elevator.setDefaultCommand(ElevatorCommands.elevatorHold(m_elevator));
+
 
     // COMMAND THE CORAL INTAKE TO STORE WHEN NOT DOING ANYTHING ELSE
     // m_coral.setDefaultCommand(CoralCommands.hold(m_coral));
 }
+
 
   /**
    * Use this method to define your button->command mappings. Buttons can be
@@ -68,21 +77,27 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
+
     // ELEVATOR COMMANDS
     primary.rightBumper().whileTrue(new ManualMove(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
     primary.leftBumper().whileTrue(new ManualMove(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR UP
-    
+   
     // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
     // primary.povRight().whileTrue(ElevatorCommands.moveToL3(m_elevator));
     // primary.povDown().whileTrue(ElevatorCommands.moveToL2(m_elevator));
     // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
 
+
     // CORAL COMMANDS
     primary.rightTrigger().whileTrue(new Both(m_coral, 0.3)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
 
+
     primary.b().whileTrue(new InstantCommand(() -> m_drivetrain.resetWheels()));
 
+
     // ALGAE COMMANDS
+
+
 
 
   }

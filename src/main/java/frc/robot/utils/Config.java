@@ -2,20 +2,23 @@ package frc.robot.utils;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
 import frc.robot.utils.Constants.ModuleConstants;
 
+
 public final class Config {
+
 
   public static final class Module {
     public static final SparkMaxConfig drivingConfig = new SparkMaxConfig();
     public static final SparkMaxConfig turningConfig = new SparkMaxConfig();
+
 
     static {
       // Use module constants to calculate conversion factors and feed forward gain.
       double drivingFactor = ModuleConstants.kWheelDiameterMeters * Math.PI /
         ModuleConstants.kDrivingMotorReduction;
       double drivingVelocityFeedForward = 1 / ModuleConstants.kDriveWheelFreeSpeedRps;
+
 
       drivingConfig
         .idleMode(IdleMode.kBrake)
@@ -28,6 +31,7 @@ public final class Config {
         .pid(0.04, 0, 0)
         .velocityFF(drivingVelocityFeedForward)
         .outputRange(-1, 1);
+
 
       turningConfig
         .idleMode(IdleMode.kBrake)

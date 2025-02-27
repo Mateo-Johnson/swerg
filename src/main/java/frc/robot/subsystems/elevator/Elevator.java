@@ -1,5 +1,6 @@
 package frc.robot.subsystems.elevator;
 
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -11,12 +12,14 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+
 public class Elevator extends SubsystemBase {
   // Hardware
   private final SparkMax motor1;
   private final SparkMax motor2;
   private final AbsoluteEncoder heightEncoder;
   private final DigitalInput lowerLimit;
+
 
   // Control
   private final PIDController pidController;
@@ -27,6 +30,7 @@ public class Elevator extends SubsystemBase {
   private int stallCount = 0;
   private double targetPosition = 0.0;
 
+
   // Constants
   private static final double KP = 1.0;
   private static final double KI = 0.0;
@@ -34,6 +38,7 @@ public class Elevator extends SubsystemBase {
   private static final double GRAVITY_COMPENSATION = 0.05;
   private boolean gravityCompEnabled = true;
   private static final double POSITION_TOLERANCE = 0.02;
+
 
   // Setpoints in revolutions
   private static final double[] SETPOINTS = {
@@ -43,6 +48,7 @@ public class Elevator extends SubsystemBase {
     0.75
   }; // L1, L2, L3, L4
 
+
   // Safety limits in revolutions
   private static final double MIN_HEIGHT = 0.0; // Lowest position
   private static final double MAX_HEIGHT = 1.0; // Highest position
@@ -50,8 +56,10 @@ public class Elevator extends SubsystemBase {
   private static final double STALL_THRESHOLD = 0.001; // movement threshold
   private static final int STALL_SAMPLES_THRESHOLD = 50; // 50 * 20ms = 1 second
 
+
   // State tracking
   private ElevatorState currentState = ElevatorState.IDLE;
+
 
   public enum ElevatorState {
     IDLE,
@@ -62,13 +70,16 @@ public class Elevator extends SubsystemBase {
     STALLED
   }
 
+
   public Elevator() {
     motor1 = new SparkMax(ElevatorConstants.rightCANId, MotorType.kBrushless);
     motor2 = new SparkMax(ElevatorConstants.leftCANId, MotorType.kBrushless);
     heightEncoder = motor1.getAbsoluteEncoder();
 
+
     // Initialize the limit switch with the provided port
     this.lowerLimit = new DigitalInput(0);
+
 
     var config = new SparkMaxConfig();
     config
@@ -79,31 +90,37 @@ public class Elevator extends SubsystemBase {
       .positionConversionFactor(1.0)
       .velocityConversionFactor(1.0);
 
+
     motor1.configure(
       config,
       com.revrobotics.spark.SparkMax.ResetMode.kResetSafeParameters,
       com.revrobotics.spark.SparkMax.PersistMode.kPersistParameters
     );
 
+
     // Configure PID controller (simpler without motion profiling)
     pidController = new PIDController(KP, KI, KD);
     pidController.setTolerance(POSITION_TOLERANCE);
 
+
     // Explicitly enable gravity compensation by default
     gravityCompEnabled = true;
 
+
     setState(ElevatorState.IDLE);
   }
+
 
   @Override
   public void periodic() {
     updateTelemetry();
     checkStallCondition();
-    
+   
     if (currentState == ElevatorState.ERROR || currentState == ElevatorState.STALLED) {
       setMotorOutput(0);
       return;
     }
+
 
     // Simple control logic
     if (isManualControl) {
@@ -117,7 +134,7 @@ public class Elevator extends SubsystemBase {
     } else if (currentState == ElevatorState.HOMING) {
       if (lowerLimit.get()) {
         // If lower limit is triggered during homing, stop and reset
-        completeHoming(); 
+        completeHoming();
       } else {
         // Continue moving down slowly during homing
         setMotorOutput(-0.2);
@@ -127,8 +144,10 @@ public class Elevator extends SubsystemBase {
       setMotorOutput(0);
     }
 
+
     lastEncoderPosition = getHeight();
   }
+
 
   /**
    * Enables or disables manual control mode for the elevator.
@@ -145,6 +164,7 @@ public class Elevator extends SubsystemBase {
     }
   }
 
+
   /**
    * Sets the speed for manual control of the elevator.
    *
@@ -152,16 +172,17 @@ public class Elevator extends SubsystemBase {
    */
   public void setManualSpeed(double speed) {
     if (!isManualControl) return;
-    
+   
     // Limit the speed to safe values
     speed = Math.max(-MANUAL_SPEED_LIMIT, Math.min(MANUAL_SPEED_LIMIT, speed));
-    
+   
    if (lowerLimit.get() && speed < 0) {
         speed = 0.0;
     }
-    
+   
     manualSpeed = speed;
   }
+
 
   /**
    * Moves the elevator to a specified setpoint from the predefined setpoints array.
@@ -172,15 +193,15 @@ public class Elevator extends SubsystemBase {
     if (setpointIndex < 0 || setpointIndex >= SETPOINTS.length) {
       throw new IllegalArgumentException("Invalid setpoint index");
     }
-    
+   
     isManualControl = false;
     targetPosition = SETPOINTS[setpointIndex];
     setState(ElevatorState.MOVING_TO_POSITION);
   }
-  
+ 
   /**
    * Sets a custom position target for the elevator.
-   * 
+   *
    * @param position The target position in revolutions.
    */
   public void setTargetPosition(double position) {
@@ -188,6 +209,7 @@ public class Elevator extends SubsystemBase {
     targetPosition = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, position));
     setState(ElevatorState.MOVING_TO_POSITION);
   }
+
 
   /**
    * Checks if the elevator has reached the target position.
@@ -198,6 +220,7 @@ public class Elevator extends SubsystemBase {
     return Math.abs(getHeight() - targetPosition) < POSITION_TOLERANCE;
   }
 
+
   /**
    * Starts the homing process, moving the elevator down until it reaches the lower limit switch.
    */
@@ -205,6 +228,7 @@ public class Elevator extends SubsystemBase {
     isManualControl = false;
     setState(ElevatorState.HOMING);
   }
+
 
   /**
    * Completes the homing process by resetting the encoder position to 0 when the lower limit is triggered.
@@ -215,6 +239,7 @@ public class Elevator extends SubsystemBase {
     setState(ElevatorState.IDLE);
   }
 
+
   /**
    * Emergency stops the elevator immediately and disables all motors
    */
@@ -224,12 +249,15 @@ public class Elevator extends SubsystemBase {
     motor1.disable();
     motor2.disable();
 
+
     // Disable manual control
     isManualControl = false;
+
 
     // Set to error state
     setState(ElevatorState.ERROR);
   }
+
 
   /**
    * Checks if the elevator is stalled based on encoder position and motor output.
@@ -237,7 +265,7 @@ public class Elevator extends SubsystemBase {
   private void checkStallCondition() {
     double currentPosition = getHeight();
     boolean isMoving = Math.abs(motor1.get()) > 0.1;
-    
+   
     if (isMoving && Math.abs(currentPosition - lastEncoderPosition) < STALL_THRESHOLD) {
       stallCount++;
       if (stallCount > STALL_SAMPLES_THRESHOLD) {
@@ -250,6 +278,7 @@ public class Elevator extends SubsystemBase {
     }
   }
 
+
   /**
    * Sets the current state of the elevator subsystem.
    *
@@ -258,6 +287,7 @@ public class Elevator extends SubsystemBase {
   public void setState(ElevatorState newState) {
     currentState = newState;
   }
+
 
   /**
    * Updates the telemetry displayed on the SmartDashboard.
@@ -273,6 +303,7 @@ public class Elevator extends SubsystemBase {
     SmartDashboard.putBoolean("Elevator/GravityCompEnabled", gravityCompEnabled);
   }
 
+
   /**
    * Retrieves the current height of the elevator based on the encoder position.
    *
@@ -281,6 +312,7 @@ public class Elevator extends SubsystemBase {
   public double getHeight() {
     return heightEncoder.getPosition() / 8192; // COUNTS PER REVOLUTION
   }
+
 
   /**
    * Sets the output for the elevator motors.
@@ -292,23 +324,29 @@ public class Elevator extends SubsystemBase {
       output = 0;
     }
 
+
       if (lowerLimit.get() && output < 0) {
         output = 0;
       }
+
 
     if (gravityCompEnabled) {
       output += GRAVITY_COMPENSATION;
     }
 
+
     // Invert the output for motor direction
     output = -output;
+
 
     // Clamp final output to valid range
     output = Math.max(-1.0, Math.min(1.0, output));
 
+
     motor1.set(output);
     motor2.set(output);
   }
+
 
   /**
    * Enables or disables gravity compensation
@@ -317,6 +355,7 @@ public class Elevator extends SubsystemBase {
   public void enableGravityCompensation(boolean enabled) {
     gravityCompEnabled = enabled;
   }
+
 
   /**
    * Checks if the elevator is at the lower limit position.
@@ -327,6 +366,7 @@ public class Elevator extends SubsystemBase {
     return lowerLimit.get();
   }
 
+
   /**
    * Gets the current target position.
    *
@@ -335,6 +375,7 @@ public class Elevator extends SubsystemBase {
   public double getTargetPosition() {
     return targetPosition;
   }
+
 
   /**
    * Retrieves the current state of the elevator subsystem.
@@ -345,6 +386,7 @@ public class Elevator extends SubsystemBase {
     return currentState;
   }
 
+
   /**
    * Checks if the elevator is stalled.
    *
@@ -353,6 +395,7 @@ public class Elevator extends SubsystemBase {
   public boolean isStalled() {
     return isStalled;
   }
+
 
   /**
    * Clears any error or stalled condition, returning the elevator to the idle state.
@@ -364,6 +407,7 @@ public class Elevator extends SubsystemBase {
       stallCount = 0;
     }
   }
+
 
   /**
    * Configures the PID controller for the elevator with custom PID values.

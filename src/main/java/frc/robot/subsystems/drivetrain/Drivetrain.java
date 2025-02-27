@@ -1,7 +1,9 @@
 package frc.robot.subsystems.drivetrain;
 
+
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
+
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -15,9 +17,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.DriveConstants;
 
+
 public class Drivetrain extends SubsystemBase {
-  
+ 
   //CREATE MODULES
+
 
   //FRONT LEFT
   private final Module m_frontLeft = new Module(
@@ -26,12 +30,14 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kFrontLeftEncoder,
       2.9287459531721316);
 
+
   //FRONT RIGHT
   private final Module m_frontRight = new Module(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
       5.110521631358809);
+
 
   //REAR LEFT
   private final Module m_rearLeft = new Module(
@@ -40,6 +46,7 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kRearLeftEncoder,
       2.772308406337558);
 
+
   //REAR RIGHT
   private final Module m_rearRight = new Module(
       DriveConstants.kRearRightDrivingCanId,
@@ -47,11 +54,14 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kRearRightEncoder,
       5.723793939068865);
 
+
   //CREATE GYRO (NAVX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 
+
   //PID CONTROLLERS
   private PIDController headingCorrector = new PIDController(0.1, 0, 0.01);
+
 
   //ODOMETRY FOR TRACKING ROBOT
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -65,10 +75,14 @@ public class Drivetrain extends SubsystemBase {
       });
 
 
+
+
   public Drivetrain() {
     zeroHeading();
 
+
   }
+
 
   @Override
   public void periodic() {
@@ -83,15 +97,19 @@ public class Drivetrain extends SubsystemBase {
         });
 
 
+
+
     SmartDashboard.putNumber("angles2/FL", m_frontLeft.getAngleFull());
     SmartDashboard.putNumber("angles2/RL", m_rearLeft.getAngleFull());
     SmartDashboard.putNumber("angles2/FR", m_frontRight.getAngleFull());
     SmartDashboard.putNumber("angles2/RR", m_rearRight.getAngleFull());
 
+
     // SmartDashboard.putNumber("angles1/FL", m_frontLeft.m_turningEncoder.getPosition());
     // SmartDashboard.putNumber("angles1/RL", m_rearLeft.m_turningEncoder.getPosition());
     // SmartDashboard.putNumber("angles1/FR", m_frontRight.m_turningEncoder.getPosition());
     // SmartDashboard.putNumber("angles1/RR", m_rearRight.m_turningEncoder.getPosition());
+
 
     // SmartDashboard.putNumber("commanded/FL", m_frontLeft.getDesiredState().angle.getRadians());
     // SmartDashboard.putNumber("commanded/RL", m_rearLeft.getDesiredState().angle.getRadians());
@@ -100,6 +118,7 @@ public class Drivetrain extends SubsystemBase {
     double heading = getHeading();
     SmartDashboard.putNumber("Heading", heading);
   }
+
 
   /**
    * Returns the currently-estimated pose of the robot.
@@ -110,13 +129,16 @@ public class Drivetrain extends SubsystemBase {
     return m_odometry.getPoseMeters();
   }
 
+
   public void resetWheels() {
     m_frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
     m_frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
     m_rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
     m_rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
 
+
 }
+
 
   /**
    * Resets the odometry to the specified pose.
@@ -135,6 +157,7 @@ public class Drivetrain extends SubsystemBase {
         pose);
   }
 
+
     /**
    * Method to drive the robot while holding an angle.
    *
@@ -148,13 +171,14 @@ public class Drivetrain extends SubsystemBase {
       // Calculate rotation correction to maintain heading
       double currentHeading = getHeading();
       double rotationCorrection = headingCorrector.calculate(currentHeading, targetHeading);
-      
+     
       // Clamp the rotation correction between -1 and 1
       rotationCorrection = Math.max(-1, Math.min(1, rotationCorrection));
-      
+     
       // Use the normal drive method with the correction
       drive(xSpeed, ySpeed, rotationCorrection, fieldRelative);
   }
+
 
   /**
    * Method to drive the robot using joystick info.
@@ -171,6 +195,7 @@ public class Drivetrain extends SubsystemBase {
     double ySpeedDelivered = ySpeed * DriveConstants.kMaxSpeedMetersPerSecond;
     double rotDelivered = rot * DriveConstants.kMaxAngularSpeed;
 
+
     // CREATE CHASSISPEEDS OBJECT WITH CORRECT COORD SYSTEM
     var chassisSpeeds = fieldRelative
         ? ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -180,13 +205,16 @@ public class Drivetrain extends SubsystemBase {
             Rotation2d.fromDegrees(m_gyro.getAngle()))
         : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered);
 
+
     // CHANGE TO MODULE STATES
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
+
 
     // DESATURATE WHEEL SPEEDS
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates,
         DriveConstants.kMaxSpeedMetersPerSecond);
+
 
     // SET STATES FOR EACH MODULE
     m_frontLeft.setDesiredState(swerveModuleStates[0]);
@@ -194,6 +222,7 @@ public class Drivetrain extends SubsystemBase {
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
   }
+
 
   /**
    * Sets the swerve ModuleStates.
@@ -209,6 +238,7 @@ public class Drivetrain extends SubsystemBase {
     m_rearRight.setDesiredState(desiredStates[3]);
   }
 
+
   /** Resets the drive encoders to currently read a position of 0. */
   public void resetEncoders() {
     m_frontLeft.resetEncoders();
@@ -217,10 +247,12 @@ public class Drivetrain extends SubsystemBase {
     m_rearRight.resetEncoders();
   }
 
+
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
     m_gyro.reset();
   }
+
 
   /**
    * Returns the heading of the robot.
@@ -230,6 +262,7 @@ public class Drivetrain extends SubsystemBase {
   public double getHeading() {
     return Rotation2d.fromDegrees(-m_gyro.getAngle()).getDegrees();
   }
+
 
   /**
    * Returns the turn rate of the robot.
