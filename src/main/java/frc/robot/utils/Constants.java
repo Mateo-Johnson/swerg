@@ -22,12 +22,11 @@ public final class Constants {
     // DISTANCE BETWEEN CENTER OF FRONT AND BACK MODULE
     public static final double kWheelBase = Units.inchesToMeters(23.75);
 
-    //CREATE A KINEMATICS OBJECT USING THOSE DIMENSIONS
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
-      new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
-      new Translation2d(kWheelBase / 2, kTrackWidth / 2),
-      new Translation2d(-kWheelBase / 2, -kTrackWidth / 2),
-      new Translation2d(-kWheelBase / 2, kTrackWidth / 2));
+        new Translation2d(kWheelBase / 2, kTrackWidth / 2),
+        new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
+        new Translation2d(-kWheelBase / 2, kTrackWidth / 2),
+        new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
 
     // SPARKMAX CAN IDs
     // DRIVING
@@ -49,7 +48,7 @@ public final class Constants {
     public static final int kRearRightEncoder = 3;
 
     //IS THE GYRO REVERSED
-    public static final boolean kGyroReversed = false;
+    public static final boolean kGyroReversed = true;
   }
 
   public static final class ModuleConstants {

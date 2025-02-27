@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.ElevatorConstants;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.RelativeEncoder;
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -15,8 +15,7 @@ public class Elevator extends SubsystemBase {
   // Hardware
   private final SparkMax motor1;
   private final SparkMax motor2;
-  private final RelativeEncoder encoder1;
-  private final RelativeEncoder encoder2;
+  private final AbsoluteEncoder heightEncoder;
   private final DigitalInput lowerLimit;
 
   // Control
@@ -27,17 +26,16 @@ public class Elevator extends SubsystemBase {
   private boolean isStalled = false;
   private int stallCount = 0;
   private double targetPosition = 0.0;
-  private boolean wasLimitPressed = false; // For edge detection
 
   // Constants
-  private static final double KP = 0.0;
+  private static final double KP = 1.0;
   private static final double KI = 0.0;
   private static final double KD = 0.0;
   private static final double GRAVITY_COMPENSATION = 0.05;
   private boolean gravityCompEnabled = true;
   private static final double POSITION_TOLERANCE = 0.02;
 
-  // Setpoints in revolutions (CHANGE)
+  // Setpoints in revolutions
   private static final double[] SETPOINTS = {
     0.0,
     0.25,
@@ -51,10 +49,6 @@ public class Elevator extends SubsystemBase {
   private static final double MANUAL_SPEED_LIMIT = 0.8;
   private static final double STALL_THRESHOLD = 0.001; // movement threshold
   private static final int STALL_SAMPLES_THRESHOLD = 50; // 50 * 20ms = 1 second
-  
-  // Encoder discrepancy detection
-  private static final double ENCODER_DISCREPANCY_THRESHOLD = 0.05; // Revolutions
-  private boolean encoderDiscrepancyDetected = false;
 
   // State tracking
   private ElevatorState currentState = ElevatorState.IDLE;
@@ -65,106 +59,64 @@ public class Elevator extends SubsystemBase {
     MANUAL_CONTROL,
     HOMING,
     ERROR,
-    STALLED,
-    ENCODER_ERROR
+    STALLED
   }
 
   public Elevator() {
     motor1 = new SparkMax(ElevatorConstants.rightCANId, MotorType.kBrushless);
     motor2 = new SparkMax(ElevatorConstants.leftCANId, MotorType.kBrushless);
-    
-    // Get encoders from both motors
-    encoder1 = motor1.getEncoder();
-    encoder2 = motor2.getEncoder();
+    heightEncoder = motor1.getAbsoluteEncoder();
 
     // Initialize the limit switch with the provided port
     this.lowerLimit = new DigitalInput(0);
 
-    // Configure motor1
-    var config1 = new SparkMaxConfig();
-    config1
+    var config = new SparkMaxConfig();
+    config
       .inverted(true)
       .idleMode(IdleMode.kBrake);
-    
-    // Set conversion factors for the encoders
-    config1.encoder
+    // Use raw encoder counts initially
+    config.encoder
       .positionConversionFactor(1.0)
       .velocityConversionFactor(1.0);
 
     motor1.configure(
-      config1,
-      com.revrobotics.spark.SparkMax.ResetMode.kResetSafeParameters,
-      com.revrobotics.spark.SparkMax.PersistMode.kPersistParameters
-    );
-    
-    // Configure motor2 (independently, not following)
-    var config2 = new SparkMaxConfig();
-    config2
-      .inverted(true)
-      .idleMode(IdleMode.kBrake);
-    
-    config2.encoder
-      .positionConversionFactor(1.0)
-      .velocityConversionFactor(1.0);
-
-    motor2.configure(
-      config2,
+      config,
       com.revrobotics.spark.SparkMax.ResetMode.kResetSafeParameters,
       com.revrobotics.spark.SparkMax.PersistMode.kPersistParameters
     );
 
-    // Configure PID controller
+    // Configure PID controller (simpler without motion profiling)
     pidController = new PIDController(KP, KI, KD);
     pidController.setTolerance(POSITION_TOLERANCE);
 
-    // Enable gravity compensation by default
+    // Explicitly enable gravity compensation by default
     gravityCompEnabled = true;
 
     setState(ElevatorState.IDLE);
-    
-    // Initialize wasLimitPressed with current limit state
-    wasLimitPressed = isAtLowerLimit();
   }
 
   @Override
   public void periodic() {
-    // Check if limit switch was just pressed (rising edge detection)
-    boolean isLimitPressed = isAtLowerLimit();
-    
-    // If limit switch is pressed (and wasn't before), zero the encoders
-    if (isLimitPressed && !wasLimitPressed) {
-      zeroEncoders();
-      SmartDashboard.putBoolean("Elevator/AutoZeroed", true);
-    } else {
-      SmartDashboard.putBoolean("Elevator/AutoZeroed", false);
-    }
-    
-    // Update for next cycle
-    wasLimitPressed = isLimitPressed;
-    
     updateTelemetry();
     checkStallCondition();
-    checkEncoderDiscrepancy();
     
-    if (currentState == ElevatorState.ERROR || 
-        currentState == ElevatorState.STALLED || 
-        currentState == ElevatorState.ENCODER_ERROR) {
+    if (currentState == ElevatorState.ERROR || currentState == ElevatorState.STALLED) {
       setMotorOutput(0);
       return;
     }
 
-    // Control logic
+    // Simple control logic
     if (isManualControl) {
       // In manual mode, just apply the manual speed
       setMotorOutput(manualSpeed);
     } else if (currentState == ElevatorState.MOVING_TO_POSITION) {
-      // PID control based on the average position
+      // Simple PID control based on the difference between current position and target
       double currentHeight = getHeight();
       double pidOutput = pidController.calculate(currentHeight, targetPosition);
       setMotorOutput(pidOutput);
     } else if (currentState == ElevatorState.HOMING) {
-      if (isLimitPressed) {
-        // If lower limit is triggered during homing, stop and complete homing
+      if (lowerLimit.get()) {
+        // If lower limit is triggered during homing, stop and reset
         completeHoming();
       } else {
         // Continue moving down slowly during homing
@@ -176,44 +128,6 @@ public class Elevator extends SubsystemBase {
     }
 
     lastEncoderPosition = getHeight();
-  }
-
-  /**
-   * Zeros both encoders - useful when the elevator reaches a known position
-   */
-  public void zeroEncoders() {
-    encoder1.setPosition(0);
-    encoder2.setPosition(0);
-    
-    // Log the zeroing event
-    SmartDashboard.putBoolean("Elevator/EncodersZeroed", true);
-    
-    // If we're currently targeting a position below where we are now,
-    // update the target to be 0 since we're at the bottom
-    if (targetPosition < 0) {
-      targetPosition = 0;
-    }
-  }
-
-  /**
-   * Checks if there's a significant discrepancy between the two encoders.
-   */
-  private void checkEncoderDiscrepancy() {
-    double encoder1Position = encoder1.getPosition();
-    double encoder2Position = encoder2.getPosition();
-    
-    // Check if the difference between encoders exceeds the threshold
-    if (Math.abs(encoder1Position - encoder2Position) > ENCODER_DISCREPANCY_THRESHOLD) {
-      encoderDiscrepancyDetected = true;
-      SmartDashboard.putBoolean("Elevator/EncoderDiscrepancy", true);
-    } else {
-      encoderDiscrepancyDetected = false;
-      SmartDashboard.putBoolean("Elevator/EncoderDiscrepancy", false);
-    }
-    
-    // Log individual encoder positions
-    SmartDashboard.putNumber("Elevator/Encoder1Position", encoder1Position);
-    SmartDashboard.putNumber("Elevator/Encoder2Position", encoder2Position);
   }
 
   /**
@@ -242,7 +156,7 @@ public class Elevator extends SubsystemBase {
     // Limit the speed to safe values
     speed = Math.max(-MANUAL_SPEED_LIMIT, Math.min(MANUAL_SPEED_LIMIT, speed));
     
-    if (isAtLowerLimit() && speed < 0) {
+   if (lowerLimit.get() && speed < 0) {
         speed = 0.0;
     }
     
@@ -293,10 +207,10 @@ public class Elevator extends SubsystemBase {
   }
 
   /**
-   * Completes the homing process by setting the elevator to idle after zeroing.
+   * Completes the homing process by resetting the encoder position to 0 when the lower limit is triggered.
    */
   public void completeHoming() {
-    // No need to zero encoders here as it's automatically done in periodic when limit switch is hit
+    motor1.getEncoder().setPosition(0);
     setMotorOutput(0);
     setState(ElevatorState.IDLE);
   }
@@ -357,38 +271,15 @@ public class Elevator extends SubsystemBase {
     SmartDashboard.putBoolean("Elevator/Stalled", isStalled);
     SmartDashboard.putNumber("Elevator/Output", motor1.get());
     SmartDashboard.putBoolean("Elevator/GravityCompEnabled", gravityCompEnabled);
-    
-    // Add encoder discrepancy information
-    SmartDashboard.putBoolean("Elevator/EncoderDiscrepancyDetected", encoderDiscrepancyDetected);
-    SmartDashboard.putNumber("Elevator/EncoderDiscrepancy", 
-                            Math.abs(encoder1.getPosition() - encoder2.getPosition()));
   }
 
   /**
-   * Retrieves the current height of the elevator based on the average of both encoder positions.
+   * Retrieves the current height of the elevator based on the encoder position.
    *
    * @return The current height in revolutions.
    */
   public double getHeight() {
-    return (encoder1.getPosition() + encoder2.getPosition()) / 2.0;
-  }
-
-  /**
-   * Gets the position from encoder 1.
-   * 
-   * @return The position from encoder 1 in revolutions.
-   */
-  public double getEncoder1Position() {
-    return encoder1.getPosition();
-  }
-  
-  /**
-   * Gets the position from encoder 2.
-   * 
-   * @return The position from encoder 2 in revolutions.
-   */
-  public double getEncoder2Position() {
-    return encoder2.getPosition();
+    return heightEncoder.getPosition() / 8192; // COUNTS PER REVOLUTION
   }
 
   /**
@@ -397,15 +288,13 @@ public class Elevator extends SubsystemBase {
    * @param output The desired output speed for the motors.
    */
   private void setMotorOutput(double output) {
-    if (currentState == ElevatorState.ERROR || 
-        currentState == ElevatorState.STALLED || 
-        currentState == ElevatorState.ENCODER_ERROR) {
+    if (currentState == ElevatorState.ERROR || currentState == ElevatorState.STALLED) {
       output = 0;
     }
 
-    if (isAtLowerLimit() && output < 0) {
-      output = 0;
-    }
+      if (lowerLimit.get() && output < 0) {
+        output = 0;
+      }
 
     if (gravityCompEnabled) {
       output += GRAVITY_COMPENSATION;
@@ -464,23 +353,12 @@ public class Elevator extends SubsystemBase {
   public boolean isStalled() {
     return isStalled;
   }
-  
-  /**
-   * Checks if an encoder discrepancy has been detected.
-   *
-   * @return True if a significant discrepancy between encoders exists, false otherwise.
-   */
-  public boolean hasEncoderDiscrepancy() {
-    return encoderDiscrepancyDetected;
-  }
 
   /**
    * Clears any error or stalled condition, returning the elevator to the idle state.
    */
   public void clearError() {
-    if (currentState == ElevatorState.ERROR || 
-        currentState == ElevatorState.STALLED || 
-        currentState == ElevatorState.ENCODER_ERROR) {
+    if (currentState == ElevatorState.ERROR || currentState == ElevatorState.STALLED) {
       setState(ElevatorState.IDLE);
       isStalled = false;
       stallCount = 0;
