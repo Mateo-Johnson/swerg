@@ -24,28 +24,28 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
-      2.934635537489758);
+      2.9607441044626);
 
   //FRONT RIGHT
   private final Module m_frontRight = new Module(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
-      -1.146443473215029);
+      0);
 
   //REAR LEFT
   private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
-      2.824930843283112);
+      0);
 
   //REAR RIGHT
   private final Module m_rearRight = new Module(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
-      -0.57158326051985);
+      0);
 
   //CREATE GYRO (NAVX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
@@ -82,11 +82,11 @@ public class Drivetrain extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
-    //PRINT ALL OF THE MODULE VALUES IN RAW RADIANS
-    SmartDashboard.putNumber("FL", m_frontLeft.getAngle());
-    SmartDashboard.putNumber("RL", m_rearLeft.getAngle());
-    SmartDashboard.putNumber("FR", m_frontRight.getAngle());
-    SmartDashboard.putNumber("RR", m_rearRight.getAngle());
+
+    SmartDashboard.putNumber("angles2/FL", m_frontLeft.getAngleFull());
+    SmartDashboard.putNumber("angles2/RL", m_rearLeft.getAngleFull());
+    SmartDashboard.putNumber("angles2/FR", m_frontRight.getAngleFull());
+    SmartDashboard.putNumber("angles2/RR", m_rearRight.getAngleFull());
     double heading = getHeading();
     SmartDashboard.putNumber("Heading", heading);
   }

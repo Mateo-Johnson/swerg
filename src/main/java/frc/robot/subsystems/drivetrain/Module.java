@@ -25,6 +25,7 @@ public class Module {
     private final SparkClosedLoopController m_drivingClosedLoopController;
     private final SparkClosedLoopController m_turningClosedLoopController;
     private final double m_analogEncoderOffset;
+
     @SuppressWarnings("unused")
     private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
@@ -56,40 +57,37 @@ public class Module {
         return MathUtil.angleModulus(position);
     }
 
+    public double getAngleFull() {
+      double pos = m_turningAnalogEncoder.get();
+      double position = pos * (2 * Math.PI);
+      position = position - m_analogEncoderOffset;
+      return position;
+  }
+
     public double getRawAngle() {
         double raw = m_turningAnalogEncoder.get();
         return raw;
     }
 
+
+    public double silly() {
+      return m_turningEncoder.getPosition();
+    }
+
     // THIS WILL CAUSE MOST OF THE ZEROING ISSUES
     private void syncAndZeroEncoders() {
-        // Get the current absolute angle from the analog encoder
-        double currentAngle = getAngle();
-        
-        // Set the turning encoder position to match the absolute encoder
-        m_turningEncoder.setPosition(currentAngle);
-        
-        // Reset only the driving encoder
-        m_drivingEncoder.setPosition(0);
-        
-        // Command the module to move to zero position
-        m_turningClosedLoopController.setReference(0, ControlType.kPosition);
-    }
-
-    private void syncEncoders() {
-        if (m_turningEncoder.getVelocity() >= 0.5) {
-            return;
-        }
-
-        double turnEncoderPosition = m_turningEncoder.getPosition();
-        double absoluteEncoderPosition = getAngle();
-        double diff = absoluteEncoderPosition - turnEncoderPosition;
-
-        if (Math.abs(diff) > 0.02) {
-            m_turningEncoder.setPosition(getAngle());
-            m_turningClosedLoopController.setReference(getAngle(), ControlType.kPosition);
-        }
-    }
+      // Get the current absolute angle from the analog encoder
+      double currentAngle = getAngle();
+      
+      // Set the turning encoder position to match the absolute encoder
+      m_turningEncoder.setPosition(currentAngle);
+      
+      // Reset only the driving encoder
+      m_drivingEncoder.setPosition(0);
+      
+      // Initialize the desired state to the current position
+      m_desiredState = new SwerveModuleState(0.0, new Rotation2d(currentAngle));
+  }
 
     public SwerveModuleState getState() {
         return new SwerveModuleState(m_drivingEncoder.getVelocity(),

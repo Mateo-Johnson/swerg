@@ -40,7 +40,7 @@ public final class Config {
         .pid(0.5, 0, 0.02)
         .outputRange(-1, 1)
         .positionWrappingEnabled(true)
-        .positionWrappingInputRange(0, (2 * Math.PI));
+        .positionWrappingInputRange(-Math.PI, Math.PI);
     }
   }
 }

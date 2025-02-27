@@ -78,7 +78,7 @@ public class RobotContainer {
     // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
 
     // CORAL COMMANDS
-    primary.rightTrigger().whileTrue(new Both(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
+    primary.rightTrigger().whileTrue(new Both(m_coral, 0.3)); // RIGHT TRIGGER TO INTAKE/EJECT CORAL
 
     primary.b().whileTrue(new InstantCommand(() -> m_drivetrain.resetWheels()));
 
