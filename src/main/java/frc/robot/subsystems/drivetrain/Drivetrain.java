@@ -24,28 +24,28 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
-      2.9607441044626);
+      2.9287459531721316);
 
   //FRONT RIGHT
   private final Module m_frontRight = new Module(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
-      0);
+      5.110521631358809);
 
   //REAR LEFT
   private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
-      0);
+      2.772308406337558);
 
   //REAR RIGHT
   private final Module m_rearRight = new Module(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
-      0);
+      5.723793939068865);
 
   //CREATE GYRO (NAVX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
@@ -88,10 +88,15 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("angles2/FR", m_frontRight.getAngleFull());
     SmartDashboard.putNumber("angles2/RR", m_rearRight.getAngleFull());
 
-    SmartDashboard.putNumber("angles1/FL", m_frontLeft.m_turningEncoder.getPosition());
-    SmartDashboard.putNumber("angles1/RL", m_rearLeft.m_turningEncoder.getPosition());
-    SmartDashboard.putNumber("angles1/FR", m_frontRight.m_turningEncoder.getPosition());
-    SmartDashboard.putNumber("angles1/RR", m_rearRight.m_turningEncoder.getPosition());
+    // SmartDashboard.putNumber("angles1/FL", m_frontLeft.m_turningEncoder.getPosition());
+    // SmartDashboard.putNumber("angles1/RL", m_rearLeft.m_turningEncoder.getPosition());
+    // SmartDashboard.putNumber("angles1/FR", m_frontRight.m_turningEncoder.getPosition());
+    // SmartDashboard.putNumber("angles1/RR", m_rearRight.m_turningEncoder.getPosition());
+
+    // SmartDashboard.putNumber("commanded/FL", m_frontLeft.getDesiredState().angle.getRadians());
+    // SmartDashboard.putNumber("commanded/RL", m_rearLeft.getDesiredState().angle.getRadians());
+    // SmartDashboard.putNumber("commanded/FR", m_frontRight.getDesiredState().angle.getRadians());
+    // SmartDashboard.putNumber("commanded/RR", m_rearRight.getDesiredState().angle.getRadians());
     double heading = getHeading();
     SmartDashboard.putNumber("Heading", heading);
   }
@@ -223,7 +228,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return Rotation2d.fromDegrees(m_gyro.getAngle()).getDegrees();
+    return Rotation2d.fromDegrees(-m_gyro.getAngle()).getDegrees();
   }
 
   /**

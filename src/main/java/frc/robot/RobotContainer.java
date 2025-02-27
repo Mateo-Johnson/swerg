@@ -44,7 +44,7 @@ public class RobotContainer {
             double speedModifier = slowMode ? 0.5 : 1.0; // Reduce speed if slow mode is on
             m_drivetrain.drive(
                 MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband) * speedModifier,
-                -MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband) * speedModifier,
+                MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband) * speedModifier,
                 -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband) * speedModifier,
                 true);
         }, m_drivetrain)

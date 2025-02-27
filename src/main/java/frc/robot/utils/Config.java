@@ -31,7 +31,8 @@ public final class Config {
 
       turningConfig
         .idleMode(IdleMode.kBrake)
-        .smartCurrentLimit(20);
+        .smartCurrentLimit(20)
+        .inverted(true);
       turningConfig.encoder
         .positionConversionFactor(2 * Math.PI / ModuleConstants.kTurningMotorReduction) // rotations
         .velocityConversionFactor(2 * Math.PI / (ModuleConstants.kTurningMotorReduction * 60.0)); // rotations per second

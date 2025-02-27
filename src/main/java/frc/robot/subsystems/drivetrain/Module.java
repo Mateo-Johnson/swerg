@@ -53,14 +53,13 @@ public class Module {
     public double getAngle() {
         double pos = m_turningAnalogEncoder.get();
         double position = pos * (2 * Math.PI);
-        position = position - m_analogEncoderOffset;
+        position = position - m_analogEncoderOffset; // TAKES THE OFFSET IN 0 TO 2PI
         return MathUtil.angleModulus(position);
     }
 
-    public double getAngleFull() {
+    public double getAngleFull() { // SHOWS 0 TO 2PI
       double pos = m_turningAnalogEncoder.get();
       double position = pos * (2 * Math.PI);
-      position = MathUtil.angleModulus(position);
       return position;
   }
 
@@ -111,6 +110,10 @@ public class Module {
         m_turningClosedLoopController.setReference(correctedDesiredState.angle.getRadians(), ControlType.kPosition);
 
         m_desiredState = desiredState;
+    }
+
+    public SwerveModuleState getDesiredState() {
+      return m_desiredState;
     }
 
     public void resetWheels() {
