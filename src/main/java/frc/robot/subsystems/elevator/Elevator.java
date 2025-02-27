@@ -37,7 +37,7 @@ public class Elevator extends SubsystemBase {
   private boolean gravityCompEnabled = true;
   private static final double POSITION_TOLERANCE = 0.02;
 
-  // Setpoints in revolutions
+  // Setpoints in revolutions (CHANGE)
   private static final double[] SETPOINTS = {
     0.0,
     0.25,
