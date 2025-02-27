@@ -20,7 +20,7 @@ public class Module {
     private final SparkMax m_drivingSpark;
     private final SparkMax m_turningSpark;
     private final RelativeEncoder m_drivingEncoder;
-    private final RelativeEncoder m_turningEncoder;
+    final RelativeEncoder m_turningEncoder;
     private final AnalogEncoder m_turningAnalogEncoder;
     private final SparkClosedLoopController m_drivingClosedLoopController;
     private final SparkClosedLoopController m_turningClosedLoopController;
@@ -60,7 +60,7 @@ public class Module {
     public double getAngleFull() {
       double pos = m_turningAnalogEncoder.get();
       double position = pos * (2 * Math.PI);
-      position = position - m_analogEncoderOffset;
+      position = MathUtil.angleModulus(position);
       return position;
   }
 

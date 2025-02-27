@@ -37,7 +37,7 @@ public final class Config {
         .velocityConversionFactor(2 * Math.PI / (ModuleConstants.kTurningMotorReduction * 60.0)); // rotations per second
       turningConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .pid(0.5, 0, 0.02)
+        .pid(1, 0, 0.0)
         .outputRange(-1, 1)
         .positionWrappingEnabled(true)
         .positionWrappingInputRange(0, 2*Math.PI);

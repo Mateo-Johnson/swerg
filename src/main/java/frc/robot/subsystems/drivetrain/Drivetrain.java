@@ -87,6 +87,11 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("angles2/RL", m_rearLeft.getAngleFull());
     SmartDashboard.putNumber("angles2/FR", m_frontRight.getAngleFull());
     SmartDashboard.putNumber("angles2/RR", m_rearRight.getAngleFull());
+
+    SmartDashboard.putNumber("angles1/FL", m_frontLeft.m_turningEncoder.getPosition());
+    SmartDashboard.putNumber("angles1/RL", m_rearLeft.m_turningEncoder.getPosition());
+    SmartDashboard.putNumber("angles1/FR", m_frontRight.m_turningEncoder.getPosition());
+    SmartDashboard.putNumber("angles1/RR", m_rearRight.m_turningEncoder.getPosition());
     double heading = getHeading();
     SmartDashboard.putNumber("Heading", heading);
   }
