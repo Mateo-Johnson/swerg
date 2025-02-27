@@ -117,7 +117,7 @@ public class Elevator extends SubsystemBase {
     } else if (currentState == ElevatorState.HOMING) {
       if (lowerLimit.get()) {
         // If lower limit is triggered during homing, stop and reset
-        completeHoming();
+        completeHoming(); 
       } else {
         // Continue moving down slowly during homing
         setMotorOutput(-0.2);
