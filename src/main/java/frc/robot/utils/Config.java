@@ -4,9 +4,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import frc.robot.utils.Constants.ModuleConstants;
 
-
 public final class Config {
-
 
   public static final class Module {
     public static final SparkMaxConfig drivingConfig = new SparkMaxConfig();
@@ -19,7 +17,6 @@ public final class Config {
         ModuleConstants.kDrivingMotorReduction;
       double drivingVelocityFeedForward = 1 / ModuleConstants.kDriveWheelFreeSpeedRps;
 
-
       drivingConfig
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(50);
@@ -31,7 +28,6 @@ public final class Config {
         .pid(0.04, 0, 0)
         .velocityFF(drivingVelocityFeedForward)
         .outputRange(-1, 1);
-
 
       turningConfig
         .idleMode(IdleMode.kBrake)
