@@ -11,7 +11,7 @@ import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
-import frc.robot.subsystems.elevator.commands.ManualMove;
+import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
 
@@ -78,8 +78,8 @@ public class RobotContainer {
 
 
     // ELEVATOR COMMANDS
-    primary.rightBumper().whileTrue(new ManualMove(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
-    primary.leftBumper().whileTrue(new ManualMove(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR UP
+    primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+    primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR UP
    
     // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
     // primary.povRight().whileTrue(ElevatorCommands.moveToL3(m_elevator));
