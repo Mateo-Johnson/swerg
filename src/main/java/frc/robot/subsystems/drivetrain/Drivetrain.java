@@ -54,14 +54,11 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kRearRightEncoder,
       5.723793939068865);
 
-
-  //CREATE GYRO (NAVX)
-  private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
-
-
   //PID CONTROLLERS
   private PIDController headingCorrector = new PIDController(0.1, 0, 0.01);
 
+  //CREATE GYRO (NAVX)
+  private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 
   //ODOMETRY FOR TRACKING ROBOT
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -78,7 +75,7 @@ public class Drivetrain extends SubsystemBase {
 
 
   public Drivetrain() {
-    zeroHeading();
+    // zeroHeading();
 
 
   }
