@@ -1,10 +1,12 @@
 package frc.robot.subsystems.drivetrain;
 
-
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.PathPlannerLogging;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
-
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,23 +15,24 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.DriveConstants;
 
-
 public class Drivetrain extends SubsystemBase {
+
+  // Create a field object to display the path on the dashboard
+  private Field2d field = new Field2d();
  
   //CREATE MODULES
-
-
   //FRONT LEFT
   private final Module m_frontLeft = new Module(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
       2.9287459531721316);
-
 
   //FRONT RIGHT
   private final Module m_frontRight = new Module(
@@ -38,14 +41,12 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kFrontRightEncoder,
       5.110521631358809);
 
-
   //REAR LEFT
   private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
       2.772308406337558);
-
 
   //REAR RIGHT
   private final Module m_rearRight = new Module(
@@ -71,19 +72,54 @@ public class Drivetrain extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
-
-
-
   public Drivetrain() {
     // zeroHeading();
 
+    // PATHPLANNER THINGS
+    try{
+      RobotConfig config = RobotConfig.fromGUISettings();
 
+      // Configure AutoBuilder
+      AutoBuilder.configure(
+        this::getPose, 
+        this::resetPose, 
+        this::getRobotRelativeSpeeds, 
+        this::driveRobotRelative, 
+        new PPHolonomicDriveController(
+          new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+          new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+        ),
+        config,
+        () -> {
+            // Boolean supplier that controls when the path will be mirrored for the red alliance
+            // This will flip the path being followed to the red side of the field.
+            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+            }
+            return false;
+        },
+        this
+      );
+    }catch(Exception e){
+      DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", e.getStackTrace());
+    }
+
+    // Set up custom logging to add the current path to a field 2d widget
+    PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
+
+    SmartDashboard.putData("Field", field);
   }
-
 
   @Override
   public void periodic() {
-    //UPDATE THE ODOMETRY IN PERIODIC
+
+    // UPDATE THE FIELD POSE
+    field.setRobotPose(getPose());
+
+    // UPDATE THE ODOMETRY
     m_odometry.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -93,29 +129,10 @@ public class Drivetrain extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
-
-
-
-    SmartDashboard.putNumber("angles2/FL", m_frontLeft.getAngleFull());
-    SmartDashboard.putNumber("angles2/RL", m_rearLeft.getAngleFull());
-    SmartDashboard.putNumber("angles2/FR", m_frontRight.getAngleFull());
-    SmartDashboard.putNumber("angles2/RR", m_rearRight.getAngleFull());
-
-
-    // SmartDashboard.putNumber("angles1/FL", m_frontLeft.m_turningEncoder.getPosition());
-    // SmartDashboard.putNumber("angles1/RL", m_rearLeft.m_turningEncoder.getPosition());
-    // SmartDashboard.putNumber("angles1/FR", m_frontRight.m_turningEncoder.getPosition());
-    // SmartDashboard.putNumber("angles1/RR", m_rearRight.m_turningEncoder.getPosition());
-
-
-    // SmartDashboard.putNumber("commanded/FL", m_frontLeft.getDesiredState().angle.getRadians());
-    // SmartDashboard.putNumber("commanded/RL", m_rearLeft.getDesiredState().angle.getRadians());
-    // SmartDashboard.putNumber("commanded/FR", m_frontRight.getDesiredState().angle.getRadians());
-    // SmartDashboard.putNumber("commanded/RR", m_rearRight.getDesiredState().angle.getRadians());
+    // LOG THE HEADING
     double heading = getHeading();
     SmartDashboard.putNumber("Heading", heading);
   }
-
 
   /**
    * Returns the currently-estimated pose of the robot.
@@ -126,16 +143,54 @@ public class Drivetrain extends SubsystemBase {
     return m_odometry.getPoseMeters();
   }
 
+  /**
+   * Resets the pose to the specified position.
+   * 
+   * @param pose The pose to reset to
+   */
+  public void resetPose(Pose2d pose) {
+    resetOdometry(pose);
+  }
+
+  /**
+   * Returns the current robot-relative chassis speeds
+   * 
+   * @return ChassisSpeeds object containing the robot's velocity components
+   */
+  public ChassisSpeeds getRobotRelativeSpeeds() {
+    // Calculate robot-relative speeds from module states
+    return DriveConstants.kDriveKinematics.toChassisSpeeds(
+      m_frontLeft.getState(),
+      m_frontRight.getState(),
+      m_rearLeft.getState(),
+      m_rearRight.getState()
+    );
+  }
+
+  /**
+   * Drives the robot with the specified robot-relative chassis speeds.
+   * 
+   * @param speeds The desired robot-relative chassis speeds
+   */
+  public void driveRobotRelative(ChassisSpeeds speeds) {
+    // Convert from chassis speeds to module states
+    SwerveModuleState[] moduleStates = 
+        DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+    
+    // Desaturate wheel speeds
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+        moduleStates, DriveConstants.kMaxSpeedMetersPerSecond);
+    
+    // Set the module states
+    setModuleStates(moduleStates);
+  }
 
   public void resetWheels() {
     m_frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
     m_frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
     m_rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
     m_rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(0)));
-
-
-}
-
+  }
 
   /**
    * Resets the odometry to the specified pose.
@@ -154,8 +209,7 @@ public class Drivetrain extends SubsystemBase {
         pose);
   }
 
-
-    /**
+  /**
    * Method to drive the robot while holding an angle.
    *
    * @param xSpeed        Speed of the robot in the x direction (forward).
@@ -176,7 +230,6 @@ public class Drivetrain extends SubsystemBase {
       drive(xSpeed, ySpeed, rotationCorrection, fieldRelative);
   }
 
-
   /**
    * Method to drive the robot using joystick info.
    *
@@ -192,7 +245,6 @@ public class Drivetrain extends SubsystemBase {
     double ySpeedDelivered = ySpeed * DriveConstants.kMaxSpeedMetersPerSecond;
     double rotDelivered = rot * DriveConstants.kMaxAngularSpeed;
 
-
     // CREATE CHASSISPEEDS OBJECT WITH CORRECT COORD SYSTEM
     var chassisSpeeds = fieldRelative
         ? ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -202,16 +254,13 @@ public class Drivetrain extends SubsystemBase {
             Rotation2d.fromDegrees(-m_gyro.getAngle()))
         : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered);
 
-
     // CHANGE TO MODULE STATES
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
-
 
     // DESATURATE WHEEL SPEEDS
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates,
         DriveConstants.kMaxSpeedMetersPerSecond);
-
 
     // SET STATES FOR EACH MODULE
     m_frontLeft.setDesiredState(swerveModuleStates[0]);
@@ -219,7 +268,6 @@ public class Drivetrain extends SubsystemBase {
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
   }
-
 
   /**
    * Sets the swerve ModuleStates.
@@ -235,7 +283,6 @@ public class Drivetrain extends SubsystemBase {
     m_rearRight.setDesiredState(desiredStates[3]);
   }
 
-
   /** Resets the drive encoders to currently read a position of 0. */
   public void resetEncoders() {
     m_frontLeft.resetEncoders();
@@ -244,12 +291,10 @@ public class Drivetrain extends SubsystemBase {
     m_rearRight.resetEncoders();
   }
 
-
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
     m_gyro.reset();
   }
-
 
   /**
    * Returns the heading of the robot.
@@ -259,7 +304,6 @@ public class Drivetrain extends SubsystemBase {
   public double getHeading() {
     return Rotation2d.fromDegrees(-m_gyro.getAngle()).getDegrees();
   }
-
 
   /**
    * Returns the turn rate of the robot.
