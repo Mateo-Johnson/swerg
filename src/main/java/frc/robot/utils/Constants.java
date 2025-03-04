@@ -46,9 +46,6 @@ public final class Constants {
     public static final int kFrontRightEncoder = 0;
     public static final int kRearLeftEncoder = 2;
     public static final int kRearRightEncoder = 3;
-
-    //IS THE GYRO REVERSED
-    public static final boolean kGyroReversed = true;
   }
 
   public static final class ModuleConstants {
@@ -90,33 +87,12 @@ public final class Constants {
 
   public static final class CoralConstants {
     // Motor IDs
-    public static final int leftCoralID = 35; // Update with actual CAN ID
-    public static final int rightCoralID = 36; // Update with actual CAN ID
-    public static final int intakeLimitSwitchPort = 1;
+    public static final int leftCoralID = 35;
+    public static final int rightCoralID = 36;
 
-    // Mechanical Configuration
-    public static final double leftGearRatio = 5.0; // Update with actual left gear ratio
-    public static final double rightGearRatio = 7.0; // Update with actual right gear ratio
-
-    // Speed Constants (in RPM at the roller)
-    public static final double targetVelocity = 0.0; // Default target velocity
-    public static final double intake_speed = 3000.0; // Positive for intaking
-    public static final double fast_eject_speed = -3000.0; // Negative for ejecting
-    public static final double slow_eject_speed = -1500.0; // Half speed eject
-    public static final double hold_speed = 500.0; // Low speed to hold game piece
-
-    // PID Constants
-    public static final double kP = 0.0001; // Proportional gain
-    public static final double kI = 0.0; // Integral gain
-    public static final double kD = 0.0; // Derivative gain
-    public static final double kF = 0.00017; // Feedforward gain
-
-    // Current Limiting
-    public static final int SCL = 35; // Smart Current Limit (sustained current) in amps
-    public static final int FCL = 40; // Free Current Limit (peak current) in amps
-
-    // Tuning Constants
-    public static final double velocityTolerance = 50.0; // RPM tolerance for isAtTargetVelocity
+    // CURRENT LIMITS
+    public static final int SCL = 35; // SMART CURRENT LIMIT (CONT. CURRENT) IN AMPS
+    public static final int FCL = 40; // FREE CURRENT LIMIT (PEAK CURRENT) IN AMPS
   }
 
   public static final class ElevatorConstants {

@@ -1,4 +1,3 @@
-// NOTE. IF IT DOES NOT WORK, REVERT TO "FIXED FIXED FIXED DRIVETRAIN WORKS"
 package frc.robot.subsystems.drivetrain;
 
 
@@ -29,8 +28,6 @@ public class Module {
     private final SparkClosedLoopController m_turningClosedLoopController;
     private final double m_analogEncoderOffset;
 
-
-    @SuppressWarnings("unused")
     private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
 
 
@@ -51,7 +48,6 @@ public class Module {
         m_turningSpark.configure(Config.Module.turningConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
                
-        // m_desiredState.angle = new Rotation2d(m_turningEncoder.getPosition()); // MAYBE MOVE THIS BENEATH SYNC
         // Reset the encoders during initialization
         syncAndZeroEncoders();
     }
