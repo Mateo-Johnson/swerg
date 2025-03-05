@@ -5,6 +5,8 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -52,7 +54,7 @@ public class Elevator extends SubsystemBase {
         limitSwitch = new DigitalInput(LIMIT_SWITCH_PORT);
         
         // Initialize PID
-        pid = new PIDController(0, 0, 0);
+        pid = new PIDController(0.008, 0, 0); //0.0085
         
         // Configure motors using new configuration system
         configureMotors();
@@ -92,7 +94,7 @@ public class Elevator extends SubsystemBase {
     private void configureMotors() {
         // Create configuration for master motor
         SparkMaxConfig masterConfig = new SparkMaxConfig();
-        masterConfig.inverted(true)
+        masterConfig.inverted(false)
                    .idleMode(IdleMode.kBrake)
                    .smartCurrentLimit(40);
         
@@ -166,6 +168,7 @@ public class Elevator extends SubsystemBase {
         double pidOutput = pid.calculate(getPosition(), targetPosition);
         double motorOutput = pidOutput + GRAVITY_COMPENSATION;
         motorOutput = Math.min(Math.max(motorOutput, -1.0), 1.0);
+        motorOutput = motorOutput * 1.2;
         
         masterMotor.set(motorOutput);
     }
