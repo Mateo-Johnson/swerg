@@ -7,9 +7,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.subsystems.algae.commands.Outtake;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
+import frc.robot.subsystems.coral.commands.Outtake;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
@@ -92,7 +92,7 @@ public class RobotContainer {
 
     // CORAL COMMANDS
     primary.rightTrigger().whileTrue(new Intake(m_coral, 0.5)); // RIGHT TRIGGER TO INTAKE CORAL
-    // primary.leftTrigger().whileTrue(new Outtake(m_coral, 0.5));
+    primary.leftTrigger().whileTrue(new Outtake(m_coral, 0.5)); // LEFT TRIGGER TO OUTTAKE CORAL
 
     // ALGAE COMMANDS
   }

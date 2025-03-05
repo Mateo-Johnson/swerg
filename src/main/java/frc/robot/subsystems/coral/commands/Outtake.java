@@ -8,10 +8,10 @@ public class Outtake extends Command {
     private final double speed;
     
     /**
-     * Command to move the Coral subsystem forward to test PID values
+     * Command to move the Coral subsystem backward
      * 
      * @param coral The Coral subsystem
-     * @param 
+     * @param speed The speed at which to move the wheels
      */
     public Outtake(Coral coral, double speed) {
         this.coral = coral;
@@ -21,7 +21,7 @@ public class Outtake extends Command {
     
     @Override
     public void initialize() {
-        // Start moving forward
+        // Start moving backwards
         coral.reverse(speed);
     }
     

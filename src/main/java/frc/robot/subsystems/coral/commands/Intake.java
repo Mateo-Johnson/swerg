@@ -8,10 +8,10 @@ public class Intake extends Command {
     private final double speed;
     
     /**
-     * Command to move the Coral subsystem forward to test PID values
+     * Command to move the Coral subsystem forward
      * 
      * @param coral The Coral subsystem
-     * @param 
+     * @param speed The speed at which to move the wheels
      */
     public Intake(Coral coral, double speed) {
         this.coral = coral;
