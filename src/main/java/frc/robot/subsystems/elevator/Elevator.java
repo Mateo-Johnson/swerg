@@ -5,8 +5,6 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -21,7 +19,6 @@ public class Elevator extends SubsystemBase {
     private final PIDController pid;
     private final DigitalInput limitSwitch;
     
-    // Constants remain unchanged
     private final double GRAVITY_COMPENSATION = 0.05;
     private final double MAX_MANUAL_SPEED = 0.7;
     private final double MANUAL_DEADBAND = 0.1;
@@ -29,6 +26,7 @@ public class Elevator extends SubsystemBase {
     private final int FOLLOWER_MOTOR_ID = ElevatorConstants.leftCANId;
     private final int LIMIT_SWITCH_PORT = 0;
     private boolean isManualControl = false;
+    double pidOutput = 0.0;
 
     public enum ElevatorState {
         IDLE,
@@ -165,10 +163,9 @@ public class Elevator extends SubsystemBase {
             return;
         }
         
-        double pidOutput = pid.calculate(getPosition(), targetPosition);
+        pidOutput = pid.calculate(getPosition(), targetPosition);
         double motorOutput = pidOutput + GRAVITY_COMPENSATION;
         motorOutput = Math.min(Math.max(motorOutput, -1.0), 1.0);
-        motorOutput = motorOutput * 1.2;
         
         masterMotor.set(motorOutput);
     }
@@ -179,9 +176,32 @@ public class Elevator extends SubsystemBase {
     public void periodic() {
         resetEncodersIfAtLimit();
 
+        //
+        if (currentState == ElevatorState.MOVING_TO_POSITION) {
+            double currentPosition = getPosition();
+            double targetPosition = pid.getSetpoint();
+            double error = pid.getPositionError();
+
+            SmartDashboard.putNumber("ElevatorPID/Current Position", currentPosition);
+            SmartDashboard.putNumber("ElevatorPID/Target Position", targetPosition);
+            SmartDashboard.putNumber("ElevatorPID/Position Error", error);
+            SmartDashboard.putNumber("ElevatorPID/PID Output", pidOutput);
+
+            SmartDashboard.putNumber("ElevatorPID/Motor Output", masterMotor.getAppliedOutput());
+            SmartDashboard.putNumber("ElevatorPID/Motor Current", masterMotor.getOutputCurrent());
+
+        } else {
+            SmartDashboard.putNumber("ElevatorPID/Current Position", getPosition());
+            SmartDashboard.putNumber("ElevatorPID/Target Position", 0);
+            SmartDashboard.putNumber("ElevatorPID/Position Error", 0);
+            SmartDashboard.putNumber("ElevatorPID/PID Output", 0);
+        }
+
         // SmartDashboard prints
         SmartDashboard.putNumber("Elevator/Position", getPosition());
         SmartDashboard.putBoolean("Elevator/Lower Limit", isAtLowerLimit());
         SmartDashboard.putString("Elevator/State", currentState.toString());
+        SmartDashboard.putNumber("Elevator/PID Output", pidOutput);
+
     }
 }
