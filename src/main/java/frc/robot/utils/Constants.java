@@ -22,11 +22,13 @@ public final class Constants {
     // DISTANCE BETWEEN CENTER OF FRONT AND BACK MODULE
     public static final double kWheelBase = Units.inchesToMeters(23.75);
 
-    public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
-        new Translation2d(kWheelBase / 2, kTrackWidth / 2),
-        new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
-        new Translation2d(-kWheelBase / 2, kTrackWidth / 2),
-        new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
+// Example of completely inverted kinematics
+public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
+    new Translation2d(-kWheelBase / 2, -kTrackWidth / 2),  // front left - both X and Y flipped
+    new Translation2d(-kWheelBase / 2, kTrackWidth / 2),   // front right - both X and Y flipped
+    new Translation2d(kWheelBase / 2, -kTrackWidth / 2),   // rear left - both X and Y flipped
+    new Translation2d(kWheelBase / 2, kTrackWidth / 2)     // rear right - both X and Y flipped
+);
 
     // SPARKMAX CAN IDs
     // DRIVING
@@ -111,6 +113,6 @@ public final class Constants {
     public static final PIDController translateController = new PIDController(0, 0, 0);
     public static final PIDController rotateController = new PIDController(0, 0, 0);
     public static PIDController xPID = new PIDController(0, 0, 0);
-    public static PIDController yPID = new PIDController(0, 0, 0);
+    public static PIDController yPID = new PIDController(1, 0, 0);
   }
 }

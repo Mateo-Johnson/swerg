@@ -132,6 +132,16 @@ public class Drivetrain extends SubsystemBase {
     // LOG THE HEADING
     double heading = getHeading();
     SmartDashboard.putNumber("Heading", heading);
+
+    SmartDashboard.putNumber("current x", getPose().getX());
+    SmartDashboard.putNumber("current y", getPose().getY());
+
+    SmartDashboard.putNumber("DT/FL", m_frontLeft.getAngleFull());
+    SmartDashboard.putNumber("DT/FR", m_frontRight.getAngleFull());
+    SmartDashboard.putNumber("DT/RL", m_rearLeft.getAngleFull());
+    SmartDashboard.putNumber("DT/RR", m_rearRight.getAngleFull());
+
+
   }
 
   /**
@@ -140,8 +150,13 @@ public class Drivetrain extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    return m_odometry.getPoseMeters();
-  }
+    Pose2d originalPose = m_odometry.getPoseMeters();
+    return new Pose2d(
+        -originalPose.getX(),  // Invert X
+        -originalPose.getY(),  // Invert Y
+        originalPose.getRotation()  // Keep rotation as is
+    );
+}
 
   /**
    * Resets the pose to the specified position.

@@ -14,6 +14,7 @@ import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
+import frc.robot.subsystems.vision.commands.general.AlignY;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
 
@@ -52,7 +53,7 @@ public class RobotContainer {
             m_drivetrain.drive(
                 MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband) * speedModifier,
                 MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband) * speedModifier,
-                MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband) * speedModifier,
+                -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband) * speedModifier,
                 true);
         }, m_drivetrain)
     );
@@ -80,10 +81,10 @@ public class RobotContainer {
 
 
     // ELEVATOR COMMANDS
-    primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.1)); // RIGHT BUMPER TO MOVE ELEVATOR UP
+    primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR UP
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 21));
-    primary.povDown().onTrue(new MoveToPoint(m_elevator, 7));
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 22));
+    primary.povDown().onTrue(new MoveToPoint(m_elevator, 7.5));
    
     // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
     // primary.povRight().whileTrue(ElevatorCommands.moveToL3(m_elevator));
@@ -91,8 +92,10 @@ public class RobotContainer {
     // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
 
     // CORAL COMMANDS
-    primary.rightTrigger().whileTrue(new Intake(m_coral, 0.5)); // RIGHT TRIGGER TO INTAKE CORAL
+    primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE CORAL
     primary.leftTrigger().whileTrue(new Outtake(m_coral, 0.5)); // LEFT TRIGGER TO OUTTAKE CORAL
+
+    primary.a().whileTrue(new AlignY(1, 0.5, m_drivetrain));
 
     // ALGAE COMMANDS
   }

@@ -10,9 +10,8 @@ public class AlignY extends Command {
   private final double target;
   private final Drivetrain drivetrain;
   private final PIDController yPID = PIDConstants.yPID;
-  private final double currentMeasure;
 
-  /**
+    /**
    * Creates a new AlignY command.
    *
    * @param target The target y-position to align to
@@ -20,29 +19,22 @@ public class AlignY extends Command {
    * @param tolerance The tolerance on the current measure in this case it is generally meters (0.01 = 1 cm) 
    * @param drivetrain The drivetrain subsystem to control
    */
-  public AlignY(double target, double currentMeasure, double tolerance, Drivetrain drivetrain) {
-    // Use addRequirements() here to declare subsystem dependencies.
+  public AlignY(double target, double tolerance, Drivetrain drivetrain) {
     this.target = target;
     this.drivetrain = drivetrain;
-    this.currentMeasure = currentMeasure;
     addRequirements(drivetrain);
 
     yPID.setTolerance(tolerance);
   }
 
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {}
-
-  // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double yTarget = target;
-    double current = currentMeasure;
-    double output = yPID.calculate(current, yTarget);
+    // Get the current Y position dynamically
+    double current = drivetrain.getPose().getY();
+    double output = yPID.calculate(current, target);
     output = Math.max(-1, Math.min(1, output));
 
-    drivetrain.drive(0, output, 0, false);
+    drivetrain.drive(0, -output, 0, false);
   }
 
   // Called once the command ends or is interrupted.

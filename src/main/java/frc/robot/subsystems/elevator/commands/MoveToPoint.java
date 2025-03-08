@@ -2,20 +2,12 @@ package frc.robot.subsystems.elevator.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.Elevator.ElevatorState;
 
-/**
- * Command to move the elevator to a specified position.
- */
 public class MoveToPoint extends Command {
     private final Elevator elevator;
     private final double targetPosition;
 
-    /**
-     * Creates a new MoveToPoint command.
-     *
-     * @param elevator The elevator subsystem used by this command.
-     * @param targetPosition The target position in rotations.
-     */
     public MoveToPoint(Elevator elevator, double targetPosition) {
         this.elevator = elevator;
         this.targetPosition = targetPosition;
@@ -29,17 +21,18 @@ public class MoveToPoint extends Command {
 
     @Override
     public void execute() {
-        // The elevator subsystem handles the movement in its periodic method
+        // Position control is handled in the elevator's periodic method
     }
 
     @Override
     public void end(boolean interrupted) {
-        elevator.stop();
+        if (interrupted) {
+            elevator.stop();
+        }
     }
 
     @Override
     public boolean isFinished() {
-        // Check if the elevator has reached the target position
-        return Math.abs(elevator.getPosition() - targetPosition) < 0.1; // Adjust tolerance as needed
+        return elevator.getCurrentState() == ElevatorState.AT_SETPOINT;
     }
 }
