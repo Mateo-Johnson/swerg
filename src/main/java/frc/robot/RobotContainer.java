@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.subsystems.coral.Coral;
-import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.IntakeWithElevator;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
