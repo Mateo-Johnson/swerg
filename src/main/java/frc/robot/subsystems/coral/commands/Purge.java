@@ -3,7 +3,7 @@ package frc.robot.subsystems.coral.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.coral.Coral;
 
-public class Outtake extends Command {
+public class Purge extends Command {
     private final Coral coral;
     private final double speed;
     
@@ -13,7 +13,7 @@ public class Outtake extends Command {
      * @param coral The Coral subsystem
      * @param speed The speed at which to move the wheels
      */
-    public Outtake(Coral coral, double speed) {
+    public Purge(Coral coral, double speed) {
         this.coral = coral;
         this.speed = speed;
         addRequirements(coral);

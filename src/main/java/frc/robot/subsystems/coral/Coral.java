@@ -23,6 +23,14 @@ public class Coral extends SubsystemBase {
   private static final int SCL = CoralConstants.SCL; // Smart Current Limit
   private static final int FCL = CoralConstants.FCL; // Free Current Limit
 
+  // Game piece detection thresholds
+  private static double CURRENT_THRESHOLD = CoralConstants.currentThreshold; // Default threshold
+  private static final double DETECTION_TIME = CoralConstants.detectionTime; // Time current must be above threshold
+  
+  // Detection tracking
+  private boolean gamePresent = false;
+  private double highCurrentStartTime = 0;
+
   // Simple speed control
   private double motorSpeed = 0.0;
 
@@ -52,6 +60,11 @@ public class Coral extends SubsystemBase {
     rightConfig.idleMode(IdleMode.kBrake);
     rightConfig.inverted(true);
     rightMotor.configure(rightConfig, ResetMode.kResetSafeParameters, null);
+    
+    // If constants aren't set, use reasonable defaults
+    if (CURRENT_THRESHOLD <= 0) {
+      CURRENT_THRESHOLD = 20.0; // 20 amps is a reasonable default
+    }
   }
 
   @Override
@@ -60,11 +73,68 @@ public class Coral extends SubsystemBase {
     leftMotor.set(motorSpeed);
     rightMotor.set(0.25 * motorSpeed);
     
+    // Update game piece detection
+    updateGamePieceDetection();
+    
     // Log data
     SmartDashboard.putString("Coral/Coral Direction", currentDirection.toString());
     SmartDashboard.putNumber("Coral/Coral Motor Speed", motorSpeed);
     SmartDashboard.putNumber("Coral/Left Motor Velocity", leftMotor.getEncoder().getVelocity());
-    SmartDashboard.putNumber("Coral/Right Motor Velocity", leftMotor.getEncoder().getVelocity());
+    SmartDashboard.putNumber("Coral/Right Motor Velocity", rightMotor.getEncoder().getVelocity());
+    SmartDashboard.putNumber("Coral/Left Current Draw", getLeftCurrentDraw());
+    SmartDashboard.putNumber("Coral/Right Current Draw", getRightCurrentDraw());
+    SmartDashboard.putBoolean("Coral/Game Piece Detected", hasGamePiece());
+  }
+
+  /**
+   * Updates the game piece detection status based on motor current
+   */
+  private void updateGamePieceDetection() {
+    // We'll use the left motor for detection since it gets full power
+    double currentDraw = getLeftCurrentDraw();
+    double currentTime = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+    
+    // Only detect when motors are running in forward direction
+    if (currentDirection == MotorDirection.FORWARD && motorSpeed > 0.1) {
+      if (currentDraw >= CURRENT_THRESHOLD) {
+        // If this is the start of high current, record the time
+        if (highCurrentStartTime == 0) {
+          highCurrentStartTime = currentTime;
+        }
+        
+        // Check if current has been high for the required duration
+        if (currentTime - highCurrentStartTime >= DETECTION_TIME) {
+          gamePresent = true;
+        }
+      } else {
+        // Reset the timer if current drops below threshold
+        highCurrentStartTime = 0;
+      }
+    } else {
+      // Reset detection when not intaking
+      highCurrentStartTime = 0;
+      // Don't reset gamePresent here - we want it to stay true until we release the game piece
+    }
+    
+    // Reset the game piece detection when we reverse or stop
+    if (currentDirection == MotorDirection.REVERSE || currentDirection == MotorDirection.STOPPED) {
+      gamePresent = false;
+    }
+  }
+
+  /**
+   * Sets the current threshold for game piece detection
+   * @param threshold The current threshold in amps
+   */
+  public void setCurrentThreshold(double threshold) {
+    CURRENT_THRESHOLD = threshold;
+  }
+
+  /**
+   * @return True if a game piece is detected in the intake
+   */
+  public boolean hasGamePiece() {
+    return gamePresent;
   }
 
   // Simple control methods

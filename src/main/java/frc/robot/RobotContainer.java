@@ -9,7 +9,8 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
-import frc.robot.subsystems.coral.commands.Outtake;
+import frc.robot.subsystems.coral.commands.IntakeWithElevator;
+import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
@@ -34,7 +35,6 @@ public class RobotContainer {
 
   // The driver's controller
   private final CommandXboxController primary = Constants.primary;
-  private boolean slowMode = false; // Variable to track slow mode state
 
 
   /**
@@ -49,11 +49,10 @@ public class RobotContainer {
 
     m_drivetrain.setDefaultCommand( // IF THE DRIVETRAIN ISN'T DOING ANYTHING ELSE, DO THIS
         new RunCommand(() -> {
-            double speedModifier = slowMode ? 0.5 : 1.0; // Reduce speed if slow mode is on
             m_drivetrain.drive(
-                MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband) * speedModifier,
-                MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband) * speedModifier,
-                -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband) * speedModifier,
+                MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband),
+                MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband),
                 true);
         }, m_drivetrain)
     );
@@ -82,7 +81,7 @@ public class RobotContainer {
 
     // ELEVATOR COMMANDS
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
-    primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR UP
+    primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
     primary.povLeft().onTrue(new MoveToPoint(m_elevator, 22));
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 7.5));
    
@@ -92,10 +91,10 @@ public class RobotContainer {
     // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
 
     // CORAL COMMANDS
-    primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE CORAL
-    primary.leftTrigger().whileTrue(new Outtake(m_coral, 0.5)); // LEFT TRIGGER TO OUTTAKE CORAL
+    primary.leftBumper().whileTrue(new IntakeWithElevator(m_coral, m_elevator, 0.7, -0.1, 0.5)); // RIGHT TRIGGER TO INTAKE CORAL
+    primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // LEFT TRIGGER TO PURGE CORAL
 
-    primary.a().whileTrue(new AlignY(1, 0.5, m_drivetrain));
+    primary.a().whileTrue(new AlignY(1, 0.05, m_drivetrain));
 
     // ALGAE COMMANDS
   }

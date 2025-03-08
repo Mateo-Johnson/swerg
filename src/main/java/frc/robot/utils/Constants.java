@@ -95,6 +95,10 @@ public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKine
     // CURRENT LIMITS
     public static final int SCL = 35; // SMART CURRENT LIMIT (CONT. CURRENT) IN AMPS
     public static final int FCL = 40; // FREE CURRENT LIMIT (PEAK CURRENT) IN AMPS
+
+    // Game piece detection constants
+    public static final double currentThreshold = 25.0; // Current threshold in amps to detect a game piece
+    public static final double detectionTime = 0.1; // Time in seconds current must be above threshold
   }
 
   public static final class ElevatorConstants {
