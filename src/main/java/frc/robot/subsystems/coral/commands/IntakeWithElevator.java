@@ -23,7 +23,7 @@ public class IntakeWithElevator extends SequentialCommandGroup {
             new MoveManual(elevator, elevatorSpeed).withTimeout(elevatorTime),
             
             // Then start the intake
-            new Intake(coral, intakeSpeed)
+            new Intake(coral, intakeSpeed, true)
         );
     }
 }
