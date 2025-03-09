@@ -24,8 +24,8 @@ public class Coral extends SubsystemBase {
   private static final int FCL = CoralConstants.FCL; // Free Current Limit
 
   // Game piece detection thresholds
-  private static double CURRENT_THRESHOLD = CoralConstants.currentThreshold; // Default threshold
-  private static final double DETECTION_TIME = CoralConstants.detectionTime; // Time current must be above threshold
+  private static double CURRENT_THRESHOLD = CoralConstants.currentThreshold; // Default threshold (2.0)
+  private static final double DETECTION_TIME = CoralConstants.detectionTime; // Time current must be above threshold (0.1)
   
   // Detection tracking
   private boolean gamePresent = false;
