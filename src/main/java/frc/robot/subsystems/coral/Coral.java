@@ -76,10 +76,7 @@ public class Coral extends SubsystemBase {
     SmartDashboard.putString("Coral/Coral Direction", currentDirection.toString());
     SmartDashboard.putNumber("Coral/Coral Motor Speed", motorSpeed);
     SmartDashboard.putNumber("Coral/Left Motor Velocity", leftMotor.getEncoder().getVelocity());
-    SmartDashboard.putNumber("Coral/Right Motor Velocity", rightMotor.getEncoder().getVelocity());
     SmartDashboard.putNumber("Coral/Left Current Draw", getLeftCurrentDraw());
-    SmartDashboard.putNumber("Coral/Right Current Draw", getRightCurrentDraw());
-    SmartDashboard.putBoolean("Coral/Game Piece Detected", hasGamePiece());
   }
 
   /**
