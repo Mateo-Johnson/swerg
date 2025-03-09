@@ -49,6 +49,8 @@ public class Elevator extends SubsystemBase {
 
     private ElevatorState currentState = ElevatorState.IDLE;
     private ElevatorState previousState = ElevatorState.IDLE;
+
+    private static final int maxHeight = 50;
     
     // Control flags
     private boolean isManualControl = false;
@@ -99,6 +101,10 @@ public class Elevator extends SubsystemBase {
     public void setState(ElevatorState newState) {
         previousState = currentState;
         currentState = newState;
+    }
+
+    public double getHeightPercentage() {
+        return getPosition() / maxHeight;
     }
 
     // Position Control Methods
