@@ -61,10 +61,6 @@ public class Coral extends SubsystemBase {
     rightConfig.inverted(true);
     rightMotor.configure(rightConfig, ResetMode.kResetSafeParameters, null);
     
-    // If constants aren't set, use reasonable defaults
-    if (CURRENT_THRESHOLD <= 0) {
-      CURRENT_THRESHOLD = 20.0; // 20 amps is a reasonable default
-    }
   }
 
   @Override
