@@ -90,7 +90,7 @@ public class RobotContainer {
     // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
 
     // CORAL COMMANDS
-    primary.leftBumper().whileTrue(new IntakeWithElevator(m_coral, m_elevator, 0.7, -0.1, 0.5)); // RIGHT TRIGGER TO INTAKE CORAL
+    primary.leftBumper().whileTrue(new IntakeWithElevator(m_coral, m_elevator, 0.7, 0.1)); // RIGHT TRIGGER TO INTAKE CORAL
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // LEFT TRIGGER TO PURGE CORAL
 
     primary.a().whileTrue(new AlignY(1, 0.05, m_drivetrain));
