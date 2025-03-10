@@ -111,7 +111,7 @@ public class Coral extends SubsystemBase {
         if (highCurrentStartTime == 0) {
           // Start timing how long we see high current
           highCurrentStartTime = currentTime;
-        } else if (currentTime - highCurrentStartTime > 0.01) { // 100ms debounce
+        } else if (currentTime - highCurrentStartTime > 0.1) { // 100ms debounce
           // We've seen high current for enough time
           gamePresent = true;
         }
