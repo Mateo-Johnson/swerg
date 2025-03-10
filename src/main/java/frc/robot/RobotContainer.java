@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.subsystems.coral.Coral;
+import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.IntakeWithElevator;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -83,19 +84,13 @@ public class RobotContainer {
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
     primary.povLeft().onTrue(new MoveToPoint(m_elevator, 22));
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 7.5));
-   
-    // primary.povUp().whileTrue(ElevatorCommands.moveToL4(m_elevator));
-    // primary.povRight().whileTrue(ElevatorCommands.moveToL3(m_elevator));
-    // primary.povDown().whileTrue(ElevatorCommands.moveToL2(m_elevator));
-    // primary.povLeft().whileTrue(ElevatorCommands.moveToL1(m_elevator));
 
     // CORAL COMMANDS
-    primary.leftBumper().whileTrue(new IntakeWithElevator(m_coral, m_elevator, 0.7, 0.1)); // RIGHT TRIGGER TO INTAKE CORAL
+    primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE CORAL
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // LEFT TRIGGER TO PURGE CORAL
 
     primary.a().whileTrue(new AlignY(1, 0.05, m_drivetrain));
 
-    // ALGAE COMMANDS
   }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

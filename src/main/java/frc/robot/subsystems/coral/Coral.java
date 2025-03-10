@@ -8,6 +8,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Coral extends SubsystemBase {
@@ -23,13 +24,12 @@ public class Coral extends SubsystemBase {
   private static final int SCL = CoralConstants.SCL; // Smart Current Limit
   private static final int FCL = CoralConstants.FCL; // Free Current Limit
 
-  // Game piece detection thresholds
-  private static double CURRENT_THRESHOLD = CoralConstants.currentThreshold; // Default threshold (2.0)
-  private static final double DETECTION_TIME = CoralConstants.detectionTime; // Time current must be above threshold (0.1)
-  
   // Detection tracking
   private boolean gamePresent = false;
   private double highCurrentStartTime = 0;
+  private boolean motorStartupIgnore = true;
+  private double motorStartTime = 0;
+  private static final double STARTUP_IGNORE_TIME = 0.5; // 500ms to ignore initial startup current spike
 
   // Simple speed control
   private double motorSpeed = 0.0;
@@ -60,7 +60,6 @@ public class Coral extends SubsystemBase {
     rightConfig.idleMode(IdleMode.kBrake);
     rightConfig.inverted(true);
     rightMotor.configure(rightConfig, ResetMode.kResetSafeParameters, null);
-    
   }
 
   @Override
@@ -77,6 +76,8 @@ public class Coral extends SubsystemBase {
     SmartDashboard.putNumber("Coral/Coral Motor Speed", motorSpeed);
     SmartDashboard.putNumber("Coral/Left Motor Velocity", leftMotor.getEncoder().getVelocity());
     SmartDashboard.putNumber("Coral/Left Current Draw", getLeftCurrentDraw());
+    SmartDashboard.putBoolean("Coral/GP", hasGamePiece());
+    SmartDashboard.putBoolean("Coral/Startup Ignore", motorStartupIgnore);
   }
 
   /**
@@ -85,42 +86,40 @@ public class Coral extends SubsystemBase {
   private void updateGamePieceDetection() {
     // We'll use the left motor for detection since it gets full power
     double currentDraw = getLeftCurrentDraw();
-    double currentTime = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+    double currentTime = Timer.getFPGATimestamp();
     
-    // Only detect when motors are running in forward direction
-    if (currentDirection == MotorDirection.FORWARD && motorSpeed > 0.1) {
-      if (currentDraw >= CURRENT_THRESHOLD) {
-        // If this is the start of high current, record the time
+    // Handle startup current spike ignore logic
+    if (currentDirection == MotorDirection.STOPPED) {
+      // Reset detection when motors are stopped
+      gamePresent = false;
+      motorStartupIgnore = true;
+    } else if (motorStartupIgnore && currentDirection != MotorDirection.STOPPED) {
+      // If we're ignoring startup and motors are running
+      if (motorStartTime == 0) {
+        // First time we've seen motors running since stop
+        motorStartTime = currentTime;
+      } else if (currentTime - motorStartTime > STARTUP_IGNORE_TIME) {
+        // We've waited long enough, stop ignoring
+        motorStartupIgnore = false;
+      }
+    }
+    
+    // Only detect game pieces when we're not ignoring startup spikes
+    if (!motorStartupIgnore) {
+      // Current-based detection with debouncing
+      if (currentDraw >= CoralConstants.currentThreshold) {
         if (highCurrentStartTime == 0) {
+          // Start timing how long we see high current
           highCurrentStartTime = currentTime;
-        }
-        
-        // Check if current has been high for the required duration
-        if (currentTime - highCurrentStartTime >= DETECTION_TIME) {
+        } else if (currentTime - highCurrentStartTime > 0.01) { // 100ms debounce
+          // We've seen high current for enough time
           gamePresent = true;
         }
       } else {
-        // Reset the timer if current drops below threshold
+        // Current is below threshold, reset timing
         highCurrentStartTime = 0;
       }
-    } else {
-      // Reset detection when not intaking
-      highCurrentStartTime = 0;
-      // Don't reset gamePresent here - we want it to stay true until we release the game piece
     }
-    
-    // Reset the game piece detection when we reverse or stop
-    if (currentDirection == MotorDirection.REVERSE || currentDirection == MotorDirection.STOPPED) {
-      gamePresent = false;
-    }
-  }
-
-  /**
-   * Sets the current threshold for game piece detection
-   * @param threshold The current threshold in amps
-   */
-  public void setCurrentThreshold(double threshold) {
-    CURRENT_THRESHOLD = threshold;
   }
 
   /**
@@ -130,13 +129,31 @@ public class Coral extends SubsystemBase {
     return gamePresent;
   }
 
+  /**
+   * Reset the game piece detection state and the ignore timer
+   */
+  public void resetGamePieceDetection() {
+    gamePresent = false;
+    motorStartupIgnore = true;
+    motorStartTime = 0;
+    highCurrentStartTime = 0;
+  }
+
   // Simple control methods
   public void forward(double speed) {
+    if (currentDirection == MotorDirection.STOPPED) {
+      // If starting from stopped, reset timers
+      motorStartTime = 0;
+    }
     motorSpeed = Math.abs(speed); // Ensure positive value
     currentDirection = MotorDirection.FORWARD;
   }
 
   public void reverse(double speed) {
+    if (currentDirection == MotorDirection.STOPPED) {
+      // If starting from stopped, reset timers
+      motorStartTime = 0;
+    }
     motorSpeed = -Math.abs(speed); // Ensure negative value
     currentDirection = MotorDirection.REVERSE;
   }

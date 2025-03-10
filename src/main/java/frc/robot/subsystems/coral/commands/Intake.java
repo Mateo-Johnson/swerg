@@ -25,33 +25,44 @@ public class Intake extends Command {
     
     @Override
     public void initialize() {
-        // Determine what to do based on current state and game piece presence
-        if (coral.hasGamePiece() && currentState != State.EJECTING) {
-            // We have a game piece, start ejecting
-            coral.forward(speed); // Same direction as intake
+        // Reset detection state when starting the command
+        coral.resetGamePieceDetection();
+        
+        // Set initial state
+        if (coral.hasGamePiece()) {
             currentState = State.EJECTING;
-        } else if (!coral.hasGamePiece() && currentState != State.INTAKING) {
-            // No game piece, start intaking
-            coral.forward(speed);
+        } else {
             currentState = State.INTAKING;
         }
-        // If we're already in the correct state, do nothing
     }
     
     @Override
     public void execute() {
         // Command runs continuously until interrupted or finished
+        switch (currentState) {
+            case INTAKING:
+                if (!coral.hasGamePiece()) {
+                    coral.forward(speed);
+                } else {
+                    coral.stop();
+                }
+                break;
+                
+            case EJECTING:
+                coral.reverse(speed);
+                break;
+                
+            case IDLE:
+            default:
+                coral.stop();
+                break;
+        }
     }
     
     @Override
     public void end(boolean interrupted) {
         // Stop motors
         coral.stop();
-        
-        // Reset state when done ejecting
-        if (currentState == State.EJECTING) {
-            currentState = State.IDLE;
-        }
     }
     
     @Override

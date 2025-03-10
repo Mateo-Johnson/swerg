@@ -96,10 +96,7 @@ public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKine
     public static final int SCL = 35; // SMART CURRENT LIMIT (CONT. CURRENT) IN AMPS
     public static final int FCL = 40; // FREE CURRENT LIMIT (PEAK CURRENT) IN AMPS
 
-    // Game piece detection constants
-    //At 70% speed, the free-spinning current draw of an NEO motor is estimated to be between 0.7 and 1.4 A, based on typical motor characteristics and assuming a linear relationship between speed and current.
-    public static final double currentThreshold = 2.0; // Threshold for game piece detection (Amps)
-    public static final double detectionTime = 0.1; // Time in seconds current must be above threshold
+    public static final double currentThreshold = 8.0; // Threshold for game piece detection (Amps)
   }
 
   public static final class ElevatorConstants {
