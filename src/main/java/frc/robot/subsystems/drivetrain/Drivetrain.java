@@ -32,28 +32,28 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
-      2.9287459531721316);
+      2.88);
 
   //FRONT RIGHT
   private final Module m_frontRight = new Module(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
-      5.110521631358809);
+      5.14);
 
   //REAR LEFT
   private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
-      2.772308406337558);
+      2.8);
 
   //REAR RIGHT
   private final Module m_rearRight = new Module(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
-      5.723793939068865);
+      5.7);
 
   //PID CONTROLLERS
   private PIDController headingCorrector = new PIDController(0.1, 0, 0.01);

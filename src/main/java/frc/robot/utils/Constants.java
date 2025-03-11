@@ -115,6 +115,6 @@ public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKine
     public static final PIDController translateController = new PIDController(0, 0, 0);
     public static final PIDController rotateController = new PIDController(0, 0, 0);
     public static PIDController xPID = new PIDController(0, 0, 0);
-    public static PIDController yPID = new PIDController(1, 0, 0);
+    public static PIDController yPID = new PIDController(0.3, 0.01, 0);
   }
 }

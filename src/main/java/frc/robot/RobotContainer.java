@@ -89,7 +89,7 @@ public class RobotContainer {
     primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE CORAL
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // LEFT TRIGGER TO PURGE CORAL
 
-    primary.a().whileTrue(new AlignY(1, 0.05, m_drivetrain));
+    primary.a().whileTrue(new AlignY(0, m_drivetrain));
 
   }
   /**
