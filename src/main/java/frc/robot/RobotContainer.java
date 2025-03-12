@@ -7,9 +7,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
-import frc.robot.subsystems.coral.commands.IntakeWithElevator;
+import frc.robot.subsystems.coral.commands.Outtake;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
@@ -86,10 +87,29 @@ public class RobotContainer {
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 7.5));
 
     // CORAL COMMANDS
-    primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE CORAL
+    // primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE CORAL
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // LEFT TRIGGER TO PURGE CORAL
 
     primary.a().whileTrue(new AlignY(0, m_drivetrain));
+
+    //THIS IS A TRIGGER COMMAND THAT CHECKS IF THE RIGHT TRIGGER IS PRESSED AND IF B IS PRESSED
+    //IF BOTH ARE TRUE, IT WILL RUN THE COMMAND INSIDE THE WHILETRUE
+    //WHEN THE TRIGGER IS RELEASED OR B IS RELEASED, THE COMMAND WILL STOP
+
+    //THIS COMMAND WILL RUN THE OUTTAKE COMMAND WITH THE CURRENT TRIGGER VALUE
+    new Trigger(() -> 
+    primary.getRightTriggerAxis() > 0.1 && primary.b().getAsBoolean())
+    .whileTrue(new RunCommand(() -> {
+      // Create and schedule a new Outtake command with the current trigger value
+      double speed = primary.getRightTriggerAxis();
+      new Outtake(m_coral, speed).schedule();
+    }, m_coral)
+  );
+
+  // THIS COMMAND WILL RUN THE INTAKE COMMAND WITH THE CURRENT TRIGGER VALUE
+  new Trigger(() -> 
+    primary.getRightTriggerAxis() > 0.1 && !primary.b().getAsBoolean())
+    .whileTrue(new Intake(m_coral, 0.7)); 
 
   }
   /**
