@@ -1,28 +1,19 @@
 package frc.robot;
 
-import java.security.AlgorithmConstraints;
-
 import com.pathplanner.lib.commands.PathPlannerAuto;
-
-// import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.algae.Algae;
-import frc.robot.subsystems.algae.commands.Out;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
-import frc.robot.subsystems.coral.commands.Outtake;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
-import frc.robot.subsystems.vision.commands.general.AlignRotate;
 import frc.robot.subsystems.vision.commands.general.AlignY;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
