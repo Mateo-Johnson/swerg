@@ -68,8 +68,10 @@ public class Coral extends SubsystemBase {
     leftMotor.set(motorSpeed);
     rightMotor.set(0.25 * motorSpeed);
     
-    // Update game piece detection
-    updateGamePieceDetection();
+    // Update game piece detection - only if we're intaking
+    if (currentDirection == MotorDirection.FORWARD) {
+      updateGamePieceDetection();
+    }
     
     // Log data
     SmartDashboard.putString("Coral/Coral Direction", currentDirection.toString());
@@ -82,18 +84,20 @@ public class Coral extends SubsystemBase {
 
   /**
    * Updates the game piece detection status based on motor current
+   * Only sets gamePresent to true, never to false (except via resetGamePieceDetection)
    */
   private void updateGamePieceDetection() {
+    // If we already have a game piece, don't change the state
+    if (gamePresent) {
+      return;
+    }
+
     // We'll use the left motor for detection since it gets full power
     double currentDraw = getLeftCurrentDraw();
     double currentTime = Timer.getFPGATimestamp();
     
     // Handle startup current spike ignore logic
-    if (currentDirection == MotorDirection.STOPPED) {
-      // Reset detection when motors are stopped
-      gamePresent = false;
-      motorStartupIgnore = true;
-    } else if (motorStartupIgnore && currentDirection != MotorDirection.STOPPED) {
+    if (motorStartupIgnore && currentDirection != MotorDirection.STOPPED) {
       // If we're ignoring startup and motors are running
       if (motorStartTime == 0) {
         // First time we've seen motors running since stop
@@ -130,7 +134,8 @@ public class Coral extends SubsystemBase {
   }
 
   /**
-   * Reset the game piece detection state and the ignore timer
+   * Reset the game piece detection state and the ignore timer.
+   * This should be called when starting to eject a game piece.
    */
   public void resetGamePieceDetection() {
     gamePresent = false;
@@ -156,11 +161,15 @@ public class Coral extends SubsystemBase {
     }
     motorSpeed = -Math.abs(speed); // Ensure negative value
     currentDirection = MotorDirection.REVERSE;
+    
+    // When reversing, we're ejecting a game piece, so reset detection
+    resetGamePieceDetection();
   }
 
   public void stop() {
     motorSpeed = 0.0;
     currentDirection = MotorDirection.STOPPED;
+    // Do NOT reset gamePresent when stopping - only when ejecting
   }
   
   // Getter methods

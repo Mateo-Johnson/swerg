@@ -1,5 +1,9 @@
 package frc.robot;
 
+import java.security.AlgorithmConstraints;
+
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 // import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.XboxController;
@@ -8,6 +12,8 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.algae.Algae;
+import frc.robot.subsystems.algae.commands.Out;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.Outtake;
@@ -16,6 +22,7 @@ import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
+import frc.robot.subsystems.vision.commands.general.AlignRotate;
 import frc.robot.subsystems.vision.commands.general.AlignY;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
@@ -32,6 +39,7 @@ public class RobotContainer {
   private final Drivetrain m_drivetrain = new Drivetrain();
   private final Elevator m_elevator = new Elevator();
   private final Coral m_coral = new Coral();
+  // private final Algae m_algae = new Algae();
 
 
   // The driver's controller
@@ -83,33 +91,24 @@ public class RobotContainer {
     // ELEVATOR COMMANDS
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 22));
-    primary.povDown().onTrue(new MoveToPoint(m_elevator, 7.5));
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5));
+    primary.povDown().onTrue(new MoveToPoint(m_elevator, 5));
 
     // CORAL COMMANDS
     // primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE CORAL
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // LEFT TRIGGER TO PURGE CORAL
 
-    primary.a().whileTrue(new AlignY(0, m_drivetrain));
+    primary.a().toggleOnTrue(new AlignY(m_drivetrain));
 
     //THIS IS A TRIGGER COMMAND THAT CHECKS IF THE RIGHT TRIGGER IS PRESSED AND IF B IS PRESSED
     //IF BOTH ARE TRUE, IT WILL RUN THE COMMAND INSIDE THE WHILETRUE
     //WHEN THE TRIGGER IS RELEASED OR B IS RELEASED, THE COMMAND WILL STOP
 
-    //THIS COMMAND WILL RUN THE OUTTAKE COMMAND WITH THE CURRENT TRIGGER VALUE
-    new Trigger(() -> 
-    primary.getRightTriggerAxis() > 0.1 && primary.b().getAsBoolean())
-    .whileTrue(new RunCommand(() -> {
-      // Create and schedule a new Outtake command with the current trigger value
-      double speed = primary.getRightTriggerAxis();
-      new Outtake(m_coral, speed).schedule();
-    }, m_coral)
-  );
-
   // THIS COMMAND WILL RUN THE INTAKE COMMAND WITH THE CURRENT TRIGGER VALUE
-  new Trigger(() -> 
-    primary.getRightTriggerAxis() > 0.1 && !primary.b().getAsBoolean())
-    .whileTrue(new Intake(m_coral, 0.7)); 
+
+    primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); 
+
+    // primary.x().whileTrue(new Out(m_algae));
 
   }
   /**
@@ -119,6 +118,6 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // return new PathPlannerAuto("Example Auto");
-    return null;
+    return new PathPlannerAuto("auto");
   }
 }

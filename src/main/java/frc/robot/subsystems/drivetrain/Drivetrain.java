@@ -7,6 +7,8 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,6 +21,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.vision.commands.general.AlignY;
 import frc.robot.utils.Constants.DriveConstants;
 
 public class Drivetrain extends SubsystemBase {
@@ -131,15 +134,15 @@ public class Drivetrain extends SubsystemBase {
 
     // LOG THE HEADING
     double heading = getHeading();
-    SmartDashboard.putNumber("Heading", heading);
-
-    SmartDashboard.putNumber("current x", getPose().getX());
-    SmartDashboard.putNumber("current y", getPose().getY());
+    SmartDashboard.putNumber("POSITION/Heading", heading);
+    SmartDashboard.putNumber("POSITION/current x", getPose().getX());
+    SmartDashboard.putNumber("POSITION/current y", getPose().getY());
 
     SmartDashboard.putNumber("DT/FL", m_frontLeft.getAngleFull());
     SmartDashboard.putNumber("DT/FR", m_frontRight.getAngleFull());
     SmartDashboard.putNumber("DT/RL", m_rearLeft.getAngleFull());
     SmartDashboard.putNumber("DT/RR", m_rearRight.getAngleFull());
+    SmartDashboard.putBoolean("ALIGNING", AlignY.isAligning);
 
 
   }
@@ -213,6 +216,13 @@ public class Drivetrain extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetOdometry(Pose2d pose) {
+    // Invert the coordinates to match the transformation in getPose()
+    Pose2d invertedPose = new Pose2d(
+        -pose.getX(),
+        -pose.getY(),
+        pose.getRotation()
+    );
+    
     m_odometry.resetPosition(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -221,8 +231,8 @@ public class Drivetrain extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         },
-        pose);
-  }
+        invertedPose);  // Use the inverted pose
+}
 
   /**
    * Method to drive the robot while holding an angle.
@@ -317,8 +327,14 @@ public class Drivetrain extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return Rotation2d.fromDegrees(-m_gyro.getAngle()).getDegrees();
-  }
+    // Get the angle from the gyro
+    double angle = -m_gyro.getAngle();
+    
+    // Wrap to -180 to 180 range
+    angle = MathUtil.inputModulus(angle, -180.0, 180.0);
+    
+    return angle;
+}
 
   /**
    * Returns the turn rate of the robot.

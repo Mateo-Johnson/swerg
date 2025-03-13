@@ -107,7 +107,7 @@ public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKine
 
   public static final class AlgaeConstants {
     public static final int algaeIntakeCANId = 31;
-    public static final int algaePivotCANId = 32;
+    public static final int algaePivotCANId = 23;
 
   }
 

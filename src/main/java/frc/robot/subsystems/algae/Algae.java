@@ -11,34 +11,34 @@ import frc.robot.utils.Constants.AlgaeConstants;
 
 public class Algae extends SubsystemBase {
 
-    private final SparkMax intakeMotor;
+    // private final SparkMax intakeMotor;
     private final SparkMax pivotMotor;
     private final AbsoluteEncoder pivotEncoder;
 
     public Algae() {
         SparkMaxConfig intakeConfig = new SparkMaxConfig();
         intakeConfig.inverted(false); // Change in case of wrong direction
-        this.intakeMotor = new SparkMax(AlgaeConstants.algaeIntakeCANId, MotorType.kBrushless);
-        this.intakeMotor.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        // // this.intakeMotor = new SparkMax(AlgaeConstants.algaeIntakeCANId, MotorType.kBrushless);
+        // this.intakeMotor.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         this.pivotMotor = new SparkMax(AlgaeConstants.algaePivotCANId, MotorType.kBrushless);
         this.pivotEncoder = pivotMotor.getAbsoluteEncoder();
     }
 
-    public void intakeAlgae(double speed) {
-        this.intakeMotor.set(speed);
-    }
+    // public void intakeAlgae(double speed) {
+    //     this.intakeMotor.set(speed);
+    // }
 
-    public void ejectAlgae(double speed) {
-        this.intakeMotor.set(speed);
-    }
+    // public void ejectAlgae(double speed) {
+    //     this.intakeMotor.set(speed);
+    // }
 
     public void pivotAlgae(double speed) {
         this.pivotMotor.set(speed);
     }
 
-    public void stopIntake() {
-        this.intakeMotor.stopMotor();
-    }
+    // public void stopIntake() {
+    //     this.intakeMotor.stopMotor();
+    // }
 
     public void stopPivot() {
         this.pivotMotor.stopMotor();

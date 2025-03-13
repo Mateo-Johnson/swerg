@@ -2,90 +2,167 @@ package frc.robot.subsystems.vision.commands.general;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.utils.LimelightLib;
+import frc.robot.utils.Constants;
+import frc.robot.utils.Constants.OIConstants;
 
 public class AlignY extends Command {
   private final Drivetrain drivetrain;
-  private final double setpoint;
-  private final PIDController yPID = new PIDController(0.015, 0.0001, 0);
+  private final double centerSetpoint = 0;
+  private final double leftSetpoint = 0.22;
+  private final double rightSetpoint = -0.12;
+  private double currentSetpoint;
+  private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); //0.4
+  private final CommandXboxController prim = Constants.primary;
+  private final String limelightName = "limelight-front";
   
+  // New variables for flick detection
+  private boolean setpointLocked = false;
+  private double lastXInput = 0;
+  private static final double FLICK_THRESHOLD = 0.3;
+  private static final int RESET_DELAY = 10; // Cycles before allowing new setpoint selection
+  private int resetCounter = 0;
+
+  public static boolean isAligning = false;
   
   /**
-   * Creates a new AlignY command that aligns to a specific AprilTag/target.
+   * Creates a new AlignY command that aligns to a specific AprilTag/target with multiple setpoints.
+   * Uses a "flick" behavior for setpoint selection rather than continuous stick holding.
    *
-   * @param targetID The ID of the target to align with
    * @param drivetrain The drivetrain subsystem to control
    */
-  public AlignY(double setpoint, Drivetrain drivetrain) {
-    this.setpoint = setpoint;
+  public AlignY(Drivetrain drivetrain) {
     this.drivetrain = drivetrain;
     
-    // Configure PID controller
-    yPID.setTolerance(0.02); // Set tolerance in meters
+    // Configure PID controllers
+    yPID.setTolerance(0);
     
     addRequirements(drivetrain);
   }
 
   @Override
   public void initialize() {
-    // Reset PID controller when command starts
+    // Reset PID controllers when command starts
     yPID.reset();
+    currentSetpoint = centerSetpoint; // Start with center setpoint
+    setpointLocked = false; // Start unlocked
+    lastXInput = 0;
+    resetCounter = 0;
+
+    isAligning = true;
+    
+    SmartDashboard.putBoolean("Vision/AlignmentActive", true);
   }
 
   @Override
   public void execute() {
-    // Get the target pose
-    double[] targetPose = LimelightLib.getTargetPose_RobotSpace("limelight-front");
+    // Get stick input
+    double leftXInput = MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband);
     
-    if (targetPose.length < 6) {
-      // No valid target found, stop alignment
-      drivetrain.drive(0, 0, 0, false);
+    // Flick detection logic
+    if (!setpointLocked) {
+      // If not locked, check for flicks
+      if (Math.abs(leftXInput) > FLICK_THRESHOLD) {
+        // Flick detected
+        if (leftXInput < -FLICK_THRESHOLD) {
+          currentSetpoint = leftSetpoint;
+        } else if (leftXInput > FLICK_THRESHOLD) {
+          currentSetpoint = rightSetpoint;
+        }
+        setpointLocked = true;
+      }
+    } else {
+      // If locked, check for return to center
+      if (Math.abs(leftXInput) < OIConstants.kDriveDeadband) {
+        resetCounter++;
+        if (resetCounter >= RESET_DELAY) {
+          // Allow for new setpoint selection after stick returns to center
+          setpointLocked = false;
+          resetCounter = 0;
+        }
+      } else {
+        resetCounter = 0;
+      }
+      
+      // Check for deliberate center selection (quick center flick)
+      if (Math.abs(lastXInput) > FLICK_THRESHOLD && Math.abs(leftXInput) < OIConstants.kDriveDeadband) {
+        currentSetpoint = centerSetpoint;
+      }
+    }
+    
+    // Store current input for next cycle
+    lastXInput = leftXInput;
+    
+    // Check if we have a valid target
+    if (!LimelightLib.getTV(limelightName)) {
+      // No valid target found, allow normal driving
+      drivetrain.drive(
+        MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
+        leftXInput,
+        -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
+        true
+      );
+      SmartDashboard.putBoolean("Vision/TargetInView", false);
       return;
     }
     
-    // Extract the lateral offset (Y-axis in robot space)
-    // targetPose format is [x, y, z, roll, pitch, yaw]
-    double lateralOffset = targetPose[1];
+    // Get the target pose in camera space - this is more direct for alignment
+    Pose3d targetPose = LimelightLib.getTargetPose3d_CameraSpace(limelightName);
     
-    // Our goal is to make this lateral offset zero
-    double output = yPID.calculate(lateralOffset, setpoint);
+    if (targetPose == null) {
+      drivetrain.drive(0, 0, 0, false);
+      SmartDashboard.putBoolean("Vision/TargetInView", false);
+      return;
+    }
     
-    // Clamp the output to valid range
-    output = MathUtil.clamp(output, -0.5, 0.5);
+    // Extract the lateral offset (X-axis in camera space)
+    double lateralOffset = targetPose.getX();
     
-    // Apply the steering correction while maintaining forward/backward control from driver
+    // Calculate PID outputs
+    double lateralOutput = yPID.calculate(lateralOffset, currentSetpoint);
+    
+    // Clamp the outputs to valid ranges
+    lateralOutput = MathUtil.clamp(lateralOutput, -0.5, 0.5);
+    
+    // Apply both lateral and rotational corrections
     drivetrain.drive(
-      0, 
-      -output, // Negate because positive output should turn robot right to align left
-      0, 
-      false);
+      MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
+      -lateralOutput,
+      -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
+      false
+    );
 
     // Log data for debugging
     SmartDashboard.putNumber("Vision/LateralOffset", lateralOffset);
-    SmartDashboard.putNumber("Vision/AlignOutput", output);
+    SmartDashboard.putNumber("Vision/LateralOutput", lateralOutput);
+    SmartDashboard.putNumber("Vision/CurrentSetpoint", currentSetpoint);
     SmartDashboard.putBoolean("Vision/TargetInView", true);
+    SmartDashboard.putNumber("Vision/TargetID", LimelightLib.getFiducialID(limelightName));
+    SmartDashboard.putBoolean("Vision/LateralAtSetpoint", yPID.atSetpoint());
+    SmartDashboard.putBoolean("Vision/SetpointLocked", setpointLocked);
   }
 
-  // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    isAligning = false;
     drivetrain.drive(0, 0, 0, false);
     SmartDashboard.putBoolean("Vision/TargetInView", false);
+    SmartDashboard.putBoolean("Vision/AlignmentActive", false);
   }
 
-  // Returns true when the command should end.
   @Override
   public boolean isFinished() {
     // Check if we have valid target data
-    double[] targetPose = LimelightLib.getTargetPose_RobotSpace("limelight-front");
-    if (targetPose.length < 6) {
+    if (!LimelightLib.getTV(limelightName)) {
       return false;
     }
     
-    // Use the PID controller to determine if we're at the setpoint
+    // Use PID controller to determine if we're aligned
     return yPID.atSetpoint();
   }
 }
