@@ -10,6 +10,7 @@ import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -24,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.commands.AlignY;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.DriveConstants;
+import frc.robot.utils.LimelightLib;
 
 public class Drivetrain extends SubsystemBase {
 
@@ -76,6 +78,19 @@ public class Drivetrain extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
+  // POSE ESTIMATOR FOR TRACKING ROBOT AGAIN
+  private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
+    DriveConstants.kDriveKinematics,
+    Rotation2d.fromDegrees(-m_gyro.getAngle()),
+    new SwerveModulePosition[] {
+        m_frontLeft.getPosition(),
+        m_frontRight.getPosition(),
+        m_rearLeft.getPosition(),
+        m_rearRight.getPosition()
+    },
+    new Pose2d()  // Initial pose
+);
+
   public Drivetrain() {
 
     // PATHPLANNER THINGS
@@ -119,11 +134,25 @@ public class Drivetrain extends SubsystemBase {
   @Override
   public void periodic() {
 
+    Pose2d visionPose = LimelightLib.getBotPose2d_wpiBlue("limelight");
+    double latency = LimelightLib.getLatency_Pipeline("limelight") / 1000.0; // Convert ms to seconds
+    updateWithVision(visionPose, latency);
+
     // UPDATE THE FIELD POSE
     field.setRobotPose(getPose());
 
     // UPDATE THE ODOMETRY
     m_odometry.update(
+        Rotation2d.fromDegrees(-m_gyro.getAngle()),
+        new SwerveModulePosition[] {
+            m_frontLeft.getPosition(),
+            m_frontRight.getPosition(),
+            m_rearLeft.getPosition(),
+            m_rearRight.getPosition()
+        });
+
+    // UPDATE THE POSE ESTIMATOR
+    m_poseEstimator.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
@@ -153,12 +182,7 @@ public class Drivetrain extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    Pose2d originalPose = m_odometry.getPoseMeters();
-    return new Pose2d(
-        -originalPose.getX(),  // Invert X
-        -originalPose.getY(),  // Invert Y
-        originalPose.getRotation()  // Keep rotation as is
-    );
+    return m_poseEstimator.getEstimatedPosition();
 }
 
   /**
@@ -207,13 +231,26 @@ public class Drivetrain extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetOdometry(Pose2d pose) {
-    // Invert the coordinates to match the transformation in getPose()
-    Pose2d invertedPose = new Pose2d(
-        -pose.getX(),
-        -pose.getY(),
-        pose.getRotation()
+
+      // Invert the coordinates to match the transformation in getPose()
+      Pose2d invertedPose = new Pose2d(
+          -pose.getX(),
+          -pose.getY(),
+          pose.getRotation()
+      );
+      
+      m_poseEstimator.resetPosition(
+        Rotation2d.fromDegrees(-m_gyro.getAngle()),
+        new SwerveModulePosition[] {
+            m_frontLeft.getPosition(),
+            m_frontRight.getPosition(),
+            m_rearLeft.getPosition(),
+            m_rearRight.getPosition()
+        },
+        invertedPose
     );
-    
+
+    // ODOMETRY IMPLEMENTATION
     m_odometry.resetPosition(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -222,7 +259,8 @@ public class Drivetrain extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         },
-        invertedPose);  // Use the inverted pose
+        invertedPose
+    );
 }
 
   /**
@@ -335,4 +373,12 @@ public class Drivetrain extends SubsystemBase {
   public double getTurnRate() {
     return -m_gyro.getRate();
   }
+
+  public void updateWithVision(Pose2d visionPose, double latencySeconds) {
+    // Add the vision measurement to the pose estimator
+    m_poseEstimator.addVisionMeasurement(
+        visionPose,
+        latencySeconds
+    );
+}
 }
