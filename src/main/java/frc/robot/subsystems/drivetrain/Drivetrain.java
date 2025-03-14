@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.commands.general.AlignY;
+import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.DriveConstants;
 
 public class Drivetrain extends SubsystemBase {
@@ -76,7 +77,6 @@ public class Drivetrain extends SubsystemBase {
       });
 
   public Drivetrain() {
-    // zeroHeading();
 
     // PATHPLANNER THINGS
     try{
@@ -85,7 +85,7 @@ public class Drivetrain extends SubsystemBase {
       // Configure AutoBuilder
       AutoBuilder.configure(
         this::getPose, 
-        this::resetPose, 
+        this::resetOdometry, 
         this::getRobotRelativeSpeeds, 
         this::driveRobotRelative, 
         new PPHolonomicDriveController(
@@ -162,27 +162,20 @@ public class Drivetrain extends SubsystemBase {
 }
 
   /**
-   * Resets the pose to the specified position.
-   * 
-   * @param pose The pose to reset to
-   */
-  public void resetPose(Pose2d pose) {
-    resetOdometry(pose);
-  }
-
-  /**
    * Returns the current robot-relative chassis speeds
    * 
    * @return ChassisSpeeds object containing the robot's velocity components
    */
   public ChassisSpeeds getRobotRelativeSpeeds() {
-    // Calculate robot-relative speeds from module states
-    return DriveConstants.kDriveKinematics.toChassisSpeeds(
-      m_frontLeft.getState(),
-      m_frontRight.getState(),
-      m_rearLeft.getState(),
-      m_rearRight.getState()
-    );
+    // Retrieve the current states of each swerve module
+    SwerveModuleState frontLeftState = m_frontLeft.getState();
+    SwerveModuleState frontRightState = m_frontRight.getState();
+    SwerveModuleState rearLeftState = m_rearLeft.getState();
+    SwerveModuleState rearRightState = m_rearRight.getState();
+
+    // Convert the swerve module states to chassis speeds
+    return Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(
+        frontLeftState, frontRightState, rearLeftState, rearRightState);
   }
 
   /**
@@ -191,15 +184,13 @@ public class Drivetrain extends SubsystemBase {
    * @param speeds The desired robot-relative chassis speeds
    */
   public void driveRobotRelative(ChassisSpeeds speeds) {
-    // Convert from chassis speeds to module states
-    SwerveModuleState[] moduleStates = 
-        DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
-    
-    // Desaturate wheel speeds
-    SwerveDriveKinematics.desaturateWheelSpeeds(
-        moduleStates, DriveConstants.kMaxSpeedMetersPerSecond);
-    
-    // Set the module states
+    // Convert the robot-relative speeds to swerve module states
+    SwerveModuleState[] moduleStates = Constants.DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+
+    // Desaturate the wheel speeds to ensure they are within the maximum speed
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.DriveConstants.kMaxSpeedMetersPerSecond);
+
+    // Set the desired state for each swerve module
     setModuleStates(moduleStates);
   }
 

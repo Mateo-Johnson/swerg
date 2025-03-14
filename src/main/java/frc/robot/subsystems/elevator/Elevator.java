@@ -148,9 +148,17 @@ public class Elevator extends SubsystemBase {
             
             // Recalculate PID output
             pidOutput = pid.calculate(currentPosition, targetPosition);
+
+            boolean isMovingDown = currentPosition > targetPosition;
             
             // Apply fixed gravity compensation regardless of direction
             double motorOutput = pidOutput + GRAVITY_COMPENSATION;
+
+            if (isMovingDown) {
+                // Limit downward speed (adjust this value as needed)
+                double MAX_DOWNWARD_SPEED = 0.4; // Less than MAX_MANUAL_SPEED
+                motorOutput = Math.max(motorOutput, -MAX_DOWNWARD_SPEED);
+            }
             
             // Clamp output
             motorOutput = Math.min(Math.max(motorOutput, -1.0), 1.0);

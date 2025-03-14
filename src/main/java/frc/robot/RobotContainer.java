@@ -78,10 +78,17 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
+    // ELEVATOR HEIGHTS
+    // L1 = 0
+    // L2 = 5
+    // L3 = 17.5
+    // L4 = UNKNOWN
 
     // ELEVATOR COMMANDS
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
+
+    //primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7), 0.5));
     primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5));
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 5));
 
