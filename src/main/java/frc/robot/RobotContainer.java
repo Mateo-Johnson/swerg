@@ -14,7 +14,7 @@ import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
-import frc.robot.subsystems.vision.commands.general.AlignY;
+import frc.robot.subsystems.vision.commands.AlignY;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
 

@@ -23,10 +23,10 @@ public class Elevator extends SubsystemBase {
     private final DigitalInput limitSwitch;
     
     // Configuration constants
-    private static final double GRAVITY_COMPENSATION = 0.05;
-    private static final double MAX_MANUAL_SPEED = 0.7;
-    private static final double MANUAL_DEADBAND = 0.1;
-    private static final double POSITION_TOLERANCE = 0.05; // Tighter tolerance
+    private static final double GRAVITY_COMPENSATION = ElevatorConstants.GRAVITY_COMPENSATION;
+    private static final double MAX_MANUAL_SPEED = ElevatorConstants.MAX_MANUAL_SPEED;
+    private static final double MANUAL_DEADBAND = ElevatorConstants.MANUAL_DEADBAND;
+    private static final double POSITION_TOLERANCE = ElevatorConstants.POSITION_TOLERANCE;
     
     // Motor and sensor IDs
     private static final int MASTER_MOTOR_ID = ElevatorConstants.rightCANId;
@@ -43,9 +43,9 @@ public class Elevator extends SubsystemBase {
     }
 
     // PID Gains - more aggressive tuning
-    private static final double P_GAIN = 0.038;
-    private static final double I_GAIN = 0.0;
-    private static final double D_GAIN = 0;
+    private static final double kP = 0.038;
+    private static final double kI = 0.0;
+    private static final double kD = 0;
 
     private ElevatorState currentState = ElevatorState.IDLE;
     private ElevatorState previousState = ElevatorState.IDLE;
@@ -70,7 +70,7 @@ public class Elevator extends SubsystemBase {
         limitSwitch = new DigitalInput(LIMIT_SWITCH_PORT);
         
         // PID Controller with more comprehensive gains
-        pid = new PIDController(P_GAIN, I_GAIN, D_GAIN);
+        pid = new PIDController(kP, kI, kD);
         pid.setTolerance(POSITION_TOLERANCE);
         
         // Configure motors

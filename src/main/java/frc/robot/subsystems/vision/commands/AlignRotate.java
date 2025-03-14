@@ -1,4 +1,4 @@
-package frc.robot.subsystems.vision.commands.general;
+package frc.robot.subsystems.vision.commands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;

@@ -103,6 +103,12 @@ public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKine
     public static final int leftCANId = 11;
     public static final int rightCANId = 12;
     public static final int limitSwitchPort = 0;
+
+    public static final double GRAVITY_COMPENSATION = 0.05;
+    public static final double MAX_MANUAL_SPEED = 0.7;
+    public static final double MANUAL_DEADBAND = 0.1;
+    public static final double POSITION_TOLERANCE = 0.05;
+    public static final int maxHeight = 50;
   }
 
   public static final class AlgaeConstants {
