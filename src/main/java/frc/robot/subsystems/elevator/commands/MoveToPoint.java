@@ -19,7 +19,7 @@ public class MoveToPoint extends Command {
     
     // Constructor with next command
     public MoveToPoint(Elevator elevator, double targetPosition, Command nextCommand) {
-        this(elevator, targetPosition, nextCommand, 3.0); // Default proximity threshold
+        this(elevator, targetPosition, nextCommand, 3.0); // Default proximity threshold (3 rotations)
     }
     
     // Full constructor with configurable threshold

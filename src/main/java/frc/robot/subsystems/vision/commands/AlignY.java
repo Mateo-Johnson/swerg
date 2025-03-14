@@ -21,18 +21,18 @@ public class AlignY extends Command {
   private final CommandXboxController prim = Constants.primary;
   private final String limelightName = "limelight-front";
   
-  // New variables for flick detection
-  private boolean setpointLocked = false;
+  // Variables for flick detection
+  private boolean initialSelectionMade = false;  // Track if initial selection has been made
   private double lastXInput = 0;
+  private boolean flickReleased = true;  // Track if the stick has returned to center after a flick
   private static final double FLICK_THRESHOLD = 0.3;
-  private static final int RESET_DELAY = 10; // Cycles before allowing new setpoint selection
-  private int resetCounter = 0;
 
   public static boolean isAligning = false;
   
   /**
-   * Creates a new AlignY command that aligns to a specific AprilTag/target with multiple setpoints.
-   * Uses a "flick" behavior for setpoint selection rather than continuous stick holding.
+   * Creates a new AlignY command that aligns to the left or right of an AprilTag/target.
+   * The robot starts in center position but can only align to left or right.
+   * Allows switching between left and right but never back to center.
    *
    * @param drivetrain The drivetrain subsystem to control
    */
@@ -49,10 +49,10 @@ public class AlignY extends Command {
   public void initialize() {
     // Reset PID controllers when command starts
     yPID.reset();
-    currentSetpoint = centerSetpoint; // Start with center setpoint
-    setpointLocked = false; // Start unlocked
+    currentSetpoint = centerSetpoint; // Start with center setpoint temporarily
+    initialSelectionMade = false; // Start with no selection made
+    flickReleased = true;
     lastXInput = 0;
-    resetCounter = 0;
 
     isAligning = true;
     
@@ -64,34 +64,32 @@ public class AlignY extends Command {
     // Get stick input
     double leftXInput = MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband);
     
-    // Flick detection logic
-    if (!setpointLocked) {
-      // If not locked, check for flicks
+    // Check if stick has been released to neutral position
+    if (Math.abs(leftXInput) < OIConstants.kDriveDeadband) {
+      flickReleased = true;
+    }
+    
+    // Selection logic
+    if (!initialSelectionMade) {
+      // Initial selection from center
       if (Math.abs(leftXInput) > FLICK_THRESHOLD) {
-        // Flick detected
+        // First flick detected - set initial alignment direction
         if (leftXInput < -FLICK_THRESHOLD) {
           currentSetpoint = leftSetpoint;
         } else if (leftXInput > FLICK_THRESHOLD) {
           currentSetpoint = rightSetpoint;
         }
-        setpointLocked = true;
+        initialSelectionMade = true;
+        flickReleased = false;
       }
-    } else {
-      // If locked, check for return to center
-      if (Math.abs(leftXInput) < OIConstants.kDriveDeadband) {
-        resetCounter++;
-        if (resetCounter >= RESET_DELAY) {
-          // Allow for new setpoint selection after stick returns to center
-          setpointLocked = false;
-          resetCounter = 0;
-        }
-      } else {
-        resetCounter = 0;
-      }
-      
-      // Check for deliberate center selection (quick center flick)
-      if (Math.abs(lastXInput) > FLICK_THRESHOLD && Math.abs(leftXInput) < OIConstants.kDriveDeadband) {
-        currentSetpoint = centerSetpoint;
+    } else if (flickReleased && Math.abs(leftXInput) > FLICK_THRESHOLD) {
+      // Subsequent flick detected after stick was released - switch sides
+      if (leftXInput < -FLICK_THRESHOLD && currentSetpoint != leftSetpoint) {
+        currentSetpoint = leftSetpoint;
+        flickReleased = false;
+      } else if (leftXInput > FLICK_THRESHOLD && currentSetpoint != rightSetpoint) {
+        currentSetpoint = rightSetpoint;
+        flickReleased = false;
       }
     }
     
@@ -144,7 +142,8 @@ public class AlignY extends Command {
     SmartDashboard.putBoolean("Vision/TargetInView", true);
     SmartDashboard.putNumber("Vision/TargetID", LimelightLib.getFiducialID(limelightName));
     SmartDashboard.putBoolean("Vision/LateralAtSetpoint", yPID.atSetpoint());
-    SmartDashboard.putBoolean("Vision/SetpointLocked", setpointLocked);
+    SmartDashboard.putBoolean("Vision/InitialSelectionMade", initialSelectionMade);
+    SmartDashboard.putBoolean("Vision/FlickReleased", flickReleased);
   }
 
   @Override
@@ -162,7 +161,7 @@ public class AlignY extends Command {
       return false;
     }
     
-    // Use PID controller to determine if we're aligned
-    return yPID.atSetpoint();
+    // Check if a side has been selected and we're at the setpoint
+    return initialSelectionMade && yPID.atSetpoint();
   }
 }

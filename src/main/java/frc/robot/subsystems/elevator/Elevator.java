@@ -50,7 +50,7 @@ public class Elevator extends SubsystemBase {
     private ElevatorState currentState = ElevatorState.IDLE;
     private ElevatorState previousState = ElevatorState.IDLE;
 
-    private static final int maxHeight = 50;
+    private static final int maxHeight = 50; // UPDATE THIS
     
     // Control flags
     private boolean isManualControl = false;

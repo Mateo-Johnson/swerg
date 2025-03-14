@@ -96,11 +96,7 @@ public class RobotContainer {
     // primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE CORAL
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // LEFT TRIGGER TO PURGE CORAL
 
-    primary.a().toggleOnTrue(new AlignY(m_drivetrain));
-
-    //THIS IS A TRIGGER COMMAND THAT CHECKS IF THE RIGHT TRIGGER IS PRESSED AND IF B IS PRESSED
-    //IF BOTH ARE TRUE, IT WILL RUN THE COMMAND INSIDE THE WHILETRUE
-    //WHEN THE TRIGGER IS RELEASED OR B IS RELEASED, THE COMMAND WILL STOP
+    primary.a().toggleOnTrue(new AlignY(m_drivetrain)); 
 
   // THIS COMMAND WILL RUN THE INTAKE COMMAND WITH THE CURRENT TRIGGER VALUE
 
