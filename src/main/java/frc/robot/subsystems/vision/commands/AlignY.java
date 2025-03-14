@@ -24,15 +24,15 @@ public class AlignY extends Command {
   // Variables for flick detection
   private boolean initialSelectionMade = false;  // Track if initial selection has been made
   private double lastXInput = 0;
-  private boolean flickReleased = true;  // Track if the stick has returned to center after a flick
   private static final double FLICK_THRESHOLD = 0.3;
+  private static final double SWITCH_THRESHOLD = 0.7;  // Higher threshold for direct side switching
 
   public static boolean isAligning = false;
   
   /**
    * Creates a new AlignY command that aligns to the left or right of an AprilTag/target.
    * The robot starts in center position but can only align to left or right.
-   * Allows switching between left and right but never back to center.
+   * Allows direct switching between left and right with a strong flick.
    *
    * @param drivetrain The drivetrain subsystem to control
    */
@@ -51,7 +51,6 @@ public class AlignY extends Command {
     yPID.reset();
     currentSetpoint = centerSetpoint; // Start with center setpoint temporarily
     initialSelectionMade = false; // Start with no selection made
-    flickReleased = true;
     lastXInput = 0;
 
     isAligning = true;
@@ -64,11 +63,6 @@ public class AlignY extends Command {
     // Get stick input
     double leftXInput = MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband);
     
-    // Check if stick has been released to neutral position
-    if (Math.abs(leftXInput) < OIConstants.kDriveDeadband) {
-      flickReleased = true;
-    }
-    
     // Selection logic
     if (!initialSelectionMade) {
       // Initial selection from center
@@ -80,16 +74,16 @@ public class AlignY extends Command {
           currentSetpoint = rightSetpoint;
         }
         initialSelectionMade = true;
-        flickReleased = false;
       }
-    } else if (flickReleased && Math.abs(leftXInput) > FLICK_THRESHOLD) {
-      // Subsequent flick detected after stick was released - switch sides
-      if (leftXInput < -FLICK_THRESHOLD && currentSetpoint != leftSetpoint) {
+    } else {
+      // Already aligned to a side, check for side switch
+      // Strong flick in left direction
+      if (leftXInput < -SWITCH_THRESHOLD && currentSetpoint != leftSetpoint) {
         currentSetpoint = leftSetpoint;
-        flickReleased = false;
-      } else if (leftXInput > FLICK_THRESHOLD && currentSetpoint != rightSetpoint) {
+      } 
+      // Strong flick in right direction
+      else if (leftXInput > SWITCH_THRESHOLD && currentSetpoint != rightSetpoint) {
         currentSetpoint = rightSetpoint;
-        flickReleased = false;
       }
     }
     
@@ -143,7 +137,7 @@ public class AlignY extends Command {
     SmartDashboard.putNumber("Vision/TargetID", LimelightLib.getFiducialID(limelightName));
     SmartDashboard.putBoolean("Vision/LateralAtSetpoint", yPID.atSetpoint());
     SmartDashboard.putBoolean("Vision/InitialSelectionMade", initialSelectionMade);
-    SmartDashboard.putBoolean("Vision/FlickReleased", flickReleased);
+    SmartDashboard.putNumber("Vision/JoystickX", leftXInput);
   }
 
   @Override
