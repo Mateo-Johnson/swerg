@@ -56,14 +56,6 @@ public class RobotContainer {
                 true);
         }, m_drivetrain)
     );
-
-
-    // COMMAND THE ELEVATOR TO HOLD IF NOT DOING ANYTHING ELSE
-    // m_elevator.setDefaultCommand(ElevatorCommands.elevatorHold(m_elevator));
-
-
-    // COMMAND THE CORAL INTAKE TO STORE WHEN NOT DOING ANYTHING ELSE
-    // m_coral.setDefaultCommand(CoralCommands.hold(m_coral));
 }
 
 
@@ -78,32 +70,26 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
-    // ELEVATOR HEIGHTS
+    // Elevator Heights
     // L1 = 0
     // L2 = 5
     // L3 = 17.5
     // L4 = UNKNOWN
 
-    // ELEVATOR COMMANDS
-    primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // RIGHT BUMPER TO MOVE ELEVATOR UP
-    primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // LEFT BUMPER TO MOVE ELEVATOR DOWN
+    // Drivetrain Commands
+    primary.a().toggleOnTrue(new AlignY(m_drivetrain)); 
 
+    // Elevator Commands
+    primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 
+    primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // Left bumper to move elevator down
     //primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7), 0.5));
     primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5));
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 5));
 
-    // CORAL COMMANDS
-    // primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // RIGHT TRIGGER TO INTAKE CORAL
-    primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // LEFT TRIGGER TO PURGE CORAL
-
-    primary.a().toggleOnTrue(new AlignY(m_drivetrain)); 
-
-  // THIS COMMAND WILL RUN THE INTAKE COMMAND WITH THE CURRENT TRIGGER VALUE
-
-    primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); 
-
-    // primary.x().whileTrue(new Out(m_algae));
-
+    // Coral Commands
+    // primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral
+    primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // Left trigger to purge coral
+    primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral (auto-stop)
   }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

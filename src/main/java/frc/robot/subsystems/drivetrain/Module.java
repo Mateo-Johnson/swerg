@@ -49,11 +49,11 @@ public class Module {
     public double getAngle() {
         double pos = m_turningAnalogEncoder.get();
         double position = pos * (2 * Math.PI);
-        position = position - m_analogEncoderOffset; // TAKES THE OFFSET IN 0 TO 2PI
+        position = position - m_analogEncoderOffset; // Takes the offset in 0 to 2PI
         return MathUtil.angleModulus(position);
     }
 
-    public double getAngleFull() { // SHOWS 0 TO 2PI
+    public double getAngleFull() { // Shows 0 to 2PI
       double pos = m_turningAnalogEncoder.get();
       double position = pos * (2 * Math.PI);
       return position;

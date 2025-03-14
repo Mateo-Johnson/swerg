@@ -7,7 +7,6 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -32,42 +31,43 @@ public class Drivetrain extends SubsystemBase {
   // Create a field object to display the path on the dashboard
   private Field2d field = new Field2d();
  
-  //CREATE MODULES
-  //FRONT LEFT
+  // Create the modules
+
+  // Front Left
   private final Module m_frontLeft = new Module(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
       2.88);
 
-  //FRONT RIGHT
+  // Front Right
   private final Module m_frontRight = new Module(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
       5.14);
 
-  //REAR LEFT
+  // Rear Left
   private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
       2.8);
 
-  //REAR RIGHT
+  // Rear Right
   private final Module m_rearRight = new Module(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
       5.7);
 
-  //PID CONTROLLERS
-  private PIDController headingCorrector = new PIDController(0.1, 0, 0.01);
+  // PID controller for heading
+  private PIDController headingCorrector = new PIDController(0.032, 0, 0.0015);
 
-  //CREATE GYRO (NAVX)
+  // Create gyro (NavX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 
-  //ODOMETRY FOR TRACKING ROBOT
+  // Odometry for tracking pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
       DriveConstants.kDriveKinematics,
       Rotation2d.fromDegrees(-m_gyro.getAngle()),
@@ -78,7 +78,7 @@ public class Drivetrain extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
-  // POSE ESTIMATOR FOR TRACKING ROBOT AGAIN
+  // Pose estimator for tracking pose again
   private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
     DriveConstants.kDriveKinematics,
     Rotation2d.fromDegrees(-m_gyro.getAngle()),
@@ -93,7 +93,7 @@ public class Drivetrain extends SubsystemBase {
 
   public Drivetrain() {
 
-    // PATHPLANNER THINGS
+    // Pathplanner things
     try{
       RobotConfig config = RobotConfig.fromGUISettings();
 
@@ -138,10 +138,10 @@ public class Drivetrain extends SubsystemBase {
     double latency = LimelightLib.getLatency_Pipeline("limelight") / 1000.0; // Convert ms to seconds
     updateWithVision(visionPose, latency);
 
-    // UPDATE THE FIELD POSE
+    // Update the field pose
     field.setRobotPose(getPose());
 
-    // UPDATE THE ODOMETRY
+    // Update the odometry
     m_odometry.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -151,7 +151,7 @@ public class Drivetrain extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
-    // UPDATE THE POSE ESTIMATOR
+    // Update the pose estimator
     m_poseEstimator.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -161,12 +161,12 @@ public class Drivetrain extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
-    // LOG THE HEADING
-    double heading = getHeading();
-    SmartDashboard.putNumber("POSITION/Heading", heading);
+    // Positioning dashboard
+    SmartDashboard.putNumber("POSITION/Heading", getHeading());
     SmartDashboard.putNumber("POSITION/current x", getPose().getX());
     SmartDashboard.putNumber("POSITION/current y", getPose().getY());
 
+    // Drivetrain module angles (maybe module widget?)
     SmartDashboard.putNumber("DT/FL", m_frontLeft.getAngleFull());
     SmartDashboard.putNumber("DT/FR", m_frontRight.getAngleFull());
     SmartDashboard.putNumber("DT/RL", m_rearLeft.getAngleFull());
@@ -239,6 +239,7 @@ public class Drivetrain extends SubsystemBase {
           pose.getRotation()
       );
       
+      // Reset the pose estimator
       m_poseEstimator.resetPosition(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -250,7 +251,7 @@ public class Drivetrain extends SubsystemBase {
         invertedPose
     );
 
-    // ODOMETRY IMPLEMENTATION
+    // Reset the odometry
     m_odometry.resetPosition(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -294,12 +295,12 @@ public class Drivetrain extends SubsystemBase {
    *                      field.
    */
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-    // CONVERT COMMANDED SPEEDS INTO CORRECT FOR DRIVETRAIN
+    // Convert commanded speeds into correct for drivetrain
     double xSpeedDelivered = xSpeed * DriveConstants.kMaxSpeedMetersPerSecond;
     double ySpeedDelivered = ySpeed * DriveConstants.kMaxSpeedMetersPerSecond;
     double rotDelivered = rot * DriveConstants.kMaxAngularSpeed;
 
-    // CREATE CHASSISPEEDS OBJECT WITH CORRECT COORD SYSTEM
+    // Create ChassisSpeeds object with correct coordinate system
     var chassisSpeeds = fieldRelative
         ? ChassisSpeeds.fromFieldRelativeSpeeds(
             xSpeedDelivered,
@@ -308,15 +309,15 @@ public class Drivetrain extends SubsystemBase {
             Rotation2d.fromDegrees(-m_gyro.getAngle()))
         : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered);
 
-    // CHANGE TO MODULE STATES
+    // Change it to module states
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
 
-    // DESATURATE WHEEL SPEEDS
+    // Desaturate wheel speeds
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates,
         DriveConstants.kMaxSpeedMetersPerSecond);
 
-    // SET STATES FOR EACH MODULE
+    // Set states for each module
     m_frontLeft.setDesiredState(swerveModuleStates[0]);
     m_frontRight.setDesiredState(swerveModuleStates[1]);
     m_rearLeft.setDesiredState(swerveModuleStates[2]);

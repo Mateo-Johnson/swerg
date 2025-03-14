@@ -12,38 +12,39 @@ public final class Constants {
   public static CommandXboxController primary = new CommandXboxController(OIConstants.kDriverControllerPort);
 
   public static final class DriveConstants {
-    // BE CAREFUL, THESE ARE THE MAX ALLOWED SPEEDS, NOT THE MAX CAPABLE
+    // Be careful, these are the max allowed speeds, not the max capable
     public static final double kMaxSpeedMetersPerSecond = 5.1;
-    public static final double kMaxAngularSpeed = 2 * Math.PI; // RADIANS/SECOND
+    public static final double kMaxAngularSpeed = 2 * Math.PI; // radians/second
 
-    // CHASSIS CONFIG
-    //DISTANCE BETWEEN CENTER OF RIGHT AND LEFT MODULE 
-    public static final double kTrackWidth = Units.inchesToMeters(23.75); // THIS IS CORRECT FOR 2025 DRIVETRAIN
-    // DISTANCE BETWEEN CENTER OF FRONT AND BACK MODULE
+    // Chassis Config
+
+    // Distance between the center of right and left modules 
+    public static final double kTrackWidth = Units.inchesToMeters(23.75); // This is correct for 2025 drivetrain
+    // Distance between the center of the front and back modules
     public static final double kWheelBase = Units.inchesToMeters(23.75);
 
-// Example of completely inverted kinematics
-public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
-    new Translation2d(-kWheelBase / 2, -kTrackWidth / 2),  // front left - both X and Y flipped
-    new Translation2d(-kWheelBase / 2, kTrackWidth / 2),   // front right - both X and Y flipped
-    new Translation2d(kWheelBase / 2, -kTrackWidth / 2),   // rear left - both X and Y flipped
-    new Translation2d(kWheelBase / 2, kTrackWidth / 2)     // rear right - both X and Y flipped
-);
+    public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
+        new Translation2d(-kWheelBase / 2, -kTrackWidth / 2), 
+        new Translation2d(-kWheelBase / 2, kTrackWidth / 2),  
+        new Translation2d(kWheelBase / 2, -kTrackWidth / 2),   
+        new Translation2d(kWheelBase / 2, kTrackWidth / 2)     
+    );
 
-    // SPARKMAX CAN IDs
-    // DRIVING
+    // SparkMax CAN IDs
+
+    // Driving
     public static final int kFrontLeftDrivingCanId = 10;
     public static final int kRearLeftDrivingCanId = 8;
     public static final int kFrontRightDrivingCanId = 4;
     public static final int kRearRightDrivingCanId = 5;
 
-    // TURNING
+    // Turning
     public static final int kFrontLeftTurningCanId = 9;
     public static final int kRearLeftTurningCanId = 7;
     public static final int kFrontRightTurningCanId = 3;
     public static final int kRearRightTurningCanId = 6;
 
-    // THRIFTY ENCODERS
+    // Encoders
     public static final int kFrontLeftEncoder = 1;
     public static final int kFrontRightEncoder = 0;
     public static final int kRearLeftEncoder = 2;
@@ -53,18 +54,18 @@ public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKine
   public static final class ModuleConstants {
     public static final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
     public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
-    // MK4i GEAR RATIO CONFIG (I THINK)
-    public static final double kDrivingMotorReduction = 6.12; // L3 RATIO
-    public static final double kTurningMotorReduction = 21.4285714286; // MK4i RATIO
+    // MK4i gear ratio
+    public static final double kDrivingMotorReduction = 6.12; // L3 ratio
+    public static final double kTurningMotorReduction = 21.4285714286; // MK4i ratio
 
-    // MOTOR ATTRIBUTES
+    // Motor attributes
     public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60.0;
     public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters) /
       kDrivingMotorReduction;
   }
 
   public static final class OIConstants {
-    public static final int kDriverControllerPort = 0; //CONTROLLER PORT
+    public static final int kDriverControllerPort = 0; // Controller port
     public static final double kDriveDeadband = 0.05;
   }
 
@@ -78,7 +79,7 @@ public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKine
     public static final double kPYController = 1;
     public static final double kPThetaController = 1;
 
-    // CONSTRAIN THE MOTION PROFILED CONTROLLER
+    // Constrain the motion profiled controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
       kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
   }
@@ -92,9 +93,9 @@ public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKine
     public static final int leftCoralID = 35;
     public static final int rightCoralID = 36;
 
-    // CURRENT LIMITS
-    public static final int SCL = 35; // SMART CURRENT LIMIT (CONT. CURRENT) IN AMPS
-    public static final int FCL = 40; // FREE CURRENT LIMIT (PEAK CURRENT) IN AMPS
+    // Current limits
+    public static final int SCL = 35; // Smart current limit (cont. current) in amps
+    public static final int FCL = 40; // Free current limit (peak current) in amps
 
     public static final double currentThreshold = 8.0; // Threshold for game piece detection (Amps)
   }

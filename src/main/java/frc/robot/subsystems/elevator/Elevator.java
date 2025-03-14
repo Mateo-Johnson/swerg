@@ -42,7 +42,7 @@ public class Elevator extends SubsystemBase {
         ERROR
     }
 
-    // PID Gains - more aggressive tuning
+    // PID Gains (TUNE THESE)
     private static final double kP = 0.038;
     private static final double kI = 0.0;
     private static final double kD = 0;
@@ -50,7 +50,7 @@ public class Elevator extends SubsystemBase {
     private ElevatorState currentState = ElevatorState.IDLE;
     private ElevatorState previousState = ElevatorState.IDLE;
 
-    private static final int maxHeight = 50; // UPDATE THIS
+    private static final int maxHeight = 50; // Update this with averaged measure
     
     // Control flags
     private boolean isManualControl = false;
