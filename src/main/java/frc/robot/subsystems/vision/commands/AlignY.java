@@ -23,6 +23,7 @@ public class AlignY extends Command {
   
   // Variables for flick detection
   private boolean initialSelectionMade = false;  // Track if initial selection has been made
+  @SuppressWarnings("unused")
   private double lastXInput = 0;
   private static final double FLICK_THRESHOLD = 0.3;
   private static final double SWITCH_THRESHOLD = 0.7;  // Higher threshold for direct side switching
