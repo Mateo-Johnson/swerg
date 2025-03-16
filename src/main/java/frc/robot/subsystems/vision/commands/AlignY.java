@@ -1,5 +1,7 @@
 package frc.robot.subsystems.vision.commands;
 
+import java.util.Arrays;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -7,9 +9,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.drivetrain.Drivetrain;
-import frc.robot.utils.LimelightLib;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
+import frc.robot.utils.LimelightLib;
 
 public class AlignY extends Command {
   private final Drivetrain drivetrain;
@@ -18,8 +20,10 @@ public class AlignY extends Command {
   private final double rightSetpoint = -0.12;
   private double currentSetpoint;
   private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); //0.4
+  private final PIDController turnPID = new PIDController(0.032, 0, 0.0015);
   private final CommandXboxController prim = Constants.primary;
   private final String limelightName = "limelight-front";
+  private double targetAngle = 0;
   
   // Variables for flick detection
   private boolean initialSelectionMade = false;  // Track if initial selection has been made
@@ -92,7 +96,7 @@ public class AlignY extends Command {
     lastXInput = leftXInput;
     
     // Check if we have a valid target
-    if (!LimelightLib.getTV(limelightName)) {
+    if (!Arrays.asList(6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 21, 22).contains((int)LimelightLib.getFiducialID(limelightName))) { // Checking if we are at the reef
       // No valid target found, allow normal driving
       drivetrain.drive(
         MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
@@ -121,12 +125,41 @@ public class AlignY extends Command {
     
     // Clamp the outputs to valid ranges
     lateralOutput = MathUtil.clamp(lateralOutput, -0.5, 0.5);
+
+        // Set target angle based on target ID
+        switch ((int)LimelightLib.getFiducialID(limelightName)) {
+          case 17: // 60°
+          targetAngle = 60;
+              break;
+          case 19: // -60°
+          targetAngle = -60;
+              break;
+          case 22: // 120°
+          targetAngle = 120;
+              break;
+          case 20: // -120°
+          targetAngle = -120;
+              break;
+          case 18: // 0°
+          targetAngle = 0;
+              break;
+          case 21: // 180°
+          targetAngle = 180;
+              break;
+      }
+
+      double turnOutput;
+      if (turnPID.getError() <= 5) { // If we're under 5 degrees away from target
+        turnOutput = -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband);
+      } else {
+        turnOutput = turnPID.calculate(drivetrain.getHeading(), targetAngle);
+      }
     
     // Apply both lateral and rotational corrections
     drivetrain.drive(
       MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
       -lateralOutput,
-      -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
+      turnOutput,
       false
     );
 
