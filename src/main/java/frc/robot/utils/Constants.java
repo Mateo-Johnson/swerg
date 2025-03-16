@@ -23,12 +23,18 @@ public final class Constants {
     // Distance between the center of the front and back modules
     public static final double kWheelBase = Units.inchesToMeters(23.75);
 
+    // IF IT DOES NOT WORK REVERT THE KINEMATICS
+    // public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
+    //     new Translation2d(-kWheelBase / 2, -kTrackWidth / 2), 
+    //     new Translation2d(-kWheelBase / 2, kTrackWidth / 2),  
+    //     new Translation2d(kWheelBase / 2, -kTrackWidth / 2),   
+    //     new Translation2d(kWheelBase / 2, kTrackWidth / 2)     
+    // );
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
-        new Translation2d(-kWheelBase / 2, -kTrackWidth / 2), 
-        new Translation2d(-kWheelBase / 2, kTrackWidth / 2),  
-        new Translation2d(kWheelBase / 2, -kTrackWidth / 2),   
-        new Translation2d(kWheelBase / 2, kTrackWidth / 2)     
-    );
+      new Translation2d(kWheelBase / 2, kTrackWidth / 2),
+      new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
+      new Translation2d(-kWheelBase / 2, kTrackWidth / 2),
+      new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
 
     // SparkMax CAN IDs
 
