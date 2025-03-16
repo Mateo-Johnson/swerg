@@ -1,12 +1,11 @@
 package frc.robot;
 
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.Purge;
@@ -26,13 +25,12 @@ import frc.robot.utils.Constants.OIConstants;
  * (including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-  // The robot's subsystems
+  // Subsystem declarations
   private final Drivetrain m_drivetrain = new Drivetrain();
   private final Elevator m_elevator = new Elevator();
   private final Coral m_coral = new Coral();
   // private final Algae m_algae = new Algae();
-
-
+  
   // The driver's controller
   private final CommandXboxController primary = Constants.primary;
 
@@ -41,8 +39,16 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
 
-
    public RobotContainer() {
+
+    // Pathplanner named command declarations
+    NamedCommands.registerCommand("MoveToPoint",  new MoveToPoint(m_elevator, 25));
+    NamedCommands.registerCommand("Intake", new Intake(m_coral, 0.7));
+    NamedCommands.registerCommand("Purge", new Purge(m_coral, 0.5));
+    NamedCommands.registerCommand("AlignY", new AlignY(m_drivetrain));
+    NamedCommands.registerCommand("DownManual", new MoveManual(m_elevator, -0.1));
+    NamedCommands.registerCommand("UpManual", new MoveManual(m_elevator, 0.2));
+
     // Configure the button bindings
     configureButtonBindings();
 
@@ -58,16 +64,6 @@ public class RobotContainer {
     );
 }
 
-
-  /**
-   * Use this method to define your button->command mappings. Buttons can be
-   * created by
-   * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its
-   * subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling
-   * passing it to a
-   * {@link JoystickButton}.
-   */
   private void configureButtonBindings() {
 
     // Elevator Heights
