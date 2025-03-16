@@ -23,23 +23,22 @@ public class Elevator extends SubsystemBase {
     private final DigitalInput limitSwitch;
     
     // Configuration constants
-    private static final double GRAVITY_COMPENSATION = ElevatorConstants.GRAVITY_COMPENSATION;
-    private static final double MAX_MANUAL_SPEED = ElevatorConstants.MAX_MANUAL_SPEED;
-    private static final double MANUAL_DEADBAND = ElevatorConstants.MANUAL_DEADBAND;
-    private static final double POSITION_TOLERANCE = ElevatorConstants.POSITION_TOLERANCE;
+    private static final double gravComp = ElevatorConstants.gravityCompensation;
+    private static final double maxManualSpeed = ElevatorConstants.maxManualSpeed;
+    private static final double manualDeadband = ElevatorConstants.deadband;
+    private static final double posTolerance = ElevatorConstants.tolerance;
     
     // Motor and sensor IDs
-    private static final int MASTER_MOTOR_ID = ElevatorConstants.rightCANId;
-    private static final int FOLLOWER_MOTOR_ID = ElevatorConstants.leftCANId;
-    private static final int LIMIT_SWITCH_PORT = 0;
+    private static final int masterID = ElevatorConstants.rightCANId;
+    private static final int followID = ElevatorConstants.leftCANId;
+    private static final int limPort = 0;
     
     // State management
     public enum ElevatorState {
         IDLE,
         MOVING_TO_POSITION,
         MANUAL_CONTROL,
-        AT_SETPOINT,
-        ERROR
+        AT_SETPOINT
     }
 
     // PID Gains (TUNE THESE)
@@ -59,19 +58,19 @@ public class Elevator extends SubsystemBase {
 
     public Elevator() {
         // Motor initialization
-        masterMotor = new SparkMax(MASTER_MOTOR_ID, MotorType.kBrushless);
-        followerMotor = new SparkMax(FOLLOWER_MOTOR_ID, MotorType.kBrushless);
+        masterMotor = new SparkMax(masterID, MotorType.kBrushless);
+        followerMotor = new SparkMax(followID, MotorType.kBrushless);
         
         // Encoder setup
         masterEncoder = masterMotor.getEncoder();
         followerEncoder = followerMotor.getEncoder();
         
         // Limit switch
-        limitSwitch = new DigitalInput(LIMIT_SWITCH_PORT);
+        limitSwitch = new DigitalInput(limPort);
         
         // PID Controller with more comprehensive gains
         pid = new PIDController(kP, kI, kD);
-        pid.setTolerance(POSITION_TOLERANCE);
+        pid.setTolerance(posTolerance);
         
         // Configure motors
         configureMotors();
@@ -119,11 +118,11 @@ public class Elevator extends SubsystemBase {
         isManualControl = true;
         setState(ElevatorState.MANUAL_CONTROL);
         
-        if (Math.abs(speed) < MANUAL_DEADBAND) {
+        if (Math.abs(speed) < manualDeadband) {
             speed = 0.0;
         }
         
-        speed = Math.max(-MAX_MANUAL_SPEED, Math.min(speed, MAX_MANUAL_SPEED));
+        speed = Math.max(-maxManualSpeed, Math.min(speed, maxManualSpeed));
         
         if (isAtLowerLimit() && speed < 0) {
             speed = 0;
@@ -131,7 +130,7 @@ public class Elevator extends SubsystemBase {
         
         double output = speed;
         if (speed >= 0) {
-            output += GRAVITY_COMPENSATION;
+            output += gravComp;
         }
         
         masterMotor.set(output);
@@ -152,7 +151,7 @@ public class Elevator extends SubsystemBase {
             boolean isMovingDown = currentPosition > targetPosition;
             
             // Apply fixed gravity compensation regardless of direction
-            double motorOutput = pidOutput + GRAVITY_COMPENSATION;
+            double motorOutput = pidOutput + gravComp;
 
             if (isMovingDown) {
                 // Limit downward speed (adjust this value as needed)
@@ -169,7 +168,7 @@ public class Elevator extends SubsystemBase {
             // Check if at setpoint
             if (pid.atSetpoint()) {
                 setState(ElevatorState.AT_SETPOINT);
-                masterMotor.set(GRAVITY_COMPENSATION); // Hold position
+                masterMotor.set(gravComp); // Hold position
             }
 
             // Logging for debugging
@@ -200,11 +199,11 @@ public class Elevator extends SubsystemBase {
     }
 
     public void moveUp() { 
-        manualControl(MAX_MANUAL_SPEED); 
+        manualControl(maxManualSpeed); 
     }
 
     public void moveDown() { 
-        manualControl(-MAX_MANUAL_SPEED); 
+        manualControl(-maxManualSpeed); 
     }
 
     public void resetEncoders() {

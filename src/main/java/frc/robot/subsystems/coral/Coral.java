@@ -17,8 +17,8 @@ public class Coral extends SubsystemBase {
   private final SparkMax rightMotor;
   
   // Motor IDs
-  private static final int LEFT_MOTOR_ID = CoralConstants.leftCoralID;
-  private static final int RIGHT_MOTOR_ID = CoralConstants.rightCoralID;
+  private static final int leftID = CoralConstants.leftCoralID;
+  private static final int rightID = CoralConstants.rightCoralID;
   
   // Current limiting
   private static final int SCL = CoralConstants.SCL; // Smart Current Limit
@@ -44,8 +44,8 @@ public class Coral extends SubsystemBase {
 
   public Coral() {
     // Initialize motors
-    leftMotor = new SparkMax(LEFT_MOTOR_ID, MotorType.kBrushless);
-    rightMotor = new SparkMax(RIGHT_MOTOR_ID, MotorType.kBrushless);
+    leftMotor = new SparkMax(leftID, MotorType.kBrushless);
+    rightMotor = new SparkMax(rightID, MotorType.kBrushless);
 
     // Configure left motor
     SparkMaxConfig leftConfig = new SparkMaxConfig();

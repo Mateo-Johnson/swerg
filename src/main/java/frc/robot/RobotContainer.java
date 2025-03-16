@@ -10,10 +10,10 @@ import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
+import frc.robot.subsystems.drivetrain.commands.AlignY;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
-import frc.robot.subsystems.vision.commands.AlignY;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
 

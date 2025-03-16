@@ -1,4 +1,4 @@
-package frc.robot.subsystems.vision.commands;
+package frc.robot.subsystems.drivetrain.commands;
 
 import java.util.Arrays;
 
@@ -10,27 +10,25 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.utils.Constants;
+import frc.robot.utils.Constants.AutoConstants;
 import frc.robot.utils.Constants.OIConstants;
 import frc.robot.utils.LimelightLib;
 
 public class AlignY extends Command {
   private final Drivetrain drivetrain;
-  private final double centerSetpoint = 0;
-  private final double leftSetpoint = 0.22;
-  private final double rightSetpoint = -0.12;
   private double currentSetpoint;
   private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); //0.4
   private final PIDController turnPID = new PIDController(0.032, 0, 0.0015);
   private final CommandXboxController prim = Constants.primary;
   private final String limelightName = "limelight-front";
-  private double targetAngle = 0;
+  private double targetAngle;
   
   // Variables for flick detection
   private boolean initialSelectionMade = false;  // Track if initial selection has been made
   @SuppressWarnings("unused")
   private double lastXInput = 0;
-  private static final double FLICK_THRESHOLD = 0.3;
-  private static final double SWITCH_THRESHOLD = 0.7;  // Higher threshold for direct side switching
+  private static final double flickThreshold = 0.3;
+  private static final double switchThreshold = 0.7;  // Higher threshold for direct side switching
 
   public static boolean isAligning = false;
   
@@ -54,7 +52,7 @@ public class AlignY extends Command {
   public void initialize() {
     // Reset PID controllers when command starts
     yPID.reset();
-    currentSetpoint = centerSetpoint; // Start with center setpoint temporarily
+    currentSetpoint = AutoConstants.centerSetpoint; // Start with center setpoint temporarily
     initialSelectionMade = false; // Start with no selection made
     lastXInput = 0;
 
@@ -71,24 +69,24 @@ public class AlignY extends Command {
     // Selection logic
     if (!initialSelectionMade) {
       // Initial selection from center
-      if (Math.abs(leftXInput) > FLICK_THRESHOLD) {
+      if (Math.abs(leftXInput) > flickThreshold) {
         // First flick detected - set initial alignment direction
-        if (leftXInput < -FLICK_THRESHOLD) {
-          currentSetpoint = leftSetpoint;
-        } else if (leftXInput > FLICK_THRESHOLD) {
-          currentSetpoint = rightSetpoint;
+        if (leftXInput < -flickThreshold) {
+          currentSetpoint = AutoConstants.leftSetpoint;
+        } else if (leftXInput > flickThreshold) {
+          currentSetpoint = AutoConstants.rightSetpoint;
         }
         initialSelectionMade = true;
       }
     } else {
       // Already aligned to a side, check for side switch
       // Strong flick in left direction
-      if (leftXInput < -SWITCH_THRESHOLD && currentSetpoint != leftSetpoint) {
-        currentSetpoint = leftSetpoint;
+      if (leftXInput < -switchThreshold && currentSetpoint != AutoConstants.leftSetpoint) {
+        currentSetpoint = AutoConstants.leftSetpoint;
       } 
       // Strong flick in right direction
-      else if (leftXInput > SWITCH_THRESHOLD && currentSetpoint != rightSetpoint) {
-        currentSetpoint = rightSetpoint;
+      else if (leftXInput > switchThreshold && currentSetpoint != AutoConstants.rightSetpoint) {
+        currentSetpoint = AutoConstants.rightSetpoint;
       }
     }
     

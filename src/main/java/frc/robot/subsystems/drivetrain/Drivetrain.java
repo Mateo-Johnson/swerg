@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.vision.commands.AlignY;
+import frc.robot.subsystems.drivetrain.commands.AlignY;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.DriveConstants;
 import frc.robot.utils.LimelightLib;
@@ -32,7 +32,6 @@ public class Drivetrain extends SubsystemBase {
   private Field2d field = new Field2d();
  
   // Create the modules
-
   // Front Left
   private final Module m_frontLeft = new Module(
       DriveConstants.kFrontLeftDrivingCanId,

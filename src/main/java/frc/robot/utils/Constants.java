@@ -58,6 +58,7 @@ public final class Constants {
   }
 
   public static final class ModuleConstants {
+    
     public static final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
     public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
     // MK4i gear ratio
@@ -76,6 +77,11 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
+
+    public static final double centerSetpoint = 0;
+    public static final double leftSetpoint = 0.22;
+    public static final double rightSetpoint = -0.12;
+
     public static final double kMaxSpeedMetersPerSecond = 3;
     public static final double kMaxAccelerationMetersPerSecondSquared = 3;
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
@@ -91,7 +97,9 @@ public final class Constants {
   }
 
   public static final class NeoMotorConstants {
+
     public static final double kFreeSpeedRpm = 5676;
+
   }
 
   public static final class CoralConstants {
@@ -111,10 +119,10 @@ public final class Constants {
     public static final int rightCANId = 12;
     public static final int limitSwitchPort = 0;
 
-    public static final double GRAVITY_COMPENSATION = 0.05;
-    public static final double MAX_MANUAL_SPEED = 0.7;
-    public static final double MANUAL_DEADBAND = 0.1;
-    public static final double POSITION_TOLERANCE = 0.05;
+    public static final double gravityCompensation = 0.05;
+    public static final double maxManualSpeed = 0.7;
+    public static final double deadband = 0.1;
+    public static final double tolerance = 0.05;
     public static final int maxHeight = 50;
   }
 
