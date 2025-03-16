@@ -3,14 +3,13 @@ package frc.robot.subsystems.algae.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.algae.Algae;
 
-public class Out extends Command {
+public class OuttakeAlgae extends Command {
   private final Algae algae;
-
-  /** Creates a new Out. */
-  public Out(Algae algae) {  // Specify the type 'Algae' here
-    this.algae = algae;  // Initialize the algae field with the passed parameter
+  /** Creates a new OuttakeAlgae. */
+  public OuttakeAlgae(Algae m_algae) {
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(algae);
+    this.algae = m_algae;
+    addRequirements(m_algae);
   }
 
   // Called when the command is initially scheduled.
@@ -20,7 +19,7 @@ public class Out extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    algae.pivotAlgae(0.34); //0.28
+    algae.outtake();
   }
 
   // Called once the command ends or is interrupted.

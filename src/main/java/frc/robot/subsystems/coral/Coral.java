@@ -1,35 +1,30 @@
 package frc.robot.subsystems.coral;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.utils.Constants.CoralConstants;
-
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.utils.Constants.CoralAlgaeConstants;
 
 public class Coral extends SubsystemBase {
   // Hardware
   private final SparkMax leftMotor;
   private final SparkMax rightMotor;
   
-  // Motor IDs
-  private static final int leftID = CoralConstants.leftCoralID;
-  private static final int rightID = CoralConstants.rightCoralID;
-  
   // Current limiting
-  private static final int SCL = CoralConstants.SCL; // Smart Current Limit
-  private static final int FCL = CoralConstants.FCL; // Free Current Limit
+  private static final int SCL = CoralAlgaeConstants.SCL; // Smart Current Limit
+  private static final int FCL = CoralAlgaeConstants.FCL; // Free Current Limit
 
   // Detection tracking
-  private boolean gamePresent = false;
-  private double highCurrentStartTime = 0;
-  private boolean motorStartupIgnore = true;
-  private double motorStartTime = 0;
-  private static final double STARTUP_IGNORE_TIME = 0.5; // 500ms to ignore initial startup current spike
+    private boolean gamePresent = CoralAlgaeConstants.gamePresent;
+    private double highCurrentStartTime = CoralAlgaeConstants.highCurrentStartTime;
+    private boolean motorStartupIgnore = CoralAlgaeConstants.motorStartupIgnore;
+    private double motorStartTime = CoralAlgaeConstants.motorStartTime;
+    private static final double ignore = CoralAlgaeConstants.ignoreTime; // 500ms to ignore initial startup current spike
+    private static final double debounce = CoralAlgaeConstants.debounce; // 100ms debounce for current detection
 
   // Simple speed control
   private double motorSpeed = 0.0;
@@ -44,8 +39,8 @@ public class Coral extends SubsystemBase {
 
   public Coral() {
     // Initialize motors
-    leftMotor = new SparkMax(leftID, MotorType.kBrushless);
-    rightMotor = new SparkMax(rightID, MotorType.kBrushless);
+    leftMotor = CoralAlgaeConstants.leftCoral;
+    rightMotor = CoralAlgaeConstants.rightCoral;
 
     // Configure left motor
     SparkMaxConfig leftConfig = new SparkMaxConfig();
@@ -102,7 +97,7 @@ public class Coral extends SubsystemBase {
       if (motorStartTime == 0) {
         // First time we've seen motors running since stop
         motorStartTime = currentTime;
-      } else if (currentTime - motorStartTime > STARTUP_IGNORE_TIME) {
+      } else if (currentTime - motorStartTime > ignore) {
         // We've waited long enough, stop ignoring
         motorStartupIgnore = false;
       }
@@ -111,11 +106,11 @@ public class Coral extends SubsystemBase {
     // Only detect game pieces when we're not ignoring startup spikes
     if (!motorStartupIgnore) {
       // Current-based detection with debouncing
-      if (currentDraw >= CoralConstants.currentThreshold) {
+      if (currentDraw >= CoralAlgaeConstants.currentThreshold) {
         if (highCurrentStartTime == 0) {
           // Start timing how long we see high current
           highCurrentStartTime = currentTime;
-        } else if (currentTime - highCurrentStartTime > 0.1) { // 100ms debounce
+        } else if (currentTime - highCurrentStartTime > debounce) { // 100ms debounce
           // We've seen high current for enough time
           gamePresent = true;
         }

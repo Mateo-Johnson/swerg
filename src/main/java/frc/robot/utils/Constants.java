@@ -1,5 +1,8 @@
 package frc.robot.utils;
 
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -97,21 +100,34 @@ public final class Constants {
   }
 
   public static final class NeoMotorConstants {
-
     public static final double kFreeSpeedRpm = 5676;
-
   }
 
-  public static final class CoralConstants {
+  public static final class CoralAlgaeConstants {
     // Motor IDs
     public static final int leftCoralID = 35;
     public static final int rightCoralID = 36;
+
+    public static final SparkMax leftCoral = new SparkMax(leftCoralID, MotorType.kBrushless);
+    public static final SparkMax rightCoral = new SparkMax(rightCoralID, MotorType.kBrushless);
 
     // Current limits
     public static final int SCL = 35; // Smart current limit (cont. current) in amps
     public static final int FCL = 40; // Free current limit (peak current) in amps
 
     public static final double currentThreshold = 8.0; // Threshold for game piece detection (Amps)
+
+    public static final double algaeIntakeSpeed = -0.8;
+    public static final double algaeOuttakeSpeed = 0.8;
+    public static final double algaeStoreSpeed = -0.3;
+
+    // Game piece detection
+    public static final double ignoreTime = 0.5; // 500ms to ignore initial startup current spike
+    public static final double debounce = 0.1; // 100ms debounce for current detection
+    public static final double motorStartTime = 0;
+    public static boolean motorStartupIgnore = true;
+    public static double highCurrentStartTime = 0;
+    public static boolean gamePresent = false;
   }
 
   public static final class ElevatorConstants {
@@ -124,12 +140,6 @@ public final class Constants {
     public static final double deadband = 0.1;
     public static final double tolerance = 0.05;
     public static final int maxHeight = 50;
-  }
-
-  public static final class AlgaeConstants {
-    public static final int algaeIntakeCANId = 31;
-    public static final int algaePivotCANId = 23;
-
   }
 
   public static final class PIDConstants {
