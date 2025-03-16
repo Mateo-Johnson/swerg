@@ -149,9 +149,11 @@ public class AlignY extends Command {
       }
 
       double turnOutput;
-      if (turnPID.getError() <= 5) { // If we're under 5 degrees away from target
+      if (turnPID.getError() <= 5) { 
+        // If we're under 5 degrees away from target use the joystick
         turnOutput = -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband);
       } else {
+        // Otherwise, use the PID controller for rough angling
         turnOutput = turnPID.calculate(drivetrain.getHeading(), targetAngle);
       }
     
