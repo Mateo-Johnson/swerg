@@ -31,10 +31,10 @@ public final class Constants {
     //     new Translation2d(kWheelBase / 2, kTrackWidth / 2)     
     // );
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
-      new Translation2d(kWheelBase / 2, kTrackWidth / 2),
-      new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
-      new Translation2d(-kWheelBase / 2, kTrackWidth / 2),
-      new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
+      new Translation2d(kWheelBase / 2, kTrackWidth / 2), // Front Left
+      new Translation2d(kWheelBase / 2, -kTrackWidth / 2), // Front Right
+      new Translation2d(-kWheelBase / 2, kTrackWidth / 2), // Rear Left
+      new Translation2d(-kWheelBase / 2, -kTrackWidth / 2)); // Rear Right
 
     // SparkMax CAN IDs
 
