@@ -7,6 +7,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -213,14 +214,21 @@ public class Drivetrain extends SubsystemBase {
    * @param speeds The desired robot-relative chassis speeds
    */
   public void driveRobotRelative(ChassisSpeeds speeds) {
-    // Convert the robot-relative speeds to swerve module states
-    SwerveModuleState[] moduleStates = Constants.DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+      // 
+      ChassisSpeeds invertedSpeeds = new ChassisSpeeds(
+          -speeds.vxMetersPerSecond,
+          -speeds.vyMetersPerSecond,
+          -speeds.omegaRadiansPerSecond
+      );
+      
+      // Convert the inverted speeds to swerve module states
+      SwerveModuleState[] moduleStates = Constants.DriveConstants.kDriveKinematics.toSwerveModuleStates(invertedSpeeds);
 
-    // Desaturate the wheel speeds to ensure they are within the maximum speed
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.DriveConstants.kMaxSpeedMetersPerSecond);
+      // Desaturate the wheel speeds
+      SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.DriveConstants.kMaxSpeedMetersPerSecond);
 
-    // Set the desired state for each swerve module
-    setModuleStates(moduleStates);
+      // Set the desired state for each swerve module
+      setModuleStates(moduleStates);
   }
 
   public void resetWheels() {
