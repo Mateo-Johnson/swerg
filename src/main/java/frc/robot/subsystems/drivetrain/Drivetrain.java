@@ -103,8 +103,8 @@ public class Drivetrain extends SubsystemBase {
         this::getRobotRelativeSpeeds, 
         this::driveRobotRelative, 
         new PPHolonomicDriveController(
-          new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-          new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+          new PIDConstants(0.0001, 0.0, 0.0), // Translation PID constants
+          new PIDConstants(0.0001, 0.0, 0.0) // Rotation PID constants
         ),
         config,
         () -> {
@@ -181,8 +181,14 @@ public class Drivetrain extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    return m_poseEstimator.getEstimatedPosition();
-}
+    Pose2d estimatedPose = m_poseEstimator.getEstimatedPosition();
+    // Invert coordinates to match the transformation in resetOdometry
+    return new Pose2d(
+        -estimatedPose.getX(),
+        -estimatedPose.getY(),
+        estimatedPose.getRotation()
+    );
+  }
 
   /**
    * Returns the current robot-relative chassis speeds

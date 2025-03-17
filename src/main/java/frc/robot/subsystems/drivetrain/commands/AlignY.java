@@ -22,6 +22,7 @@ public class AlignY extends Command {
   private final CommandXboxController prim = Constants.primary;
   private final String limelightName = "limelight-front";
   private double targetAngle;
+  double turnOutput;
   
   // Variables for flick detection
   private boolean initialSelectionMade = false;  // Track if initial selection has been made
@@ -44,6 +45,7 @@ public class AlignY extends Command {
     
     // Configure PID controllers
     yPID.setTolerance(0);
+    turnPID.setTolerance(0);
     
     addRequirements(drivetrain);
   }
@@ -52,6 +54,8 @@ public class AlignY extends Command {
   public void initialize() {
     // Reset PID controllers when command starts
     yPID.reset();
+    turnPID.reset();
+    turnPID.enableContinuousInput(-180, 180);
     currentSetpoint = AutoConstants.centerSetpoint; // Start with center setpoint temporarily
     initialSelectionMade = false; // Start with no selection made
     lastXInput = 0;
@@ -106,7 +110,7 @@ public class AlignY extends Command {
       return;
     }
     
-    // Get the target pose in camera space - this is more direct for alignment
+    // Get the target pose in camera space
     Pose3d targetPose = LimelightLib.getTargetPose3d_CameraSpace(limelightName);
     
     if (targetPose == null) {
@@ -138,7 +142,7 @@ public class AlignY extends Command {
           case 20: // -120°
           targetAngle = -120;
               break;
-          case 18: // 0°
+          case 6: // 0°
           targetAngle = 0;
               break;
           case 21: // 180°
@@ -146,20 +150,27 @@ public class AlignY extends Command {
               break;
       }
 
-      double turnOutput;
-      if (turnPID.getError() <= 5) { 
+      double angleError = targetAngle - drivetrain.getHeading();
+      if (angleError > 180) {
+          angleError -= 360;
+      } else if (angleError < -180) {
+          angleError += 360;
+      }
+
+      double currentAngleError = Math.abs(angleError);
+
+      turnOutput = turnPID.calculate(drivetrain.getHeading(), targetAngle);
+
+      if (currentAngleError <= 5) { 
         // If we're under 5 degrees away from target use the joystick
         turnOutput = -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband);
-      } else {
-        // Otherwise, use the PID controller for rough angling
-        turnOutput = turnPID.calculate(drivetrain.getHeading(), targetAngle);
-      }
+    }
     
     // Apply both lateral and rotational corrections
     drivetrain.drive(
       MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
       -lateralOutput,
-      turnOutput,
+      -turnOutput,
       false
     );
 
@@ -184,6 +195,11 @@ public class AlignY extends Command {
 
   @Override
   public boolean isFinished() {
+
+    if (prim.povDown().getAsBoolean() || prim.povUp().getAsBoolean() || prim.povRight().getAsBoolean() || prim.povLeft().getAsBoolean()) {  
+      return true;
+    }
+
     // Check if we have valid target data
     if (!LimelightLib.getTV(limelightName)) {
       return false;

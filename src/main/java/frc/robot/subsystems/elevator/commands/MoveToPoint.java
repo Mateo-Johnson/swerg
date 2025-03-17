@@ -26,7 +26,7 @@ public class MoveToPoint extends Command {
     public MoveToPoint(Elevator elevator, double targetPosition, Command nextCommand, double proximityThreshold) {
         this.elevator = elevator;
         this.targetPosition = targetPosition;
-        this.nextCommand = nextCommand != null ? nextCommand.withTimeout(5.0) : null; // Add 5-second timeout to next command
+        this.nextCommand = nextCommand != null ? nextCommand.withTimeout(0.5) : null; // Add 1-second timeout to next command
         this.proximityThreshold = proximityThreshold;
         addRequirements(elevator);
     }

@@ -12,6 +12,7 @@ import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.AlignY;
 import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.commands.L4;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
 import frc.robot.utils.Constants;
@@ -58,7 +59,7 @@ public class RobotContainer {
             m_drivetrain.drive(
                 MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband),
                 MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband),
+                MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband),
                 true);
         }, m_drivetrain)
     );
@@ -79,8 +80,10 @@ public class RobotContainer {
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // Left bumper to move elevator down
     //primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7), 0.5));
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5));
-    primary.povDown().onTrue(new MoveToPoint(m_elevator, 5));
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7)));
+    primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7)));
+    primary.povUp().onTrue(new L4(m_elevator, m_coral));
+    primary.povDown().onTrue(new MoveToPoint(m_elevator, 0, new Intake(m_coral, 0.7)));
 
     // Coral Commands
     // primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral
@@ -93,7 +96,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // return new PathPlannerAuto("Example Auto");
-    return new PathPlannerAuto("auto");
+    return new PathPlannerAuto("mick");
   }
 }

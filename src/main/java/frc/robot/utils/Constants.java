@@ -122,8 +122,8 @@ public final class Constants {
     public static final double algaeStoreSpeed = -0.3;
 
     // Game piece detection
-    public static final double ignoreTime = 0.5; // 500ms to ignore initial startup current spike
-    public static final double debounce = 0.1; // 100ms debounce for current detection
+    public static final double ignoreTime = 0.2; // 500ms to ignore initial startup current spike
+    public static final double debounce = 0.05; // 50ms debounce for current detection
     public static final double motorStartTime = 0;
     public static boolean motorStartupIgnore = true;
     public static double highCurrentStartTime = 0;
@@ -139,7 +139,7 @@ public final class Constants {
     public static final double maxManualSpeed = 0.7;
     public static final double deadband = 0.1;
     public static final double tolerance = 0.05;
-    public static final int maxHeight = 50;
+    public static final int maxHeight = 45;
   }
 
   public static final class PIDConstants {

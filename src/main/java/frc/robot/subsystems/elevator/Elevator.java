@@ -42,14 +42,14 @@ public class Elevator extends SubsystemBase {
     }
 
     // PID Gains (TUNE THESE)
-    private static final double kP = 0.038;
+    private static final double kP = 0.07; //0.038
     private static final double kI = 0.0;
     private static final double kD = 0;
 
     private ElevatorState currentState = ElevatorState.IDLE;
     private ElevatorState previousState = ElevatorState.IDLE;
 
-    private static final int maxHeight = 50; // Update this with averaged measure
+    private static final int maxHeight = ElevatorConstants.maxHeight;
     
     // Control flags
     private boolean isManualControl = false;
@@ -103,7 +103,7 @@ public class Elevator extends SubsystemBase {
     }
 
     public double getHeightPercentage() {
-        return getPosition() / maxHeight;
+        return (getPosition() / maxHeight) * 100;
     }
 
     // Position Control Methods
@@ -191,6 +191,7 @@ public class Elevator extends SubsystemBase {
         SmartDashboard.putNumber("Elevator/Position", getPosition());
         SmartDashboard.putBoolean("Elevator/Lower Limit", isAtLowerLimit());
         SmartDashboard.putString("Elevator/State", currentState.toString());
+        SmartDashboard.putNumber("Elevator/Height", getHeightPercentage());
     }
 
     // Utility Methods
