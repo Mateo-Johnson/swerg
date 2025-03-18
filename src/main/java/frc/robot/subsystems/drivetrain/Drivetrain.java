@@ -7,6 +7,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -17,6 +18,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -140,6 +143,23 @@ public class Drivetrain extends SubsystemBase {
     // Update the field pose
     field.setRobotPose(getPose());
 
+    // Update the swerve module widget
+      SmartDashboard.putData("Swerve Drive", new Sendable() {
+    @Override
+    public void initSendable(SendableBuilder builder) {
+      builder.setSmartDashboardType("SwerveDrive");
+      builder.addDoubleProperty("Front Left Angle", () -> m_frontLeft.getState().angle.getRadians(), null);
+      builder.addDoubleProperty("Front Left Velocity", () -> m_frontLeft.getState().speedMetersPerSecond, null);
+      builder.addDoubleProperty("Front Right Angle", () -> m_frontRight.getState().angle.getRadians(), null);
+      builder.addDoubleProperty("Front Right Velocity", () -> m_frontRight.getState().speedMetersPerSecond, null);
+      builder.addDoubleProperty("Back Left Angle", () -> m_rearLeft.getState().angle.getRadians(), null);
+      builder.addDoubleProperty("Back Left Velocity", () -> m_rearLeft.getState().speedMetersPerSecond, null);
+      builder.addDoubleProperty("Back Right Angle", () -> m_rearRight.getState().angle.getRadians(), null);
+      builder.addDoubleProperty("Back Right Velocity", () -> m_rearRight.getState().speedMetersPerSecond, null);
+      builder.addDoubleProperty("Robot Angle", () -> Rotation2d.fromDegrees(-m_gyro.getAngle()).getRadians(), null);
+    }
+  });
+
     // Update the odometry
     m_odometry.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
@@ -171,6 +191,8 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("DT/RL", m_rearLeft.getAngleFull());
     SmartDashboard.putNumber("DT/RR", m_rearRight.getAngleFull());
     SmartDashboard.putBoolean("ALIGNING", Align.isAligning);
+
+    SmartDashboard.putBoolean("NavX Connected", m_gyro.isConnected());
 
 
   }
