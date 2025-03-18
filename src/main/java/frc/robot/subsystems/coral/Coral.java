@@ -183,4 +183,9 @@ public class Coral extends SubsystemBase {
   public double getRightCurrentDraw() {
     return rightMotor.getOutputCurrent();
   }
+
+  public void L1(double leftSpeed, double rightSpeed) {
+    leftMotor.set(leftSpeed);
+    rightMotor.set(rightSpeed);
+  }
 }

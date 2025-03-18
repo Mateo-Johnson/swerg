@@ -5,12 +5,15 @@
 package frc.robot.subsystems.coral.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.coral.Coral;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class L1 extends Command {
+  private final Coral m_coral;
   /** Creates a new L3. */
-  public L1() {
+  public L1(Coral coral) {
     // Use addRequirements() here to declare subsystem dependencies.
+    this.m_coral = coral;
   }
 
   // Called when the command is initially scheduled.
@@ -19,7 +22,9 @@ public class L1 extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+    m_coral.L1(1, 0.7);
+  }
 
   // Called once the command ends or is interrupted.
   @Override

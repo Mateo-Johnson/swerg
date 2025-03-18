@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
+import frc.robot.subsystems.coral.commands.L1;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.AlignY;
@@ -85,8 +86,8 @@ public class RobotContainer {
     //primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7), 0.5));
     primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7)));
     primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7)));
-    primary.povUp().onTrue(new L4(m_elevator, m_coral));
-    primary.povDown().onTrue(new MoveToPoint(m_elevator, 0, new Intake(m_coral, 0.7)));
+    primary.povUp().onTrue(new L4(m_elevator, m_coral)); // Custom L4 command to execute the routine
+    primary.povDown().onTrue(new MoveToPoint(m_elevator, 0, new L1(m_coral))); // Custom L1 command to spin it sideways
 
     // Coral Commands
     // primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral
