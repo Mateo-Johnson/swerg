@@ -13,7 +13,7 @@ import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.L1;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
-import frc.robot.subsystems.drivetrain.commands.AlignY;
+import frc.robot.subsystems.drivetrain.commands.Align;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.L4;
 import frc.robot.subsystems.elevator.commands.MoveManual;
@@ -49,7 +49,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("MoveToPoint",  new MoveToPoint(m_elevator, 25));
     NamedCommands.registerCommand("Intake", new Intake(m_coral, 0.7));
     NamedCommands.registerCommand("Purge", new Purge(m_coral, 0.5));
-    NamedCommands.registerCommand("AlignY", new AlignY(m_drivetrain));
+    NamedCommands.registerCommand("AlignY", new Align(m_drivetrain));
     NamedCommands.registerCommand("DownManual", new MoveManual(m_elevator, -0.1));
     NamedCommands.registerCommand("UpManual", new MoveManual(m_elevator, 0.2));
 
@@ -78,7 +78,7 @@ public class RobotContainer {
     // L4 = 42 ish
 
     // Drivetrain Commands
-    primary.a().toggleOnTrue(new AlignY(m_drivetrain)); 
+    primary.a().toggleOnTrue(new Align(m_drivetrain)); // Align the robot to the reef apriltags
 
     // Elevator Commands
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 

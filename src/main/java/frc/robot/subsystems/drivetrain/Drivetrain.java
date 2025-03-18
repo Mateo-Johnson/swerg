@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.drivetrain.commands.AlignY;
+import frc.robot.subsystems.drivetrain.commands.Align;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.DriveConstants;
 import frc.robot.utils.LimelightLib;
@@ -170,7 +170,7 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("DT/FR", m_frontRight.getAngleFull());
     SmartDashboard.putNumber("DT/RL", m_rearLeft.getAngleFull());
     SmartDashboard.putNumber("DT/RR", m_rearRight.getAngleFull());
-    SmartDashboard.putBoolean("ALIGNING", AlignY.isAligning);
+    SmartDashboard.putBoolean("ALIGNING", Align.isAligning);
 
 
   }

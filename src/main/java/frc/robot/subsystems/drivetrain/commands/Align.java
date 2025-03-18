@@ -14,7 +14,7 @@ import frc.robot.utils.Constants.AutoConstants;
 import frc.robot.utils.Constants.OIConstants;
 import frc.robot.utils.LimelightLib;
 
-public class AlignY extends Command {
+public class Align extends Command {
   private final Drivetrain drivetrain;
   private double currentSetpoint;
   private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); //0.4
@@ -40,7 +40,7 @@ public class AlignY extends Command {
    *
    * @param drivetrain The drivetrain subsystem to control
    */
-  public AlignY(Drivetrain drivetrain) {
+  public Align(Drivetrain drivetrain) {
     this.drivetrain = drivetrain;
     
     // Configure PID controllers
