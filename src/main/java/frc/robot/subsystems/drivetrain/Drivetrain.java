@@ -7,7 +7,6 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -104,8 +103,8 @@ public class Drivetrain extends SubsystemBase {
         this::getRobotRelativeSpeeds, 
         this::driveRobotRelative, 
         new PPHolonomicDriveController(
-          new PIDConstants(0.0001, 0.0, 0.0), // Translation PID constants
-          new PIDConstants(0.0001, 0.0, 0.0) // Rotation PID constants
+          new PIDConstants(0.0001, 0.0, 0.0), // Translation PID constants (TUNE TUNE TUNE)
+          new PIDConstants(0.0001, 0.0, 0.0) // Rotation PID constants (TUNE TUNE TUNE)
         ),
         config,
         () -> {
