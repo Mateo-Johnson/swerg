@@ -1,8 +1,10 @@
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -26,6 +28,8 @@ import frc.robot.utils.Constants.OIConstants;
  * (including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+  // Auto SendableChooser
+  private final SendableChooser<Command> autoChooser;
   // Subsystem declarations
   private final Drivetrain m_drivetrain = new Drivetrain();
   private final Elevator m_elevator = new Elevator();
@@ -35,12 +39,10 @@ public class RobotContainer {
   // The driver's controller
   private final CommandXboxController primary = Constants.primary;
 
-
-  /**
-   * The container for the robot. Contains subsystems, OI devices, and commands.
-   */
-
    public RobotContainer() {
+
+    autoChooser = AutoBuilder.buildAutoChooser();
+    // Specify default auto by name autoChooser = AutoBuilder.buildAutoChooser("My Default Auto");
 
     // Pathplanner named command declarations
     NamedCommands.registerCommand("MoveToPoint",  new MoveToPoint(m_elevator, 25));
@@ -53,7 +55,6 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
 
-
     m_drivetrain.setDefaultCommand( // IF THE DRIVETRAIN ISN'T DOING ANYTHING ELSE, DO THIS
         new RunCommand(() -> {
             m_drivetrain.drive(
@@ -63,6 +64,8 @@ public class RobotContainer {
                 true);
         }, m_drivetrain)
     );
+
+  SmartDashboard.putData("Auto Chooser", autoChooser); // Put the auto chooser on the dashboard
 }
 
   private void configureButtonBindings() {
@@ -71,7 +74,7 @@ public class RobotContainer {
     // L1 = 0
     // L2 = 5
     // L3 = 17.5
-    // L4 = UNKNOWN
+    // L4 = 42 ish
 
     // Drivetrain Commands
     primary.a().toggleOnTrue(new AlignY(m_drivetrain)); 
@@ -96,6 +99,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return new PathPlannerAuto("mick");
+    return autoChooser.getSelected();
   }
 }
