@@ -84,7 +84,7 @@ public class RobotContainer {
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // Left bumper to move elevator down
     //primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7), 0.5));
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7)));
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7), true));
     primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7)));
     primary.povUp().onTrue(new L4(m_elevator, m_coral)); // Custom L4 command to execute the routine
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 0, new L1(m_coral))); // Custom L1 command to spin it sideways
