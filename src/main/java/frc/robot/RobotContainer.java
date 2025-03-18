@@ -32,9 +32,9 @@ public class RobotContainer {
   // Auto SendableChooser
   private final SendableChooser<Command> autoChooser;
   // Subsystem declarations
-  private final Drivetrain m_drivetrain = new Drivetrain();
-  private final Elevator m_elevator = new Elevator();
-  private final Coral m_coral = new Coral();
+  final Drivetrain m_drivetrain;
+  final Elevator m_elevator;
+  final Coral m_coral;
   // private final Algae m_algae = new Algae();
   
   // The driver's controller
@@ -42,16 +42,14 @@ public class RobotContainer {
 
    public RobotContainer() {
 
+    m_drivetrain = new Drivetrain();
+    m_elevator = new Elevator();
+    m_coral = new Coral();
+    
+    registerNamedCommands();
+
     autoChooser = AutoBuilder.buildAutoChooser();
     // Specify default auto by name autoChooser = AutoBuilder.buildAutoChooser("My Default Auto");
-
-    // Pathplanner named command declarations
-    NamedCommands.registerCommand("MoveToPoint",  new MoveToPoint(m_elevator, 25));
-    NamedCommands.registerCommand("Intake", new Intake(m_coral, 0.7));
-    NamedCommands.registerCommand("Purge", new Purge(m_coral, 0.5));
-    NamedCommands.registerCommand("AlignY", new Align(m_drivetrain));
-    NamedCommands.registerCommand("DownManual", new MoveManual(m_elevator, -0.1));
-    NamedCommands.registerCommand("UpManual", new MoveManual(m_elevator, 0.2));
 
     // Configure the button bindings
     configureButtonBindings();
@@ -69,6 +67,15 @@ public class RobotContainer {
   SmartDashboard.putData("Auto Chooser", autoChooser); // Put the auto chooser on the dashboard
 }
 
+  private void registerNamedCommands() {
+    NamedCommands.registerCommand("MoveToPoint", new MoveToPoint(m_elevator, 25));
+    NamedCommands.registerCommand("Intake", new Intake(m_coral, 0.7));
+    NamedCommands.registerCommand("Purge", new Purge(m_coral, 0.5));
+    NamedCommands.registerCommand("AlignY", new Align(m_drivetrain));
+    NamedCommands.registerCommand("DownManual", new MoveManual(m_elevator, -0.1));
+    NamedCommands.registerCommand("UpManual", new MoveManual(m_elevator, 0.2));
+  }
+
   private void configureButtonBindings() {
 
     // Elevator Heights
@@ -84,7 +91,7 @@ public class RobotContainer {
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // Left bumper to move elevator down
     //primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7), 0.5));
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7), true));
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7)));
     primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7)));
     primary.povUp().onTrue(new L4(m_elevator, m_coral)); // Custom L4 command to execute the routine
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 0, new L1(m_coral))); // Custom L1 command to spin it sideways

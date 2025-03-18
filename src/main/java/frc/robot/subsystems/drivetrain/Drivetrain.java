@@ -106,8 +106,8 @@ public class Drivetrain extends SubsystemBase {
         this::getRobotRelativeSpeeds, 
         this::driveRobotRelative, 
         new PPHolonomicDriveController(
-          new PIDConstants(0.0001, 0.0, 0.0), // Translation PID constants (TUNE TUNE TUNE)
-          new PIDConstants(0.0001, 0.0, 0.0) // Rotation PID constants (TUNE TUNE TUNE)
+          new PIDConstants(5, 0.0, 0.0), // Translation PID constants (LEAVE AT 5)
+          new PIDConstants(5, 0.0, 0.0) // Rotation PID constants (LEAVE AT 5)
         ),
         config,
         () -> {
@@ -138,28 +138,27 @@ public class Drivetrain extends SubsystemBase {
 
     Pose2d visionPose = LimelightLib.getBotPose2d_wpiBlue("limelight");
     double latency = LimelightLib.getLatency_Pipeline("limelight") / 1000.0; // Convert ms to seconds
-    updateWithVision(visionPose, latency);
+    // updateWithVision(visionPose, latency);
 
     // Update the field pose
     field.setRobotPose(getPose());
-    checkGyro();
 
     // Update the swerve module widget
-    SmartDashboard.putData("Swerve Drive", new Sendable() {
-    @Override
-    public void initSendable(SendableBuilder builder) {
-      builder.setSmartDashboardType("SwerveDrive");
-      builder.addDoubleProperty("Front Left Angle", () -> m_frontLeft.getState().angle.getRadians(), null);
-      builder.addDoubleProperty("Front Left Velocity", () -> m_frontLeft.getState().speedMetersPerSecond, null);
-      builder.addDoubleProperty("Front Right Angle", () -> m_frontRight.getState().angle.getRadians(), null);
-      builder.addDoubleProperty("Front Right Velocity", () -> m_frontRight.getState().speedMetersPerSecond, null);
-      builder.addDoubleProperty("Back Left Angle", () -> m_rearLeft.getState().angle.getRadians(), null);
-      builder.addDoubleProperty("Back Left Velocity", () -> m_rearLeft.getState().speedMetersPerSecond, null);
-      builder.addDoubleProperty("Back Right Angle", () -> m_rearRight.getState().angle.getRadians(), null);
-      builder.addDoubleProperty("Back Right Velocity", () -> m_rearRight.getState().speedMetersPerSecond, null);
-      builder.addDoubleProperty("Robot Angle", () -> Rotation2d.fromDegrees(-m_gyro.getAngle()).getRadians(), null);
-    }
-  });
+    // SmartDashboard.putData("Swerve Drive", new Sendable() {
+    // @Override
+    // public void initSendable(SendableBuilder builder) {
+    //   builder.setSmartDashboardType("SwerveDrive");
+    //   builder.addDoubleProperty("Front Left Angle", () -> m_frontLeft.getState().angle.getRadians(), null);
+    //   builder.addDoubleProperty("Front Left Velocity", () -> m_frontLeft.getState().speedMetersPerSecond, null);
+    //   builder.addDoubleProperty("Front Right Angle", () -> m_frontRight.getState().angle.getRadians(), null);
+    //   builder.addDoubleProperty("Front Right Velocity", () -> m_frontRight.getState().speedMetersPerSecond, null);
+    //   builder.addDoubleProperty("Back Left Angle", () -> m_rearLeft.getState().angle.getRadians(), null);
+    //   builder.addDoubleProperty("Back Left Velocity", () -> m_rearLeft.getState().speedMetersPerSecond, null);
+    //   builder.addDoubleProperty("Back Right Angle", () -> m_rearRight.getState().angle.getRadians(), null);
+    //   builder.addDoubleProperty("Back Right Velocity", () -> m_rearRight.getState().speedMetersPerSecond, null);
+    //   builder.addDoubleProperty("Robot Angle", () -> Rotation2d.fromDegrees(-m_gyro.getAngle()).getRadians(), null);
+    // }
+  // });
 
     // Update the odometry
     m_odometry.update(
@@ -418,12 +417,12 @@ public class Drivetrain extends SubsystemBase {
     );
   }
 
-  public void checkGyro() {
-    if (!m_gyro.isConnected()) {
-      Elastic.Notification notification = new Elastic.Notification(Elastic.Notification.NotificationLevel.WARNING, 
-     "Gyroscope Disconnected", "The gyroscope has disconnected. Robot may revert to robot-oriented driving.");
-      Elastic.sendNotification(notification);
-    }
-  }
+  // public void checkGyro() {
+  //   if (!m_gyro.isConnected()) {
+  //     Elastic.Notification notification = new Elastic.Notification(Elastic.Notification.NotificationLevel.WARNING, 
+  //    "Gyroscope Disconnected", "The gyroscope has disconnected. Robot may revert to robot-oriented driving.");
+  //     Elastic.sendNotification(notification);
+  //   }
+  // }
 
 }
