@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drivetrain.commands.Align;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.DriveConstants;
+import frc.robot.utils.Elastic;
 import frc.robot.utils.LimelightLib;
 
 public class Drivetrain extends SubsystemBase {
@@ -141,9 +142,10 @@ public class Drivetrain extends SubsystemBase {
 
     // Update the field pose
     field.setRobotPose(getPose());
+    checkGyro();
 
     // Update the swerve module widget
-      SmartDashboard.putData("Swerve Drive", new Sendable() {
+    SmartDashboard.putData("Swerve Drive", new Sendable() {
     @Override
     public void initSendable(SendableBuilder builder) {
       builder.setSmartDashboardType("SwerveDrive");
@@ -414,5 +416,14 @@ public class Drivetrain extends SubsystemBase {
         visionPose,
         latencySeconds
     );
-}
+  }
+
+  public void checkGyro() {
+    if (!m_gyro.isConnected()) {
+      Elastic.Notification notification = new Elastic.Notification(Elastic.Notification.NotificationLevel.WARNING, 
+     "Gyroscope Disconnected", "The gyroscope has disconnected. Robot may revert to robot-oriented driving.");
+      Elastic.sendNotification(notification);
+    }
+  }
+
 }
