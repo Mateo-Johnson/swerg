@@ -307,7 +307,7 @@ public class Drivetrain extends SubsystemBase {
    * @param fieldRelative Whether the provided x and y speeds are relative to the
    *                      field.
    */
-  public void driveHeadingLocked(double xSpeed, double ySpeed, double targetHeading, boolean fieldRelative) {
+  public void driveLocked(double xSpeed, double ySpeed, double targetHeading, boolean fieldRelative) {
       // Calculate rotation correction to maintain heading
       double currentHeading = getHeading();
       double rotationCorrection = headingCorrector.calculate(currentHeading, targetHeading);
