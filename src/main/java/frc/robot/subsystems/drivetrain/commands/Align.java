@@ -17,7 +17,8 @@ import frc.robot.utils.LimelightLib;
 public class Align extends Command {
   private final Drivetrain drivetrain;
   private double currentSetpoint;
-  private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); //0.4
+  private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); 
+  private final PIDController xPID = new PIDController(0.5, 0.0, 0.00); 
   private final PIDController turnPID = new PIDController(0.032, 0, 0.0015);
   private final CommandXboxController prim = Constants.primary;
   private final String limelightName = "limelight-front";
@@ -30,7 +31,11 @@ public class Align extends Command {
   private double lastXInput = 0;
   private static final double flickThreshold = 0.3;
   private static final double switchThreshold = 0.7;  // Higher threshold for direct side switching
-
+  
+  // New variables for sequential alignment
+  private static final double XY_DISTANCE_THRESHOLD = 0.25; // Threshold for when to start rotation (in meters)
+  private boolean positionAligned = false; // Track if XY position is close enough
+  
   public static boolean isAligning = false;
   
   /**
@@ -45,6 +50,7 @@ public class Align extends Command {
     
     // Configure PID controllers
     yPID.setTolerance(0);
+    xPID.setTolerance(0);
     turnPID.setTolerance(0);
     
     addRequirements(drivetrain);
@@ -55,10 +61,12 @@ public class Align extends Command {
     // Reset PID controllers when command starts
     yPID.reset();
     turnPID.reset();
+    xPID.reset();
     turnPID.enableContinuousInput(-180, 180);
     currentSetpoint = AutoConstants.centerSetpoint; // Start with center setpoint temporarily
     initialSelectionMade = false; // Start with no selection made
     lastXInput = 0;
+    positionAligned = false; // Reset position alignment flag
 
     isAligning = true;
     
@@ -87,10 +95,12 @@ public class Align extends Command {
       // Strong flick in left direction
       if (leftXInput < -switchThreshold && currentSetpoint != AutoConstants.leftSetpoint) {
         currentSetpoint = AutoConstants.leftSetpoint;
+        positionAligned = false; // Reset position alignment when changing sides
       } 
       // Strong flick in right direction
       else if (leftXInput > switchThreshold && currentSetpoint != AutoConstants.rightSetpoint) {
         currentSetpoint = AutoConstants.rightSetpoint;
+        positionAligned = false; // Reset position alignment when changing sides
       }
     }
     
@@ -121,77 +131,97 @@ public class Align extends Command {
     
     // Extract the lateral offset (X-axis in camera space)
     double lateralOffset = targetPose.getX();
+    double longitudinalOffset = targetPose.getY();
+    
+    // Calculate position error magnitude
+    double xyErrorMagnitude = Math.sqrt(
+      Math.pow(lateralOffset - currentSetpoint, 2) + 
+      Math.pow(longitudinalOffset, 2)
+    );
+    
+    // Update position aligned flag
+    if (xyErrorMagnitude <= XY_DISTANCE_THRESHOLD) {
+      positionAligned = true;
+    }
     
     // Calculate PID outputs
     double lateralOutput = yPID.calculate(lateralOffset, currentSetpoint);
+    double longitudinalOutput = xPID.calculate(longitudinalOffset, 0);
     
     // Clamp the outputs to valid ranges
-    lateralOutput = MathUtil.clamp(lateralOutput, -0.5, 0.5);
+    lateralOutput = MathUtil.clamp(lateralOutput, -0.7, 0.7);
+    longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.7, 0.7);
 
-        // Set target angle based on target ID
-        switch ((int)LimelightLib.getFiducialID(limelightName)) {
-          case 17: // 60°
-          targetAngle = 60;
-          break;
-        case 8: // 60°
-          targetAngle = 60;
-          break;
-  
-        case 18: // 0°
-          targetAngle = 0;
-          break;
-        case 7: // 0°
-          targetAngle = 0;
-          break;
-  
-        case 19: // -60°
-          targetAngle = -60;
-          break;
-        case 6: // -60°
-          targetAngle = -60;
-          break;
-  
-        case 20: // -120°
-          targetAngle = -120;
-          break;
-        case 11: // -120°
-          targetAngle = -120;
-          break;
-  
-        case 21: // 180°
-          targetAngle = 180;
-          break;
-        case 10: // 180°
-          targetAngle = 180;
-          break;
-  
-        case 22: // 120°
-          targetAngle = 120;
-          break;
-        case 9: // 120°
-          targetAngle = 120;
-          break;  
-      }
+    // Set target angle based on target ID
+    switch ((int)LimelightLib.getFiducialID(limelightName)) {
+      case 17: // 60°
+      targetAngle = 60;
+      break;
+    case 8: // 60°
+      targetAngle = 60;
+      break;
 
-      double angleError = targetAngle - drivetrain.getHeading();
-      if (angleError > 180) {
-          angleError -= 360;
-      } else if (angleError < -180) {
-          angleError += 360;
-      }
+    case 18: // 0°
+      targetAngle = 0;
+      break;
+    case 7: // 0°
+      targetAngle = 0;
+      break;
 
-      double currentAngleError = Math.abs(angleError);
+    case 19: // -60°
+      targetAngle = -60;
+      break;
+    case 6: // -60°
+      targetAngle = -60;
+      break;
 
+    case 20: // -120°
+      targetAngle = -120;
+      break;
+    case 11: // -120°
+      targetAngle = -120;
+      break;
+
+    case 21: // 180°
+      targetAngle = 180;
+      break;
+    case 10: // 180°
+      targetAngle = 180;
+      break;
+
+    case 22: // 120°
+      targetAngle = 120;
+      break;
+    case 9: // 120°
+      targetAngle = 120;
+      break;  
+    }
+
+    double angleError = targetAngle - drivetrain.getHeading();
+    if (angleError > 180) {
+      angleError -= 360;
+    } else if (angleError < -180) {
+      angleError += 360;
+    }
+
+    double currentAngleError = Math.abs(angleError);
+
+    // Only perform rotational alignment if XY position is close enough
+    if (positionAligned) {
       turnOutput = turnPID.calculate(drivetrain.getHeading(), targetAngle);
-
+      
       if (currentAngleError <= 5) { 
         // If we're under 5 degrees away from target use the joystick
         turnOutput = -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband);
+      }
+    } else {
+      // Use joystick for rotation while positioning
+      turnOutput = -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband);
     }
     
     // Apply both lateral and rotational corrections
     drivetrain.drive(
-      MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
+      longitudinalOutput,
       -lateralOutput,
       -turnOutput,
       false
@@ -206,6 +236,8 @@ public class Align extends Command {
     SmartDashboard.putBoolean("Vision/LateralAtSetpoint", yPID.atSetpoint());
     SmartDashboard.putBoolean("Vision/InitialSelectionMade", initialSelectionMade);
     SmartDashboard.putNumber("Vision/JoystickX", leftXInput);
+    SmartDashboard.putNumber("Vision/XYErrorMagnitude", xyErrorMagnitude);
+    SmartDashboard.putBoolean("Vision/PositionAligned", positionAligned);
   }
 
   @Override

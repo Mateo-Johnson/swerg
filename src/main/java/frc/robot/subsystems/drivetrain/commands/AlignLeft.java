@@ -15,16 +15,22 @@ import frc.robot.utils.LimelightLib;
 public class AlignLeft extends Command {
   private final Drivetrain drivetrain;
   private final PIDController yPID = new PIDController(0.5, 0.0, 0.00);
+  private final PIDController xPID = new PIDController(0.5, 0.0, 0.00);
   private final PIDController turnPID = new PIDController(0.032, 0, 0.0015);
   private final CommandXboxController prim = Constants.primary;
   private final String limelightName = "limelight-front";
   private double targetAngle;
   double turnOutput;
   
+  // New variables for sequential alignment
+  private static final double XY_DISTANCE_THRESHOLD = 0.25; // Threshold for when to start rotation (in meters)
+  private boolean positionAligned = false; // Track if XY position is close enough
+  
   public static boolean isAligning = false;
   
   /**
    * Creates a new AlignLeft command that always aligns to the left of an AprilTag/target.
+   * Now with sequential alignment - position first, then rotation.
    *
    * @param drivetrain The drivetrain subsystem to control
    */
@@ -33,6 +39,7 @@ public class AlignLeft extends Command {
     
     // Configure PID controllers
     yPID.setTolerance(0);
+    xPID.setTolerance(0);
     turnPID.setTolerance(0);
     
     addRequirements(drivetrain);
@@ -42,8 +49,10 @@ public class AlignLeft extends Command {
   public void initialize() {
     // Reset PID controllers when command starts
     yPID.reset();
+    xPID.reset();
     turnPID.reset();
     turnPID.enableContinuousInput(-180, 180);
+    positionAligned = false; // Reset position alignment flag
     
     isAligning = true;
     SmartDashboard.putBoolean("Vision/AlignmentActive", true);
@@ -78,12 +87,26 @@ public class AlignLeft extends Command {
     
     // Extract the lateral offset (X-axis in camera space)
     double lateralOffset = targetPose.getX();
+    double longitudinalOffset = targetPose.getY(); // Added to calculate XY distance
+    
+    // Calculate position error magnitude
+    double xyErrorMagnitude = Math.sqrt(
+      Math.pow(lateralOffset - currentSetpoint, 2) + 
+      Math.pow(longitudinalOffset, 2)
+    );
+    
+    // Update position aligned flag
+    if (xyErrorMagnitude <= XY_DISTANCE_THRESHOLD) {
+      positionAligned = true;
+    }
     
     // Calculate PID outputs
     double lateralOutput = yPID.calculate(lateralOffset, currentSetpoint);
+    double longitudinalOutput = xPID.calculate(longitudinalOffset, 0);
     
     // Clamp the outputs to valid ranges
     lateralOutput = MathUtil.clamp(lateralOutput, -0.5, 0.5);
+    longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.5, 0.5);
 
     // Set target angle based on target ID
     switch ((int)LimelightLib.getFiducialID(limelightName)) {
@@ -139,16 +162,22 @@ public class AlignLeft extends Command {
 
     double currentAngleError = Math.abs(angleError);
 
-    turnOutput = turnPID.calculate(drivetrain.getHeading(), targetAngle);
-
-    if (currentAngleError <= 5) { 
-      // If we're under 5 degrees away from target use the joystick
+    // Only perform rotational alignment if XY position is close enough
+    if (positionAligned) {
+      turnOutput = turnPID.calculate(drivetrain.getHeading(), targetAngle);
+      
+      if (currentAngleError <= 5) { 
+        // If we're under 5 degrees away from target use the joystick
+        turnOutput = -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband);
+      }
+    } else {
+      // Use joystick for rotation while positioning
       turnOutput = -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband);
     }
     
     // Apply both lateral and rotational corrections
     drivetrain.drive(
-      MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
+      longitudinalOutput, // Use PID for forward/backward instead of joystick while aligning
       -lateralOutput,
       -turnOutput,
       false
@@ -156,11 +185,14 @@ public class AlignLeft extends Command {
 
     // Log data for debugging
     SmartDashboard.putNumber("Vision/LateralOffset", lateralOffset);
+    SmartDashboard.putNumber("Vision/LongitudinalOffset", longitudinalOffset);
     SmartDashboard.putNumber("Vision/LateralOutput", lateralOutput);
     SmartDashboard.putNumber("Vision/CurrentSetpoint", currentSetpoint);
     SmartDashboard.putBoolean("Vision/TargetInView", true);
     SmartDashboard.putNumber("Vision/TargetID", LimelightLib.getFiducialID(limelightName));
     SmartDashboard.putBoolean("Vision/LateralAtSetpoint", yPID.atSetpoint());
+    SmartDashboard.putNumber("Vision/XYErrorMagnitude", xyErrorMagnitude);
+    SmartDashboard.putBoolean("Vision/PositionAligned", positionAligned);
   }
 
   @Override

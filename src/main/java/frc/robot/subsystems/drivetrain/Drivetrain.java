@@ -417,12 +417,4 @@ public class Drivetrain extends SubsystemBase {
     );
   }
 
-  // public void checkGyro() {
-  //   if (!m_gyro.isConnected()) {
-  //     Elastic.Notification notification = new Elastic.Notification(Elastic.Notification.NotificationLevel.WARNING, 
-  //    "Gyroscope Disconnected", "The gyroscope has disconnected. Robot may revert to robot-oriented driving.");
-  //     Elastic.sendNotification(notification);
-  //   }
-  // }
-
 }
