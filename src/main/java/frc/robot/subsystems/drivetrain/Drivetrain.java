@@ -7,7 +7,9 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
+
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -24,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drivetrain.commands.Align;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.DriveConstants;
+import frc.robot.utils.LimelightLib;
 
 public class Drivetrain extends SubsystemBase {
 
@@ -64,6 +67,9 @@ public class Drivetrain extends SubsystemBase {
 
   // Create gyro (NavX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
+
+  // Boolean to reject vision updates
+  private boolean rejectUpdate;
 
   // Odometry for tracking pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -145,16 +151,6 @@ public class Drivetrain extends SubsystemBase {
             m_rearRight.getPosition()
         });
 
-    // Update the pose estimator
-    m_poseEstimator.update(
-        Rotation2d.fromDegrees(-m_gyro.getAngle()),
-        new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
-        });
-
     // Positioning dashboard
     SmartDashboard.putNumber("POSITION/Heading", getHeading());
     SmartDashboard.putNumber("POSITION/current x", getPose().getX());
@@ -169,6 +165,30 @@ public class Drivetrain extends SubsystemBase {
 
     SmartDashboard.putBoolean("NavX Connected", m_gyro.isConnected());
 
+    // Update the pose estimator
+    m_poseEstimator.update(
+      Rotation2d.fromDegrees(-m_gyro.getAngle()),
+      new SwerveModulePosition[] {
+          m_frontLeft.getPosition(),
+          m_frontRight.getPosition(),
+          m_rearLeft.getPosition(),
+          m_rearRight.getPosition()
+      });
+
+
+    LimelightLib.SetRobotOrientation("limelight-front", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+    LimelightLib.PoseEstimate mt2 = LimelightLib.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-front");
+
+  // If our angular velocity is greater than 360 degrees per second, ignore vision updates
+  if(Math.abs(m_gyro.getRate()) > 360) {rejectUpdate = true;}
+  if(mt2.tagCount == 0) {rejectUpdate = true;}
+  if(!rejectUpdate)
+  {
+    m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+    m_poseEstimator.addVisionMeasurement(
+        mt2.pose,
+        mt2.timestampSeconds);
+  }
 
   }
 
