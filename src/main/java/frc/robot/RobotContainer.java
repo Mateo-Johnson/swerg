@@ -14,6 +14,8 @@ import frc.robot.subsystems.coral.commands.L1;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.Align;
+import frc.robot.subsystems.drivetrain.commands.AlignLeft;
+import frc.robot.subsystems.drivetrain.commands.AlignRight;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.L4;
 import frc.robot.subsystems.elevator.commands.MoveManual;
@@ -68,12 +70,18 @@ public class RobotContainer {
 }
 
   private void registerNamedCommands() {
-    NamedCommands.registerCommand("MoveToPoint", new MoveToPoint(m_elevator, 25));
-    NamedCommands.registerCommand("Intake", new Intake(m_coral, 0.7));
-    NamedCommands.registerCommand("Purge", new Purge(m_coral, 0.5));
-    NamedCommands.registerCommand("AlignY", new Align(m_drivetrain));
+    NamedCommands.registerCommand("L1", new MoveToPoint(m_elevator, 25));
+    NamedCommands.registerCommand("L2", new MoveToPoint(m_elevator, 25));
+    NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 25));
+    NamedCommands.registerCommand("L4", new MoveToPoint(m_elevator, 25));
     NamedCommands.registerCommand("DownManual", new MoveManual(m_elevator, -0.1));
     NamedCommands.registerCommand("UpManual", new MoveManual(m_elevator, 0.2));
+
+    NamedCommands.registerCommand("Intake", new Intake(m_coral, 0.7).withTimeout(0.5));
+    NamedCommands.registerCommand("Purge", new Purge(m_coral, 0.5));
+    
+    NamedCommands.registerCommand("AlignLeft", new AlignLeft(m_drivetrain));
+    NamedCommands.registerCommand("AlignRight", new AlignRight(m_drivetrain));
   }
 
   private void configureButtonBindings() {
