@@ -1,243 +1,263 @@
 package frc.robot.subsystems.algae;
 
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
-
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.utils.Constants.CoralAlgaeConstants;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 
 public class Algae extends SubsystemBase {
-    // Subsystem states
-    public enum AlgaeState {
-        IDLE,
-        INTAKE,
-        OUTTAKE,
-        STORE
+    // States enum for the flipper arm
+    public enum STATES {
+        MOVING_TO_SETPOINT,
+        AT_SETPOINT,
+        IDLE
     }
 
-    // Hardware
-    private final SparkMax leftMotor;
-    private final SparkMax rightMotor;
-    
-    // Current state
-    private AlgaeState currentState = AlgaeState.IDLE;
+    // Constants
+    private static final int MOTOR_ID = 43;
+    private static final double POSITION_TOLERANCE = 0.1; // Tolerance for considering "at setpoint"
+    private static final double VELOCITY_TOLERANCE = 0.1; // Velocity tolerance for at setpoint
+    private static final double CURRENT_THRESHOLD = 25.0; // Amps - threshold for detecting ball
+    private static final double SECURE_GRIP_MULTIPLIER = 1.5; // Multiplier for securing grip
+    private static final double MAX_OUTPUT = 1.0;
+    private static final double MIN_OUTPUT = -1.0;
 
-    // Current limiting
-    private static final int SCL = CoralAlgaeConstants.SCL; // Smart Current Limit
-    private static final int FCL = CoralAlgaeConstants.FCL; // Free Current Limit
+    // Hardware components
+    private final SparkMax motor;
+    private final RelativeEncoder encoder;
     
-    // Motor speeds
-    private static final double intakeSpeed = CoralAlgaeConstants.algaeIntakeSpeed;
-    private static final double outtakeSpeed = CoralAlgaeConstants.algaeOuttakeSpeed;
-    private static final double storeSpeed = CoralAlgaeConstants.algaeStoreSpeed; // Slower speed for storing
-    
-    // Game piece detection
-    private boolean gamePresent = CoralAlgaeConstants.gamePresent;
-    private double highCurrentStartTime = CoralAlgaeConstants.highCurrentStartTime;
-    private boolean motorStartupIgnore = CoralAlgaeConstants.motorStartupIgnore;
-    private double motorStartTime = CoralAlgaeConstants.motorStartTime;
-    private static final double ignore_time = CoralAlgaeConstants.ignoreTime; // 500ms to ignore initial startup current spike
-    private static final double debounce = CoralAlgaeConstants.debounce; // 100ms debounce for current detection
-    
+    // WPILib PID Controller
+    private final PIDController pidController;
+
+    // State variables
+    private STATES currentState = STATES.IDLE;
+    private double targetPosition = 0.0;
+    private double currentPosition = 0.0;
+    private double startPosition = 0.0;
+    private double startTime = 0.0;
+    private double moveEndTime = 0.0;
+    private boolean isMoving = false;
+    private boolean hasAlgae = false;
+    private double motorOutput = 0.0;
+
+    // Constructor
     public Algae() {
-        // Initialize motors
-        this.leftMotor = CoralAlgaeConstants.leftCoral;
-        this.rightMotor = CoralAlgaeConstants.rightCoral;
-
-        // Configure left motor
-        SparkMaxConfig leftConfig = new SparkMaxConfig();
-        leftConfig.smartCurrentLimit(SCL, FCL);
-        leftConfig.idleMode(IdleMode.kBrake);
-        leftConfig.inverted(false);
-        leftMotor.configure(leftConfig, ResetMode.kResetSafeParameters, null);
-
-        // Configure right motor
-        SparkMaxConfig rightConfig = new SparkMaxConfig();
-        rightConfig.smartCurrentLimit(SCL, FCL);
-        rightConfig.idleMode(IdleMode.kBrake);
-        rightConfig.inverted(true);
-        rightMotor.configure(rightConfig, ResetMode.kResetSafeParameters, null);
+        // Initialize motor
+        motor = new SparkMax(MOTOR_ID, MotorType.kBrushless);
+        
+        // Get encoder
+        encoder = motor.getEncoder();
+        
+        pidController = new PIDController(0, 0, 0);
+        pidController.setTolerance(POSITION_TOLERANCE, VELOCITY_TOLERANCE);
+        
+        // Reset encoder
+        resetEncoder();
     }
-    
+
     @Override
     public void periodic() {
-        // Run motors based on current state
+        // Update current position
+        currentPosition = encoder.getPosition();
+        
+        // Check for ball presence based on current draw
+        checkForAlgae();
+        
+        // State machine logic
         switch (currentState) {
-            case INTAKE:
-                runMotors(intakeSpeed);
-                // Update game piece detection when intaking
-                updateGamePieceDetection();
+            case MOVING_TO_SETPOINT:
+                handleMovingToSetpoint();
                 break;
-            case OUTTAKE:
-                runMotors(outtakeSpeed);
-                break;
-            case STORE:
-                runMotors(storeSpeed);
+            case AT_SETPOINT:
+                handleAtSetpoint();
                 break;
             case IDLE:
-            default:
-                stopMotors();
+                // Do nothing in idle state
+                motor.set(0);
                 break;
         }
+    }
+
+    /**
+     * Handle the MOVING_TO_SETPOINT state logic
+     */
+    private void handleMovingToSetpoint() {
+        double calculatedPosition;
         
-        // Update dashboard with debug info
-        updateDashboard();
-    }
-    
-    /**
-     * Set the subsystem to intake mode
-     */
-    public void intake() {
-        // If transitioning from IDLE state, reset timers for current spike detection
-        if (currentState == AlgaeState.IDLE) {
-            motorStartTime = 0;
-            motorStartupIgnore = true;
+        if (isMoving) {
+            // If we're performing a timed move
+            double currentTime = Timer.getFPGATimestamp();
+            if (currentTime >= moveEndTime) {
+                // Timed move is complete
+                isMoving = false;
+                calculatedPosition = targetPosition;
+            } else {
+                // Calculate intermediate position based on time
+                double timeProgress = (currentTime - startTime) / (moveEndTime - startTime);
+                calculatedPosition = startPosition + (targetPosition - startPosition) * timeProgress;
+            }
+        } else {
+            calculatedPosition = targetPosition;
         }
-        currentState = AlgaeState.INTAKE;
+        
+        // Calculate motor output using WPILib PID
+        motorOutput = pidController.calculate(currentPosition, calculatedPosition);
+        
+        // Clamp output within bounds
+        motorOutput = Math.max(MIN_OUTPUT, Math.min(MAX_OUTPUT, motorOutput));
+        
+        // Set motor output
+        motor.set(motorOutput);
+        
+        // Check if we've reached the target
+        if (pidController.atSetpoint()) {
+            currentState = STATES.AT_SETPOINT;
+        }
     }
-    
+
     /**
-     * Set the subsystem to outtake mode
+     * Handle the AT_SETPOINT state logic
      */
-    public void outtake() {
-        // Reset game piece detection when ejecting
-        resetGamePieceDetection();
-        currentState = AlgaeState.OUTTAKE;
+    private void handleAtSetpoint() {
+        // Calculate motor output to maintain position
+        motorOutput = pidController.calculate(currentPosition, targetPosition);
+        
+        // Clamp output within bounds
+        motorOutput = Math.max(MIN_OUTPUT, Math.min(MAX_OUTPUT, motorOutput));
+        
+        // Set motor output
+        motor.set(motorOutput);
+        
+        // Check if we've drifted from the target
+        if (!pidController.atSetpoint()) {
+            currentState = STATES.MOVING_TO_SETPOINT;
+        }
     }
-    
+
     /**
-     * Set the subsystem to store mode (slow intake)
+     * Check for ball presence based on current draw
      */
-    public void store() {
-        currentState = AlgaeState.STORE;
+    private void checkForAlgae() {
+        double currentDraw = motor.getOutputCurrent();
+        
+        // Detect ball based on current threshold
+        boolean previousHasAlgae = hasAlgae;
+        hasAlgae = currentDraw > CURRENT_THRESHOLD;
+        
+        // If we just detected a ball, secure the grip
+        if (hasAlgae && !previousHasAlgae) {
+            secureGrip();
+        }
     }
-    
+
     /**
-     * Stop all motors and set state to IDLE
+     * Apply additional force to secure the ball
      */
-    public void stop() {
-        currentState = AlgaeState.IDLE;
-        // Do NOT reset gamePresent when stopping - only when ejecting
+    private void secureGrip() {
+        if (motorOutput > 0) {
+            // Only increase grip if we're closing the gripper
+            double secureOutput = Math.min(motorOutput * SECURE_GRIP_MULTIPLIER, MAX_OUTPUT);
+            motor.set(secureOutput);
+        }
     }
-    
+
     /**
-     * Get the current state of the subsystem
-     * @return Current AlgaeState
+     * Set the target position and move to it
+     * @param position The target position in encoder units
      */
-    public AlgaeState getState() {
+    public void setTargetPosition(double position) {
+        targetPosition = position;
+        pidController.setSetpoint(position);
+        currentState = STATES.MOVING_TO_SETPOINT;
+        isMoving = false;
+    }
+
+    /**
+     * Move to position over a specified time
+     * @param position The target position in encoder units
+     * @param seconds The time to take for the move in seconds
+     */
+    public void moveToPositionOverTime(double position, double seconds) {
+        targetPosition = position;
+        startPosition = currentPosition;
+        startTime = Timer.getFPGATimestamp();
+        moveEndTime = startTime + seconds;
+        currentState = STATES.MOVING_TO_SETPOINT;
+        isMoving = true;
+    }
+
+    /**
+     * Set the state to IDLE, stopping motion
+     */
+    public void setIdle() {
+        motor.set(0);
+        currentState = STATES.IDLE;
+        isMoving = false;
+    }
+
+    /**
+     * Reset the encoder to zero
+     */
+    public void resetEncoder() {
+        encoder.setPosition(0);
+    }
+
+    /**
+     * Get the current state of the flipper arm
+     * @return The current state
+     */
+    public STATES getState() {
         return currentState;
     }
-    
-    /**
-     * Run both motors at the specified speed
-     * @param speed Speed to run motors at (-1.0 to 1.0)
-     */
-    private void runMotors(double speed) {
-        leftMotor.set(speed);
-        rightMotor.set(0.25 * speed);
-    }
-    
-    /**
-     * Stop both motors
-     */
-    private void stopMotors() {
-        leftMotor.stopMotor();
-        rightMotor.stopMotor();
-    }
-    
-    /**
-     * Updates the game piece detection status based on motor current
-     * Only sets gamePresent to true, never to false (except via resetGamePieceDetection)
-     */
-    private void updateGamePieceDetection() {
-        // If we already have a game piece, don't change the state
-        if (gamePresent) {
-            return;
-        }
 
-        // We'll use the left motor for detection since it's our main reference
-        double currentDraw = getLeftCurrentDraw();
-        double currentTime = Timer.getFPGATimestamp();
-        
-        // Handle startup current spike ignore logic
-        if (motorStartupIgnore && currentState != AlgaeState.IDLE) {
-            // If we're ignoring startup and motors are running
-            if (motorStartTime == 0) {
-                // First time we've seen motors running since stop
-                motorStartTime = currentTime;
-            } else if (currentTime - motorStartTime > ignore_time) {
-                // We've waited long enough, stop ignoring
-                motorStartupIgnore = false;
-            }
-        }
-        
-        // Only detect game pieces when we're not ignoring startup spikes
-        if (!motorStartupIgnore) {
-            // Current-based detection with debouncing
-            if (currentDraw >= CoralAlgaeConstants.currentThreshold) {
-                if (highCurrentStartTime == 0) {
-                    // Start timing how long we see high current
-                    highCurrentStartTime = currentTime;
-                } else if (currentTime - highCurrentStartTime > debounce) {
-                    // We've seen high current for enough time
-                    gamePresent = true;
-                    
-                    // Automatically transition to STORE state if we detect a game piece
-                    if (currentState == AlgaeState.INTAKE) {
-                        store();
-                    }
-                }
-            } else {
-                // Current is below threshold, reset timing
-                highCurrentStartTime = 0;
-            }
-        }
+    /**
+     * Get the current position of the flipper arm
+     * @return The current position in encoder units
+     */
+    public double getCurrentPosition() {
+        return currentPosition;
+    }
+
+    /**
+     * Get the target position of the flipper arm
+     * @return The target position in encoder units
+     */
+    public double getTargetPosition() {
+        return targetPosition;
+    }
+
+    /**
+     * Check if the flipper arm has a ball
+     * @return True if a ball is detected, false otherwise
+     */
+    public boolean hasAlgae() {
+        return hasAlgae;
+    }
+
+    /**
+     * Get the current draw of the motor
+     * @return The current draw in amps
+     */
+    public double getCurrentDraw() {
+        return motor.getOutputCurrent();
+    }
+
+    /**
+     * Update the PID constants
+     * @param p The proportional gain
+     * @param i The integral gain
+     * @param d The derivative gain
+     */
+    public void setPIDConstants(double p, double i, double d) {
+        pidController.setPID(p, i, d);
     }
     
     /**
-     * Reset the game piece detection state and the ignore timer.
-     * This should be called when starting to eject a game piece.
+     * Reset the PID controller's accumulated integral term
      */
-    public void resetGamePieceDetection() {
-        gamePresent = false;
-        motorStartupIgnore = true;
-        motorStartTime = 0;
-        highCurrentStartTime = 0;
-    }
-    
-    /**
-     * @return True if a game piece is detected in the system
-     */
-    public boolean hasGamePiece() {
-        return gamePresent;
-    }
-    
-    /**
-     * Get the current draw from the left motor
-     * @return Current in amps
-     */
-    public double getLeftCurrentDraw() {
-        return leftMotor.getOutputCurrent();
-    }
-    
-    /**
-     * Get the current draw from the right motor
-     * @return Current in amps
-     */
-    public double getRightCurrentDraw() {
-        return rightMotor.getOutputCurrent();
-    }
-    
-    /**
-     * Update the SmartDashboard with debug information
-     */
-    private void updateDashboard() {
-        SmartDashboard.putString("ALGAE/State", currentState.toString());
-        SmartDashboard.putNumber("ALGAE/Left Motor Current", getLeftCurrentDraw());
-        SmartDashboard.putBoolean("ALGAE/Has Game Piece", hasGamePiece());
+    public void resetPID() {
+        pidController.reset();
     }
 }

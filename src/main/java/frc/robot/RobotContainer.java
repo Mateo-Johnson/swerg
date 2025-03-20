@@ -8,8 +8,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.subsystems.algae.commands.MoveFlipper;
-import frc.robot.subsystems.algae.commands.flipdown;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.L1;
@@ -112,8 +110,6 @@ public class RobotContainer {
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // Left trigger to purge coral
     primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral (auto-stop)
 
-    primary.y().whileTrue(new MoveFlipper());
-    primary.b().whileTrue(new flipdown());
   }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

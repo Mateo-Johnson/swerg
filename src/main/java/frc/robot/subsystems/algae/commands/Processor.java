@@ -4,16 +4,12 @@
 
 package frc.robot.subsystems.algae.commands;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-
 import edu.wpi.first.wpilibj2.command.Command;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class flipdown extends Command {
-  /** Creates a new MoveFlipper. */
-  static SparkMax algaeFlip = MoveFlipper.algaeFlip;
-  public flipdown() {
+public class Processor extends Command {
+  /** Creates a new Processor. */
+  public Processor() {
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -23,15 +19,11 @@ public class flipdown extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {
-    algaeFlip.set(-0.3);
-  }
+  public void execute() {}
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {
-    algaeFlip.set(0);
-  }
+  public void end(boolean interrupted) {}
 
   // Returns true when the command should end.
   @Override
