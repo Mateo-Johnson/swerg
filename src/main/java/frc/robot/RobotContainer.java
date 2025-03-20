@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.subsystems.algae.commands.MoveFlipper;
+import frc.robot.subsystems.algae.commands.flipdown;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.L1;
@@ -20,7 +22,6 @@ import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.L4;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
-import frc.robot.subsystems.vision.Vision;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.OIConstants;
 
@@ -39,7 +40,6 @@ public class RobotContainer {
   final Elevator m_elevator;
   final Coral m_coral;
   @SuppressWarnings("unused")
-  private final Vision m_vision;
   // private final Algae m_algae = new Algae();
   
   // The driver's controller
@@ -50,7 +50,6 @@ public class RobotContainer {
     m_drivetrain = new Drivetrain();
     m_elevator = new Elevator();
     m_coral = new Coral();
-    m_vision = new Vision(m_drivetrain);
     
     registerNamedCommands();
 
@@ -112,6 +111,9 @@ public class RobotContainer {
     // primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // Left trigger to purge coral
     primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral (auto-stop)
+
+    primary.y().whileTrue(new MoveFlipper());
+    primary.b().whileTrue(new flipdown());
   }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

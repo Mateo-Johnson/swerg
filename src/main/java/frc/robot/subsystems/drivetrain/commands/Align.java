@@ -146,11 +146,11 @@ public class Align extends Command {
     
     // Calculate PID outputs
     double lateralOutput = yPID.calculate(lateralOffset, currentSetpoint);
-    double longitudinalOutput = xPID.calculate(longitudinalOffset, 0);
+    // double longitudinalOutput = xPID.calculate(longitudinalOffset, 1);
     
     // Clamp the outputs to valid ranges
     lateralOutput = MathUtil.clamp(lateralOutput, -0.7, 0.7);
-    longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.7, 0.7);
+    // longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.7, 0.7);
 
     // Set target angle based on target ID
     switch ((int)LimelightLib.getFiducialID(limelightName)) {
@@ -221,9 +221,9 @@ public class Align extends Command {
     
     // Apply both lateral and rotational corrections
     drivetrain.drive(
-      longitudinalOutput,
+      MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
       -lateralOutput,
-      -turnOutput,
+      MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
       false
     );
 

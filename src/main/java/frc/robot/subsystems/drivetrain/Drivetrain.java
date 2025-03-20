@@ -175,21 +175,6 @@ public class Drivetrain extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
-
-    LimelightLib.SetRobotOrientation("limelight-front", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
-    LimelightLib.PoseEstimate mt2 = LimelightLib.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-front");
-
-  // If our angular velocity is greater than 360 degrees per second, ignore vision updates
-  if(Math.abs(m_gyro.getRate()) > 360) {rejectUpdate = true;}
-  if(mt2.tagCount == 0) {rejectUpdate = true;}
-  if(!rejectUpdate)
-  {
-    m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
-    m_poseEstimator.addVisionMeasurement(
-        mt2.pose,
-        mt2.timestampSeconds);
-  }
-
   }
 
   /**
