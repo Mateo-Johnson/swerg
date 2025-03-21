@@ -155,6 +155,8 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("POSITION/Heading", getHeading());
     SmartDashboard.putNumber("POSITION/current x", getPose().getX());
     SmartDashboard.putNumber("POSITION/current y", getPose().getY());
+    SmartDashboard.putNumber("POSITION/limelight x", LimelightLib.getBotPose2d_wpiBlue("limelight-front").getX());
+    SmartDashboard.putNumber("POSITION/limelight y", LimelightLib.getBotPose2d_wpiBlue("limelight-front").getY());
 
     // Drivetrain module angles (maybe module widget?)
     SmartDashboard.putNumber("DT/FL", m_frontLeft.getAngleFull());

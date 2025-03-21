@@ -26,6 +26,11 @@ public class MoveToPosition extends Command {
     public void initialize() {
         m_algae.setTargetPosition(m_position);
     }
+
+    @Override
+    public void end(boolean interrupted) {
+        m_algae.setTargetPosition(0);
+    }
     
     @Override
     public boolean isFinished() {

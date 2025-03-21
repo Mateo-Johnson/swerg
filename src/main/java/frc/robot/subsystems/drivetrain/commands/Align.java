@@ -34,7 +34,9 @@ public class Align extends Command {
   
   // New variables for sequential alignment
   private static final double XY_DISTANCE_THRESHOLD = 0.25; // Threshold for when to start rotation (in meters)
+  private static final double LATERAL_ALIGNMENT_THRESHOLD = 0.05; // Threshold for lateral alignment (in meters)
   private boolean positionAligned = false; // Track if XY position is close enough
+  private boolean lateralAligned = false; // Track if lateral position is close enough
   
   public static boolean isAligning = false;
   
@@ -67,6 +69,7 @@ public class Align extends Command {
     initialSelectionMade = false; // Start with no selection made
     lastXInput = 0;
     positionAligned = false; // Reset position alignment flag
+    lateralAligned = false; // Reset lateral alignment flag
 
     isAligning = true;
     
@@ -96,11 +99,13 @@ public class Align extends Command {
       if (leftXInput < -switchThreshold && currentSetpoint != AutoConstants.leftSetpoint) {
         currentSetpoint = AutoConstants.leftSetpoint;
         positionAligned = false; // Reset position alignment when changing sides
+        lateralAligned = false; // Reset lateral alignment when changing sides
       } 
       // Strong flick in right direction
       else if (leftXInput > switchThreshold && currentSetpoint != AutoConstants.rightSetpoint) {
         currentSetpoint = AutoConstants.rightSetpoint;
         positionAligned = false; // Reset position alignment when changing sides
+        lateralAligned = false; // Reset lateral alignment when changing sides
       }
     }
     
@@ -131,26 +136,40 @@ public class Align extends Command {
     
     // Extract the lateral offset (X-axis in camera space)
     double lateralOffset = targetPose.getX();
-    double longitudinalOffset = targetPose.getY();
-    
-    // Calculate position error magnitude
-    double xyErrorMagnitude = Math.sqrt(
-      Math.pow(lateralOffset - currentSetpoint, 2) + 
-      Math.pow(longitudinalOffset, 2)
-    );
-    
-    // Update position aligned flag
-    if (xyErrorMagnitude <= XY_DISTANCE_THRESHOLD) {
-      positionAligned = true;
-    }
+    double longitudinalOffset = targetPose.getZ();
     
     // Calculate PID outputs
     double lateralOutput = yPID.calculate(lateralOffset, currentSetpoint);
-    // double longitudinalOutput = xPID.calculate(longitudinalOffset, 1);
     
-    // Clamp the outputs to valid ranges
+    // Check if we've achieved lateral alignment
+    double lateralError = Math.abs(lateralOffset - currentSetpoint);
+    if (lateralError <= LATERAL_ALIGNMENT_THRESHOLD) {
+      lateralAligned = true;
+    }
+    
+    // Only calculate longitudinal output if lateral alignment is achieved
+    double longitudinalOutput = 0;
+    if (initialSelectionMade && lateralAligned) {
+      longitudinalOutput = xPID.calculate(longitudinalOffset, 0.3);
+      longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.7, 0.7);
+      
+      // Calculate position error magnitude (only after lateral alignment)
+      double xyErrorMagnitude = Math.sqrt(
+        Math.pow(lateralOffset - currentSetpoint, 2) + 
+        Math.pow(longitudinalOffset - 0.3, 2)
+      );
+      
+      // Update position aligned flag
+      positionAligned = (xyErrorMagnitude <= XY_DISTANCE_THRESHOLD);
+      
+      SmartDashboard.putNumber("Vision/XYErrorMagnitude", xyErrorMagnitude);
+    } else {
+      // If no lateral alignment yet, use joystick for forward/backward
+      longitudinalOutput = MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband);
+    }
+    
+    // Clamp the lateral output to valid range
     lateralOutput = MathUtil.clamp(lateralOutput, -0.7, 0.7);
-    // longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.7, 0.7);
 
     // Set target angle based on target ID
     switch ((int)LimelightLib.getFiducialID(limelightName)) {
@@ -206,8 +225,8 @@ public class Align extends Command {
 
     double currentAngleError = Math.abs(angleError);
 
-    // Only perform rotational alignment if XY position is close enough
-    if (positionAligned) {
+    // Only perform rotational alignment if XY position is close enough and lateral alignment achieved
+    if (positionAligned && lateralAligned) {
       turnOutput = turnPID.calculate(drivetrain.getHeading(), targetAngle);
       
       if (currentAngleError <= 5) { 
@@ -228,15 +247,18 @@ public class Align extends Command {
     );
 
     // Log data for debugging
+    SmartDashboard.putNumber("Vision/LongitudinalOffset", longitudinalOffset);
     SmartDashboard.putNumber("Vision/LateralOffset", lateralOffset);
+    SmartDashboard.putNumber("Vision/LateralError", lateralError);
     SmartDashboard.putNumber("Vision/LateralOutput", lateralOutput);
+    SmartDashboard.putNumber("Vision/LongitudinalOutput", longitudinalOutput);
     SmartDashboard.putNumber("Vision/CurrentSetpoint", currentSetpoint);
     SmartDashboard.putBoolean("Vision/TargetInView", true);
     SmartDashboard.putNumber("Vision/TargetID", LimelightLib.getFiducialID(limelightName));
     SmartDashboard.putBoolean("Vision/LateralAtSetpoint", yPID.atSetpoint());
     SmartDashboard.putBoolean("Vision/InitialSelectionMade", initialSelectionMade);
+    SmartDashboard.putBoolean("Vision/LateralAligned", lateralAligned);
     SmartDashboard.putNumber("Vision/JoystickX", leftXInput);
-    SmartDashboard.putNumber("Vision/XYErrorMagnitude", xyErrorMagnitude);
     SmartDashboard.putBoolean("Vision/PositionAligned", positionAligned);
   }
 
@@ -250,7 +272,6 @@ public class Align extends Command {
 
   @Override
   public boolean isFinished() {
-
     if (prim.povDown().getAsBoolean() || prim.povUp().getAsBoolean() || prim.povRight().getAsBoolean() || prim.povLeft().getAsBoolean()) {  
       return true;
     }

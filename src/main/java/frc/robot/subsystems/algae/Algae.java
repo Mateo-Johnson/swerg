@@ -2,11 +2,13 @@ package frc.robot.subsystems.algae;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
+// Full range of motion is from 0 (top) to ~-3.38 (bottom)
 public class Algae extends SubsystemBase {
     // States enum for the flipper arm
     public enum STATES {
@@ -50,7 +52,7 @@ public class Algae extends SubsystemBase {
         // Get encoder
         encoder = motor.getEncoder();
         
-        pidController = new PIDController(0, 0, 0);
+        pidController = new PIDController(0.2, 0, 0);
         pidController.setTolerance(POSITION_TOLERANCE, VELOCITY_TOLERANCE);
         
         // Reset encoder
@@ -61,6 +63,7 @@ public class Algae extends SubsystemBase {
     public void periodic() {
         // Update current position
         currentPosition = encoder.getPosition();
+        SmartDashboard.putNumber("ALGAE/POSITION", currentPosition);
         
         // Check for ball presence based on current draw
         checkForAlgae();
@@ -78,6 +81,10 @@ public class Algae extends SubsystemBase {
                 motor.set(0);
                 break;
         }
+    }
+
+    public void stop() {
+        motor.set(0);
     }
 
     /**

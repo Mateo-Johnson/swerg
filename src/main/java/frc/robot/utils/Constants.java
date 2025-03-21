@@ -82,8 +82,8 @@ public final class Constants {
   public static final class AutoConstants {
 
     public static final double centerSetpoint = 0;
-    public static final double leftSetpoint = 0.22;
-    public static final double rightSetpoint = -0.12;
+    public static final double leftSetpoint = 0.24;
+    public static final double rightSetpoint = -0.15;
 
     public static final double kMaxSpeedMetersPerSecond = 3;
     public static final double kMaxAccelerationMetersPerSecondSquared = 3;
@@ -123,7 +123,7 @@ public final class Constants {
 
     // Game piece detection
     public static final double ignoreTime = 0.2; // 500ms to ignore initial startup current spike
-    public static final double debounce = 0.05; // 50ms debounce for current detection
+    public static final double debounce = 0.1; // 100ms debounce for current detection /0.1 good
     public static final double motorStartTime = 0;
     public static boolean motorStartupIgnore = true;
     public static double highCurrentStartTime = 0;

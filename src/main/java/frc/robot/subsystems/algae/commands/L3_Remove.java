@@ -2,6 +2,7 @@ package frc.robot.subsystems.algae.commands;
 
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.algae.Algae;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
@@ -19,11 +20,13 @@ public class L3_Remove extends SequentialCommandGroup {
    */
   public L3_Remove(Elevator m_elevator, Algae m_algae) {
     addCommands(
+
       new ParallelCommandGroup( // Move to target position, while updating the algae flipper over time
-      new MoveToPoint(m_elevator, 15.5).withTimeout(0.3),
-      new MoveOverTime(m_algae, 0.3, 0.5)
+      new MoveToPoint(m_elevator, 20).withTimeout(1),
+      new MoveToPosition(m_algae, -1.5),
+      new WaitCommand(0.5)
       ),
-      new MoveToPosition(m_algae, 0.3).withTimeout(0.5) // Move the algae flipper to the target position (flip the algae)
+      new MoveToPosition(m_algae, 0) // Move the algae flipper to the target position (flip the algae)
     );
   }
 }
