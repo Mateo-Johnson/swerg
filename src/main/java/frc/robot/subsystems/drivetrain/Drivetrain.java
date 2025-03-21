@@ -4,12 +4,10 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.util.PathPlannerLogging;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -20,7 +18,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drivetrain.commands.Align;
@@ -29,47 +26,40 @@ import frc.robot.utils.Constants.DriveConstants;
 import frc.robot.utils.LimelightLib;
 
 public class Drivetrain extends SubsystemBase {
-
-  // Create a field object to display the path on the dashboard
-  private Field2d field = new Field2d();
- 
   // Create the modules
   // Front Left
   private final Module m_frontLeft = new Module(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
-      2.88);
+      DriveConstants.kFrontLeftEncoderOffset);
 
   // Front Right
   private final Module m_frontRight = new Module(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
-      5.14);
+      DriveConstants.kFrontRightEncoderOffset);
 
   // Rear Left
   private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
-      2.8);
+      DriveConstants.kRearLeftEncoderOffset);
 
   // Rear Right
   private final Module m_rearRight = new Module(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
-      5.7);
+      DriveConstants.kRearRightEncoderOffset);
 
   // PID controller for heading
   private PIDController headingCorrector = new PIDController(0.032, 0, 0.0015);
 
   // Create gyro (NavX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
-
-  // Boolean to reject vision updates
-  private boolean rejectUpdate;
 
   // Odometry for tracking pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -128,18 +118,11 @@ public class Drivetrain extends SubsystemBase {
     }catch(Exception e){
       DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", e.getStackTrace());
     }
-
-    // Set up custom logging to add the current path to a field 2d widget
-    PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
-
-    SmartDashboard.putData("Field", field);
   }
 
   @Override
   public void periodic() {
 
-    // Update the field pose
-    field.setRobotPose(getPose());
 
     // Update the odometry
     m_odometry.update(
