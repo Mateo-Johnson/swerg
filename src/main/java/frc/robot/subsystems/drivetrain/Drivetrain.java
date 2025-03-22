@@ -12,6 +12,9 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -21,7 +24,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drivetrain.commands.Align;
+import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.utils.Constants;
+import frc.robot.utils.Constants.AutoConstants;
 import frc.robot.utils.Constants.DriveConstants;
 import frc.robot.utils.LimelightLib;
 
@@ -55,11 +60,14 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kRearRightEncoder,
       DriveConstants.kRearRightEncoderOffset);
 
+  // Create gyro (NavX)
+  private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
+
   // PID controller for heading
   private PIDController headingCorrector = new PIDController(0.032, 0, 0.0015);
 
-  // Create gyro (NavX)
-  private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
+  // Define limelight name
+  private static final String LLN = AutoConstants.limelightName;
 
   // Odometry for tracking pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -83,9 +91,19 @@ public class Drivetrain extends SubsystemBase {
         m_rearRight.getPosition()
     },
     new Pose2d()  // Initial pose
-);
+  );
 
-  public Drivetrain() {
+  private final Elevator m_elevator; 
+  private Transform3d m_robotToLimelight; // Current transform from robot to limelight
+
+  public Drivetrain(Elevator elevator) {
+    this.m_elevator = elevator;
+
+        // Starting position for limelight
+        m_robotToLimelight = new Transform3d(
+        new Translation3d(0, 0.0381, 0.29464), // Initial X,Y Z
+        new Rotation3d(0, 0, 0) // Roll, Pitch, Yaw
+    );
 
     // Pathplanner things
     try{
@@ -123,8 +141,29 @@ public class Drivetrain extends SubsystemBase {
   @Override
   public void periodic() {
 
+    double maxElevatorTravel = 1.0; // Maximum travel distance of elevator in meters
 
-    // Update the odometry
+    double elevatorPercentage = m_elevator.getHeightPercentage(); // Get the elevator height percentage (0.0 to 1.0)
+    double elevatorHeight = elevatorPercentage * maxElevatorTravel;
+
+        m_robotToLimelight = new Transform3d(
+        new Translation3d(
+            m_robotToLimelight.getX(), 
+            m_robotToLimelight.getY(), 
+            m_robotToLimelight.getZ() + elevatorHeight
+        ),
+        m_robotToLimelight.getRotation()
+    );
+
+        LimelightLib.setCameraPose_RobotSpace(LLN,
+                                         m_robotToLimelight.getX(),
+                                         m_robotToLimelight.getY(),
+                                         m_robotToLimelight.getZ(),
+                                         0,
+                                         0,
+                                         0);
+
+    // Update the odometry with wheel encoders and gyro
     m_odometry.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -133,24 +172,35 @@ public class Drivetrain extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         });
+    
+    // Get vision data from Limelight
+    Pose2d limelightPose = LimelightLib.getBotPose2d_wpiBlue(LLN);
+    
+    // Get the latency of the vision data in seconds
+    double limelightLatency = LimelightLib.getLatency_Pipeline(LLN) / 1000.0
+                            + LimelightLib.getLatency_Capture(LLN) / 1000.0;
+    
+    // Get vision data confidence (tv value: 0 = no target, 1 = target visible)
+    boolean targetVisible = LimelightLib.getTV(LLN);
+    
+    // Only update with vision if we have a valid target and the pose is not at origin (0,0)
+    if (targetVisible && 
+        !(limelightPose.getX() == 0 && limelightPose.getY() == 0) &&
+        limelightLatency > 0) {
+        
+        // Additional confidence check can be added here if needed
+        // For example, checking specific AprilTag IDs or using TL value
+        
+        // Update pose estimator with vision data
+        updateWithVision(limelightPose, limelightLatency);
+        
+        // Log that vision update was applied
+        SmartDashboard.putBoolean("POSITION/VisionUpdated", true);
+    } else {
+        SmartDashboard.putBoolean("POSITION/VisionUpdated", false);
+    }
 
-    // Positioning dashboard
-    SmartDashboard.putNumber("POSITION/Heading", getHeading());
-    SmartDashboard.putNumber("POSITION/current x", getPose().getX());
-    SmartDashboard.putNumber("POSITION/current y", getPose().getY());
-    SmartDashboard.putNumber("POSITION/limelight x", LimelightLib.getBotPose2d_wpiBlue("limelight-front").getX());
-    SmartDashboard.putNumber("POSITION/limelight y", LimelightLib.getBotPose2d_wpiBlue("limelight-front").getY());
-
-    // Drivetrain module angles (maybe module widget?)
-    SmartDashboard.putNumber("DT/FL", m_frontLeft.getAngleFull());
-    SmartDashboard.putNumber("DT/FR", m_frontRight.getAngleFull());
-    SmartDashboard.putNumber("DT/RL", m_rearLeft.getAngleFull());
-    SmartDashboard.putNumber("DT/RR", m_rearRight.getAngleFull());
-    SmartDashboard.putBoolean("ALIGNING", Align.isAligning);
-
-    SmartDashboard.putBoolean("NavX Connected", m_gyro.isConnected());
-
-    // Update the pose estimator
+    // Update the pose estimator with wheel encoders and gyro
     m_poseEstimator.update(
       Rotation2d.fromDegrees(-m_gyro.getAngle()),
       new SwerveModulePosition[] {
@@ -160,6 +210,22 @@ public class Drivetrain extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
+    // Positioning dashboard
+    SmartDashboard.putNumber("POSITION/Heading", getHeading());
+    SmartDashboard.putNumber("POSITION/current x", getPose().getX());
+    SmartDashboard.putNumber("POSITION/current y", getPose().getY());
+    SmartDashboard.putNumber("POSITION/limelight x", limelightPose.getX());
+    SmartDashboard.putNumber("POSITION/limelight y", limelightPose.getY());
+    SmartDashboard.putNumber("POSITION/limelight latency", limelightLatency);
+
+    // Drivetrain module angles (maybe module widget?)
+    SmartDashboard.putNumber("DT/FL", m_frontLeft.getAngleFull());
+    SmartDashboard.putNumber("DT/FR", m_frontRight.getAngleFull());
+    SmartDashboard.putNumber("DT/RL", m_rearLeft.getAngleFull());
+    SmartDashboard.putNumber("DT/RR", m_rearRight.getAngleFull());
+    SmartDashboard.putBoolean("ALIGNING", Align.isAligning);
+
+    SmartDashboard.putBoolean("NavX Connected", m_gyro.isConnected());
   }
 
   /**
@@ -230,7 +296,6 @@ public class Drivetrain extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetOdometry(Pose2d pose) {
-
       // Invert the coordinates to match the transformation in getPose()
       Pose2d invertedPose = new Pose2d(
           -pose.getX(),
@@ -261,7 +326,7 @@ public class Drivetrain extends SubsystemBase {
         },
         invertedPose
     );
-}
+  }
 
   /**
    * Method to drive the robot while holding an angle.
@@ -363,7 +428,7 @@ public class Drivetrain extends SubsystemBase {
     angle = MathUtil.inputModulus(angle, -180.0, 180.0);
     
     return angle;
-}
+  }
 
   /**
    * Returns the turn rate of the robot.
@@ -374,12 +439,29 @@ public class Drivetrain extends SubsystemBase {
     return -m_gyro.getRate();
   }
 
+  /**
+   * Updates the pose estimator with vision measurements.
+   *
+   * @param visionPose The pose measured by vision.
+   * @param latencySeconds The latency of the vision measurement.
+   */
   public void updateWithVision(Pose2d visionPose, double latencySeconds) {
+    // Invert the coordinates to match the coordinate system used by the pose estimator
+    Pose2d invertedVisionPose = new Pose2d(
+        -visionPose.getX(),
+        -visionPose.getY(),
+        visionPose.getRotation()
+    );
+    
     // Add the vision measurement to the pose estimator
     m_poseEstimator.addVisionMeasurement(
-        visionPose,
+        invertedVisionPose,
         latencySeconds
     );
+    
+    // Log vision update details
+    SmartDashboard.putNumber("POSITION/vision_pose_x", visionPose.getX());
+    SmartDashboard.putNumber("POSITION/vision_pose_y", visionPose.getY());
+    SmartDashboard.putNumber("POSITION/vision_latency", latencySeconds);
   }
-
 }

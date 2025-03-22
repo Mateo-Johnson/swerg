@@ -10,10 +10,8 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.algae.Algae;
 import frc.robot.subsystems.algae.commands.L3_Remove;
-import frc.robot.subsystems.algae.commands.MoveToPosition;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
-import frc.robot.subsystems.coral.commands.L1;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.Align;
@@ -47,8 +45,8 @@ public class RobotContainer {
 
    public RobotContainer() {
 
-    m_drivetrain = new Drivetrain();
     m_elevator = new Elevator();
+    m_drivetrain = new Drivetrain(m_elevator);
     m_coral = new Coral();
     m_algae = new Algae();
     

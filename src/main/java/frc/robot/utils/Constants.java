@@ -102,6 +102,8 @@ public final class Constants {
     // Constrain the motion profiled controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
       kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+
+      public static final String limelightName = "limelight-front";
   }
 
   public static final class NeoMotorConstants {
