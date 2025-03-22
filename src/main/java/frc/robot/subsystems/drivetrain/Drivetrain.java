@@ -141,7 +141,7 @@ public class Drivetrain extends SubsystemBase {
   @Override
   public void periodic() {
 
-    double maxElevatorTravel = 1.0; // Maximum travel distance of elevator in meters
+    double maxElevatorTravel = 0.6477; // Maximum travel distance of elevator in meters
 
     double elevatorPercentage = m_elevator.getHeightPercentage(); // Get the elevator height percentage (0.0 to 1.0)
     double elevatorHeight = elevatorPercentage * maxElevatorTravel;
