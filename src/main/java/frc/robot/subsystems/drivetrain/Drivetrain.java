@@ -12,9 +12,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -94,16 +91,10 @@ public class Drivetrain extends SubsystemBase {
   );
 
   private final Elevator m_elevator; 
-  private Transform3d m_robotToLimelight; // Current transform from robot to limelight
 
   public Drivetrain(Elevator elevator) {
     this.m_elevator = elevator;
 
-        // Starting position for limelight
-        m_robotToLimelight = new Transform3d(
-        new Translation3d(0, 0.0381, 0.29464), // Initial X,Y Z
-        new Rotation3d(0, 0, 0) // Roll, Pitch, Yaw
-    );
 
     // Pathplanner things
     try{
@@ -141,27 +132,9 @@ public class Drivetrain extends SubsystemBase {
   @Override
   public void periodic() {
 
-    double maxElevatorTravel = 0.6477; // Maximum travel distance of elevator in meters
+    boolean isAtLowerLimit = m_elevator.isAtLowerLimit();
 
-    double elevatorPercentage = m_elevator.getHeightPercentage(); // Get the elevator height percentage (0.0 to 1.0)
-    double elevatorHeight = elevatorPercentage * maxElevatorTravel;
-
-        m_robotToLimelight = new Transform3d(
-        new Translation3d(
-            m_robotToLimelight.getX(), 
-            m_robotToLimelight.getY(), 
-            m_robotToLimelight.getZ() + elevatorHeight
-        ),
-        m_robotToLimelight.getRotation()
-    );
-
-        LimelightLib.setCameraPose_RobotSpace(LLN,
-                                         m_robotToLimelight.getX(),
-                                         m_robotToLimelight.getY(),
-                                         m_robotToLimelight.getZ(),
-                                         0,
-                                         0,
-                                         0);
+      LimelightLib.setCameraPose_RobotSpace(LLN, 0.0381, 0, 0.0381, 0, 0, 0);
 
     // Update the odometry with wheel encoders and gyro
     m_odometry.update(
@@ -180,16 +153,11 @@ public class Drivetrain extends SubsystemBase {
     double limelightLatency = LimelightLib.getLatency_Pipeline(LLN) / 1000.0
                             + LimelightLib.getLatency_Capture(LLN) / 1000.0;
     
-    // Get vision data confidence (tv value: 0 = no target, 1 = target visible)
+    // Get vision data confidence
     boolean targetVisible = LimelightLib.getTV(LLN);
     
     // Only update with vision if we have a valid target and the pose is not at origin (0,0)
-    if (targetVisible && 
-        !(limelightPose.getX() == 0 && limelightPose.getY() == 0) &&
-        limelightLatency > 0) {
-        
-        // Additional confidence check can be added here if needed
-        // For example, checking specific AprilTag IDs or using TL value
+    if (targetVisible && !(limelightPose.getX() == 0 && limelightPose.getY() == 0) && limelightLatency > 0) { // && isAtLowerLimit maybe add
         
         // Update pose estimator with vision data
         updateWithVision(limelightPose, limelightLatency);
