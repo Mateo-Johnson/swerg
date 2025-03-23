@@ -132,7 +132,7 @@ public class Drivetrain extends SubsystemBase {
   @Override
   public void periodic() {
 
-    boolean isAtLowerLimit = m_elevator.isAtLowerLimit();
+    // boolean isAtLowerLimit = m_elevator.isAtLowerLimit();
 
       LimelightLib.setCameraPose_RobotSpace(LLN, 0.0381, 0, 0.0381, 0, 0, 0);
 
