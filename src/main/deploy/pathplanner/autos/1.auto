@@ -11,28 +11,9 @@
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "L3"
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "New New Path"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "L1"
-                }
-              }
-            ]
+            "pathName": "New New Path"
           }
         }
       ]

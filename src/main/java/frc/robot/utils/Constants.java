@@ -27,17 +27,17 @@ public final class Constants {
     public static final double kWheelBase = Units.inchesToMeters(23.75);
 
     // IF IT DOES NOT WORK REVERT THE KINEMATICS
-    // public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
-    //     new Translation2d(-kWheelBase / 2, -kTrackWidth / 2), 
-    //     new Translation2d(-kWheelBase / 2, kTrackWidth / 2),  
-    //     new Translation2d(kWheelBase / 2, -kTrackWidth / 2),   
-    //     new Translation2d(kWheelBase / 2, kTrackWidth / 2)     
-    // );
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
-      new Translation2d(kWheelBase / 2, kTrackWidth / 2), // Front Left
-      new Translation2d(kWheelBase / 2, -kTrackWidth / 2), // Front Right
-      new Translation2d(-kWheelBase / 2, kTrackWidth / 2), // Rear Left
-      new Translation2d(-kWheelBase / 2, -kTrackWidth / 2)); // Rear Right
+        new Translation2d(-kWheelBase / 2, -kTrackWidth / 2), 
+        new Translation2d(-kWheelBase / 2, kTrackWidth / 2),  
+        new Translation2d(kWheelBase / 2, -kTrackWidth / 2),   
+        new Translation2d(kWheelBase / 2, kTrackWidth / 2)     
+    );
+    // public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
+    //   new Translation2d(kWheelBase / 2, kTrackWidth / 2), // Front Left
+    //   new Translation2d(kWheelBase / 2, -kTrackWidth / 2), // Front Right
+    //   new Translation2d(-kWheelBase / 2, kTrackWidth / 2), // Rear Left
+    //   new Translation2d(-kWheelBase / 2, -kTrackWidth / 2)); // Rear Right
 
     // SparkMax CAN IDs
 
@@ -54,15 +54,16 @@ public final class Constants {
     public static final int kRearRightTurningCanId = 6;
 
     // Encoders
-    public static final int kFrontLeftEncoder = 1;
-    public static final int kFrontRightEncoder = 0;
-    public static final int kRearLeftEncoder = 2;
-    public static final int kRearRightEncoder = 3;
+    public static final int kFrontLeftEncoder = 1; //1
+    public static final int kFrontRightEncoder = 0; //0
+    public static final int kRearLeftEncoder = 2; //2
+    public static final int kRearRightEncoder = 3; //3
 
     public static final double kFrontLeftEncoderOffset = 2.88;
     public static final double kFrontRightEncoderOffset = 5.14;
     public static final double kRearLeftEncoderOffset = 2.8;
     public static final double kRearRightEncoderOffset = 5.7;
+
   }
 
   public static final class ModuleConstants {

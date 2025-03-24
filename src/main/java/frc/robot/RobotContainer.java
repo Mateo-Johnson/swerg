@@ -63,7 +63,7 @@ public class RobotContainer {
             m_drivetrain.drive(
                 MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband),
                 MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband),
-                MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband),
                 true);
         }, m_drivetrain)
     );
