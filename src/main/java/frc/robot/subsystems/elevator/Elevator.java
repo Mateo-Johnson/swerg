@@ -103,7 +103,7 @@ public class Elevator extends SubsystemBase {
     }
 
     public double getHeightPercentage() {
-        return (getPosition() / maxHeight) * 100;
+        return (getPosition() / maxHeight);
     }
 
     // Position Control Methods

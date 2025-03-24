@@ -4,12 +4,10 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.util.PathPlannerLogging;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -20,56 +18,53 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drivetrain.commands.Align;
+import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.utils.Constants;
+import frc.robot.utils.Constants.AutoConstants;
 import frc.robot.utils.Constants.DriveConstants;
 import frc.robot.utils.LimelightLib;
 
 public class Drivetrain extends SubsystemBase {
-
-  // Create a field object to display the path on the dashboard
-  private Field2d field = new Field2d();
- 
   // Create the modules
   // Front Left
   private final Module m_frontLeft = new Module(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftEncoder,
-      2.88);
+      DriveConstants.kFrontLeftEncoderOffset);
 
   // Front Right
   private final Module m_frontRight = new Module(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightEncoder,
-      5.14);
+      DriveConstants.kFrontRightEncoderOffset);
 
   // Rear Left
   private final Module m_rearLeft = new Module(
       DriveConstants.kRearLeftDrivingCanId,
       DriveConstants.kRearLeftTurningCanId,
       DriveConstants.kRearLeftEncoder,
-      2.8);
+      DriveConstants.kRearLeftEncoderOffset);
 
   // Rear Right
   private final Module m_rearRight = new Module(
       DriveConstants.kRearRightDrivingCanId,
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kRearRightEncoder,
-      5.7);
-
-  // PID controller for heading
-  private PIDController headingCorrector = new PIDController(0.032, 0, 0.0015);
+      DriveConstants.kRearRightEncoderOffset);
 
   // Create gyro (NavX)
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 
-  // Boolean to reject vision updates
-  private boolean rejectUpdate;
+  // PID controller for heading
+  private PIDController headingCorrector = new PIDController(0.032, 0, 0.0015);
+
+  // Define limelight name
+  private static final String LLN = AutoConstants.limelightName;
 
   // Odometry for tracking pose
   SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
@@ -93,9 +88,13 @@ public class Drivetrain extends SubsystemBase {
         m_rearRight.getPosition()
     },
     new Pose2d()  // Initial pose
-);
+  );
 
-  public Drivetrain() {
+  private final Elevator m_elevator; 
+
+  public Drivetrain(Elevator elevator) {
+    this.m_elevator = elevator;
+
 
     // Pathplanner things
     try{
@@ -128,20 +127,16 @@ public class Drivetrain extends SubsystemBase {
     }catch(Exception e){
       DriverStation.reportError("Failed to load PathPlanner config and configure AutoBuilder", e.getStackTrace());
     }
-
-    // Set up custom logging to add the current path to a field 2d widget
-    PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
-
-    SmartDashboard.putData("Field", field);
   }
 
   @Override
   public void periodic() {
 
-    // Update the field pose
-    field.setRobotPose(getPose());
+    // boolean isAtLowerLimit = m_elevator.isAtLowerLimit();
 
-    // Update the odometry
+    LimelightLib.setCameraPose_RobotSpace(LLN, 0.0381, 0, 0.2953791146, 0, 0, 0);
+
+    // Update the odometry with wheel encoders and gyro
     m_odometry.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
         new SwerveModulePosition[] {
@@ -150,24 +145,30 @@ public class Drivetrain extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         });
+    
+    // Get vision data from Limelight
+    Pose2d limelightPose = LimelightLib.getBotPose2d_wpiBlue(LLN);
+    
+    // Get the latency of the vision data in seconds
+    double limelightLatency = LimelightLib.getLatency_Pipeline(LLN) / 1000.0
+                            + LimelightLib.getLatency_Capture(LLN) / 1000.0;
+    
+    // Get vision data confidence
+    boolean targetVisible = LimelightLib.getTV(LLN);
+    
+    // Only update with vision if we have a valid target and the pose is not at origin (0,0)
+    if (targetVisible && !(limelightPose.getX() == 0 && limelightPose.getY() == 0) && limelightLatency > 0) { // && isAtLowerLimit maybe add
+        
+        // Update pose estimator with vision data
+        updateWithVision(limelightPose, limelightLatency);
+        
+        // Log that vision update was applied
+        SmartDashboard.putBoolean("POSITION/VisionUpdated", true);
+    } else {
+        SmartDashboard.putBoolean("POSITION/VisionUpdated", false);
+    }
 
-    // Positioning dashboard
-    SmartDashboard.putNumber("POSITION/Heading", getHeading());
-    SmartDashboard.putNumber("POSITION/current x", getPose().getX());
-    SmartDashboard.putNumber("POSITION/current y", getPose().getY());
-    SmartDashboard.putNumber("POSITION/limelight x", LimelightLib.getBotPose2d_wpiBlue("limelight-front").getX());
-    SmartDashboard.putNumber("POSITION/limelight y", LimelightLib.getBotPose2d_wpiBlue("limelight-front").getY());
-
-    // Drivetrain module angles (maybe module widget?)
-    SmartDashboard.putNumber("DT/FL", m_frontLeft.getAngleFull());
-    SmartDashboard.putNumber("DT/FR", m_frontRight.getAngleFull());
-    SmartDashboard.putNumber("DT/RL", m_rearLeft.getAngleFull());
-    SmartDashboard.putNumber("DT/RR", m_rearRight.getAngleFull());
-    SmartDashboard.putBoolean("ALIGNING", Align.isAligning);
-
-    SmartDashboard.putBoolean("NavX Connected", m_gyro.isConnected());
-
-    // Update the pose estimator
+    // Update the pose estimator with wheel encoders and gyro
     m_poseEstimator.update(
       Rotation2d.fromDegrees(-m_gyro.getAngle()),
       new SwerveModulePosition[] {
@@ -177,6 +178,22 @@ public class Drivetrain extends SubsystemBase {
           m_rearRight.getPosition()
       });
 
+    // Positioning dashboard
+    SmartDashboard.putNumber("POSITION/Heading", getHeading());
+    SmartDashboard.putNumber("POSITION/current x", getPose().getX());
+    SmartDashboard.putNumber("POSITION/current y", getPose().getY());
+    SmartDashboard.putNumber("POSITION/limelight x", limelightPose.getX());
+    SmartDashboard.putNumber("POSITION/limelight y", limelightPose.getY());
+    SmartDashboard.putNumber("POSITION/limelight latency", limelightLatency);
+
+    // Drivetrain module angles (maybe module widget?)
+    SmartDashboard.putNumber("DT/FL", m_frontLeft.getAngleFull());
+    SmartDashboard.putNumber("DT/FR", m_frontRight.getAngleFull());
+    SmartDashboard.putNumber("DT/RL", m_rearLeft.getAngleFull());
+    SmartDashboard.putNumber("DT/RR", m_rearRight.getAngleFull());
+    SmartDashboard.putBoolean("ALIGNING", Align.isAligning);
+
+    SmartDashboard.putBoolean("NavX Connected", m_gyro.isConnected());
   }
 
   /**
@@ -247,7 +264,6 @@ public class Drivetrain extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetOdometry(Pose2d pose) {
-
       // Invert the coordinates to match the transformation in getPose()
       Pose2d invertedPose = new Pose2d(
           -pose.getX(),
@@ -278,7 +294,7 @@ public class Drivetrain extends SubsystemBase {
         },
         invertedPose
     );
-}
+  }
 
   /**
    * Method to drive the robot while holding an angle.
@@ -380,7 +396,7 @@ public class Drivetrain extends SubsystemBase {
     angle = MathUtil.inputModulus(angle, -180.0, 180.0);
     
     return angle;
-}
+  }
 
   /**
    * Returns the turn rate of the robot.
@@ -391,12 +407,29 @@ public class Drivetrain extends SubsystemBase {
     return -m_gyro.getRate();
   }
 
+  /**
+   * Updates the pose estimator with vision measurements.
+   *
+   * @param visionPose The pose measured by vision.
+   * @param latencySeconds The latency of the vision measurement.
+   */
   public void updateWithVision(Pose2d visionPose, double latencySeconds) {
+    // Invert the coordinates to match the coordinate system used by the pose estimator
+    Pose2d invertedVisionPose = new Pose2d(
+        -visionPose.getX(),
+        -visionPose.getY(),
+        visionPose.getRotation()
+    );
+    
     // Add the vision measurement to the pose estimator
     m_poseEstimator.addVisionMeasurement(
-        visionPose,
+        invertedVisionPose,
         latencySeconds
     );
+    
+    // Log vision update details
+    SmartDashboard.putNumber("POSITION/vision_pose_x", visionPose.getX());
+    SmartDashboard.putNumber("POSITION/vision_pose_y", visionPose.getY());
+    SmartDashboard.putNumber("POSITION/vision_latency", latencySeconds);
   }
-
 }
