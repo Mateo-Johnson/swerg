@@ -114,6 +114,7 @@ public class RobotContainer {
     primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral (auto-stop)
 
     primary.y().whileTrue(new L3_Remove(m_elevator, m_algae));
+    primary.b().whileTrue(new L3_Remove(m_elevator, m_algae));
 
   }
   /**
