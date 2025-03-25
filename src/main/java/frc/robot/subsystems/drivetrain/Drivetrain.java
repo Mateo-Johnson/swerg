@@ -145,8 +145,6 @@ public class Drivetrain extends SubsystemBase {
 
     // boolean isAtLowerLimit = m_elevator.isAtLowerLimit();
 
-    LimelightLib.setCameraPose_RobotSpace(LLN, 0.0381, 0, 0.2953791146, 0, 0, 0);
-
     // Update the odometry with wheel encoders and gyro
     m_odometry.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),
@@ -200,9 +198,9 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("POSITION/Heading", getHeading());
     SmartDashboard.putNumber("POSITION/current x", getPose().getX());
     SmartDashboard.putNumber("POSITION/current y", getPose().getY());
-    SmartDashboard.putNumber("POSITION/limelight x", limelightPose.getX());
-    SmartDashboard.putNumber("POSITION/limelight y", limelightPose.getY());
-    SmartDashboard.putNumber("POSITION/limelight latency", limelightLatency);
+    // SmartDashboard.putNumber("POSITION/limelight x", limelightPose.getX());
+    // SmartDashboard.putNumber("POSITION/limelight y", limelightPose.getY());
+    // SmartDashboard.putNumber("POSITION/limelight latency", limelightLatency);
 
     // Drivetrain module angles (maybe module widget?)
     SmartDashboard.putNumber("DT/FL", m_frontLeft.getAngleFull());
@@ -256,7 +254,7 @@ public class Drivetrain extends SubsystemBase {
       ChassisSpeeds invertedSpeeds = new ChassisSpeeds(
           -speeds.vxMetersPerSecond,
           -speeds.vyMetersPerSecond,
-          -speeds.omegaRadiansPerSecond
+          speeds.omegaRadiansPerSecond
       );
       
       // Convert the inverted speeds to swerve module states
@@ -433,9 +431,9 @@ public class Drivetrain extends SubsystemBase {
    */
   public void updateWithVision(Pose2d visionPose, double latencySeconds) {
     // Invert the coordinates to match the coordinate system used by the pose estimator
-    Pose2d invertedVisionPose = new Pose2d(
-        -visionPose.getX(),
-        -visionPose.getY(),
+    Pose2d invertedVisionPose = new Pose2d( // Uninvert maybe?
+        visionPose.getX(),
+        visionPose.getY(),
         visionPose.getRotation()
     );
     

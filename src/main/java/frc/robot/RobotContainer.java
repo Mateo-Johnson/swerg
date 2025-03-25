@@ -63,7 +63,7 @@ public class RobotContainer {
             m_drivetrain.drive(
                 MathUtil.applyDeadband(primary.getLeftY(), OIConstants.kDriveDeadband),
                 MathUtil.applyDeadband(primary.getLeftX(), OIConstants.kDriveDeadband),
-                MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(primary.getRightX(), OIConstants.kDriveDeadband),
                 true);
         }, m_drivetrain)
     );
@@ -112,6 +112,7 @@ public class RobotContainer {
     primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral (auto-stop)
 
     primary.y().whileTrue(new L3_Remove(m_elevator, m_algae));
+    primary.b().whileTrue(new L3_Remove(m_elevator, m_algae));
 
   }
   /**

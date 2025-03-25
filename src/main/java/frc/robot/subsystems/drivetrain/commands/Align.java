@@ -30,7 +30,7 @@ public class Align extends Command {
   @SuppressWarnings("unused")
   private double lastXInput = 0;
   private static final double flickThreshold = 0.3;
-  private static final double switchThreshold = 0.7;  // Higher threshold for direct side switching
+  private static final double switchThreshold = 0.5;
   
   // New variables for sequential alignment
   private static final double XY_DISTANCE_THRESHOLD = 0.25; // Threshold for when to start rotation (in meters)
