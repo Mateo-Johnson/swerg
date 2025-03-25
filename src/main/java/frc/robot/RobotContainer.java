@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -9,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.algae.Algae;
+import frc.robot.subsystems.algae.commands.L2_Remove;
 import frc.robot.subsystems.algae.commands.L3_Remove;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
@@ -18,7 +20,6 @@ import frc.robot.subsystems.drivetrain.commands.Align;
 import frc.robot.subsystems.drivetrain.commands.AlignLeft;
 import frc.robot.subsystems.drivetrain.commands.AlignRight;
 import frc.robot.subsystems.elevator.Elevator;
-import frc.robot.subsystems.elevator.commands.L4;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
 import frc.robot.utils.Constants;
@@ -94,26 +95,55 @@ public class RobotContainer {
     // L3 = 17.5
     // L4 = 42 ish
 
-    // Drivetrain Commands
+    // Drivetrain Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.a().toggleOnTrue(new Align(m_drivetrain)); // Align the robot to the reef apriltags
 
-    // Elevator Commands
+    // Elevator Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // Left bumper to move elevator down
-    //primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7), 0.5));
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7)));
-    primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7)));
-    primary.povUp().onTrue(new L4(m_elevator, m_coral)); // Custom L4 command to execute the routine
-    primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // Custom L1 command to spin it sideways
 
-    // Coral Commands
-    // primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral
+    // L1-L4 commands with intake
+    primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1
+    primary.povRight().onTrue(new MoveToPoint(m_elevator, 5)); // L2
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5)); // L3
+    primary.povUp().onTrue(new MoveToPoint(m_elevator, 43)); // L4
+
+    // Commands with automatic outtake
+    // primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1
+    // primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7))); // L2
+    // primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7))); // L3
+    // primary.povUp().onTrue(new L4(m_elevator, m_coral)); // L4
+
+
+    // CORAL - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // Left trigger to purge coral
     primary.rightTrigger().whileTrue(new Intake(m_coral, 0.7)); // Right trigger to intake coral (auto-stop)
 
+    // ALGAE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     primary.y().whileTrue(new L3_Remove(m_elevator, m_algae));
-    primary.b().whileTrue(new L3_Remove(m_elevator, m_algae));
+    primary.b().whileTrue(new L2_Remove(m_elevator, m_algae));
 
+    // Bound -
+    // Right Trigger - Intake/Outtake
+    // Right Bumper - Elevator Up
+    // Left Trigger - Purge (Realign Coral)
+    // Left Bumper - Elevator Down
+    // Left Stick X - Drive Left/Right
+    // Left Stick Y - Drive Forward/Backward
+    // Right Stick X - Rotate
+    // POV Up - L4
+    // POV Down - L1
+    // POV Left - L3
+    // POV Right - L2
+    // B - Remove Algae L2
+    // Y - Remove Algae L3
+    // A - Align to Reef
+
+    // Unbound -
+    // Left Stick Button
+    // Right Stick Y
+    // Right Stick Button
+    // X
   }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
