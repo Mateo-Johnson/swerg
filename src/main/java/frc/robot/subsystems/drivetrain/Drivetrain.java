@@ -1,14 +1,3 @@
-// [][]            [][] 
-// [][][]        [][][]                   []                                  []                          []
-// [][][][]    [][][][]                   []                                  []                          []
-// [][]  [][][][]  [][]      [][][]       []                                  []                          []
-// [][]    [][]    [][]     []    []  [][][][][]    [ [][][]      [][][]      [][][][]      [][][]    [][][][][]      [][]
-// [][]    [][]    [][]    [][][][]       []        [[]     []  []    [][]    []      []  []    [][]      []        []
-// [][]            [][]    []             []        []          []  []  []    []      []  []  []  []      []          [][]
-// [][]            [][]    []     []      []   []   []          [][]    []    []      []  [][]    []      []   []         []
-// [][]            [][]     [][][]         ][][]    []            [][][]      [][][][]      [][][]         ][][]      [][]
-
-
 package frc.robot.subsystems.drivetrain;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -101,11 +90,7 @@ public class Drivetrain extends SubsystemBase {
     new Pose2d()  // Initial pose
   );
 
-  private final Elevator m_elevator; 
-
   public Drivetrain(Elevator elevator) {
-    this.m_elevator = elevator;
-
 
     // Pathplanner things
     try{
