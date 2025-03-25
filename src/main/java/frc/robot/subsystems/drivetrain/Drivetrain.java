@@ -1,3 +1,14 @@
+// [][]            [][] 
+// [][][]        [][][]                   []                                  []                          []
+// [][][][]    [][][][]                   []                                  []                          []
+// [][]  [][][][]  [][]      [][][]       []                                  []                          []
+// [][]    [][]    [][]     []    []  [][][][][]    [ [][][]      [][][]      [][][][]      [][][]    [][][][][]      [][]
+// [][]    [][]    [][]    [][][][]       []        [[]     []  []    [][]    []      []  []    [][]      []        []
+// [][]            [][]    []             []        []          []  []  []    []      []  []  []  []      []          [][]
+// [][]            [][]    []     []      []   []   []          [][]    []    []      []  [][]    []      []   []         []
+// [][]            [][]     [][][]         ][][]    []            [][][]      [][][][]      [][][]         ][][]      [][]
+
+
 package frc.robot.subsystems.drivetrain;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -177,6 +188,13 @@ public class Drivetrain extends SubsystemBase {
           m_rearLeft.getPosition(),
           m_rearRight.getPosition()
       });
+
+    // DASHBOARD OVERALL DASHBOARD EVERYTHING DASHBOARD THAT ISNT SPECIFICALLY SUBSYSTEM GOES HERE
+
+    // Display remaining match time
+    SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
+    // Display alliance color
+    SmartDashboard.putString("Alliance", DriverStation.getAlliance().toString());
 
     // Positioning dashboard
     SmartDashboard.putNumber("POSITION/Heading", getHeading());
