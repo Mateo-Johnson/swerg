@@ -9,6 +9,24 @@
           "data": {
             "pathName": "New Path"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AlignLeft"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AlignForward"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "L3"
+          }
         }
       ]
     }

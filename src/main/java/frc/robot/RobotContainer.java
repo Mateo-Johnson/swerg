@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.algae.Algae;
 import frc.robot.subsystems.algae.commands.L2_Remove;
 import frc.robot.subsystems.algae.commands.L3_Remove;
+import frc.robot.subsystems.algae.commands.MoveToPosition;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.Purge;
@@ -19,6 +20,7 @@ import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.Align;
 import frc.robot.subsystems.drivetrain.commands.AlignLeft;
 import frc.robot.subsystems.drivetrain.commands.AlignRight;
+import frc.robot.subsystems.drivetrain.commands.AlignForward;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
@@ -73,18 +75,10 @@ public class RobotContainer {
 }
 
   private void registerNamedCommands() {
-    NamedCommands.registerCommand("L1", new MoveToPoint(m_elevator, 0).withTimeout(1));
-    NamedCommands.registerCommand("L2", new MoveToPoint(m_elevator, 25).withTimeout(1));
-    NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 25).withTimeout(1));
-    NamedCommands.registerCommand("L4", new MoveToPoint(m_elevator, 25).withTimeout(3));
-    NamedCommands.registerCommand("DownManual", new MoveManual(m_elevator, -0.1));
-    NamedCommands.registerCommand("UpManual", new MoveManual(m_elevator, 0.2));
+    NamedCommands.registerCommand("AlignLeft", new AlignLeft(m_drivetrain).withTimeout(1));
+    NamedCommands.registerCommand("AlignForward", new AlignForward(m_drivetrain).withTimeout(3));
+    NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7)));
 
-    NamedCommands.registerCommand("Intake", new Intake(m_coral, 0.7).withTimeout(0.5));
-    NamedCommands.registerCommand("Purge", new Purge(m_coral, 0.5));
-    
-    NamedCommands.registerCommand("AlignLeft", new AlignLeft(m_drivetrain));
-    NamedCommands.registerCommand("AlignRight", new AlignRight(m_drivetrain));
   }
 
   private void configureButtonBindings() {
@@ -96,7 +90,8 @@ public class RobotContainer {
     // L4 = 42 ish
 
     // Drivetrain Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    primary.a().toggleOnTrue(new Align(m_drivetrain)); // Align the robot to the reef apriltags
+    // primary.a().toggleOnTrue(new Align(m_drivetrain)); // Align the robot to the reef apriltags
+    primary.a().whileTrue(new AlignForward(m_drivetrain)); 
 
     // Elevator Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 

@@ -3,6 +3,7 @@ package frc.robot.subsystems.algae;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -57,6 +58,19 @@ public class Algae extends SubsystemBase {
         
         // Reset encoder
         resetEncoder();
+
+        setDefaultCommand(createHoldCommand());
+    }
+
+    /**
+     * Create a default command to hold the subsystem at position 0
+     * @return Command that maintains the 0 position
+     */
+    private Command createHoldCommand() {
+        return run(() -> {
+            // Set target position to 0 and use PID to maintain it
+            setTargetPosition(0);
+        }).withName("AlgaeHoldPosition");
     }
 
     @Override
