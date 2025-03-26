@@ -12,14 +12,12 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.algae.Algae;
 import frc.robot.subsystems.algae.commands.L2_Remove;
 import frc.robot.subsystems.algae.commands.L3_Remove;
-import frc.robot.subsystems.algae.commands.MoveToPosition;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.Align;
 import frc.robot.subsystems.drivetrain.commands.AlignLeft;
-import frc.robot.subsystems.drivetrain.commands.AlignRight;
 import frc.robot.subsystems.drivetrain.commands.AlignForward;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
@@ -90,8 +88,7 @@ public class RobotContainer {
     // L4 = 42 ish
 
     // Drivetrain Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // primary.a().toggleOnTrue(new Align(m_drivetrain)); // Align the robot to the reef apriltags
-    primary.a().whileTrue(new AlignForward(m_drivetrain)); 
+    primary.a().toggleOnTrue(new Align(m_drivetrain)); // Align the robot to the reef apriltags
 
     // Elevator Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 
