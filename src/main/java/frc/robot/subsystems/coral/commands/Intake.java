@@ -1,13 +1,17 @@
 package frc.robot.subsystems.coral.commands;
 
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.coral.Coral;
+import frc.robot.utils.Constants;
 
 public class Intake extends Command {
     private final Coral coral;
     private final double speed;
     private enum State { IDLE, INTAKING, EJECTING }
     private State currentState = State.IDLE;
+    private final CommandXboxController controller = Constants.primary;
     
     /**
      * Command to control the Coral subsystem.
@@ -41,6 +45,7 @@ public class Intake extends Command {
         // Command runs continuously until interrupted or finished
         switch (currentState) {
             case INTAKING:
+                controller.setRumble(GenericHID.RumbleType.kBothRumble, 0.5);
                 if (!coral.hasGamePiece()) {
                     coral.forward(speed);
                 } else {
