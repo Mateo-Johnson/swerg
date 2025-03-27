@@ -4,16 +4,12 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
-import frc.robot.utils.Constants.AutoConstants;
 import frc.robot.utils.LimelightLib;
 
 public class AlignLeft extends Command {
     private final Drivetrain m_drivetrain;
     private final PIDController xPID = new PIDController(0.5, 0.0, 0.00); 
     private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); 
-
-    private static final double TARGET_TOLERANCE = 0.05; // Acceptable error for targeting
-    private boolean xAligned = false;
 
     public AlignLeft(Drivetrain drivetrain) {
         this.m_drivetrain = drivetrain;
@@ -27,7 +23,6 @@ public class AlignLeft extends Command {
         // Reset PID controllers when the command starts
         xPID.reset();
         yPID.reset();
-        xAligned = false;
     }
 
     @Override
