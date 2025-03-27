@@ -38,6 +38,8 @@ public class Intake extends Command {
         } else {
             currentState = State.INTAKING;
         }
+
+    controller.setRumble(GenericHID.RumbleType.kBothRumble, 0.5);
     }
     
     @Override
@@ -45,7 +47,6 @@ public class Intake extends Command {
         // Command runs continuously until interrupted or finished
         switch (currentState) {
             case INTAKING:
-                controller.setRumble(GenericHID.RumbleType.kBothRumble, 0.5);
                 if (!coral.hasGamePiece()) {
                     coral.forward(speed);
                 } else {
@@ -68,6 +69,7 @@ public class Intake extends Command {
     public void end(boolean interrupted) {
         // Stop motors
         coral.stop();
+        controller.setRumble(GenericHID.RumbleType.kBothRumble, 0);
     }
     
     @Override

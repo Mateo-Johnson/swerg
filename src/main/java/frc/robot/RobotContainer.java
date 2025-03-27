@@ -18,6 +18,7 @@ import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.Align;
 import frc.robot.subsystems.drivetrain.commands.AlignLeft;
+import frc.robot.subsystems.drivetrain.commands.Forward;
 import frc.robot.subsystems.drivetrain.commands.AlignForward;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
@@ -74,8 +75,8 @@ public class RobotContainer {
 
   private void registerNamedCommands() {
     NamedCommands.registerCommand("AlignLeft", new AlignLeft(m_drivetrain).withTimeout(1));
-    NamedCommands.registerCommand("AlignForward", new AlignForward(m_drivetrain).withTimeout(3));
-    NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7)));
+    NamedCommands.registerCommand("AlignForward", new Forward(m_drivetrain).withTimeout(2));
+    NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 19.5, new Intake(m_coral, 0.7)));
 
   }
 
@@ -97,8 +98,8 @@ public class RobotContainer {
     // L1-L4 commands with intake
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1
     primary.povRight().onTrue(new MoveToPoint(m_elevator, 5)); // L2
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5)); // L3
-    primary.povUp().onTrue(new MoveToPoint(m_elevator, 43)); // L4
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.3))); // L3
+    primary.povUp().onTrue(new MoveToPoint(m_elevator, 43, new Intake(m_coral, 0.3))); // L4
 
     // Commands with automatic outtake
     // primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1

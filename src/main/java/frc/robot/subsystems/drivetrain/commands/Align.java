@@ -242,7 +242,7 @@ public class Align extends Command {
     drivetrain.drive(
       MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
       -lateralOutput,
-      MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
+      -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
       false
     );
 
