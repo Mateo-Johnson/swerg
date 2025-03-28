@@ -80,6 +80,14 @@ public class Align extends Command {
     // Get stick input
     double leftXInput = MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband);
     
+    // Determine if controls should be inverted based on target ID
+    boolean invertControls = Arrays.asList(20, 21, 22, 9, 10, 11).contains((int)LimelightLib.getFiducialID(limelightName));
+    
+    // If controls are inverted, change the sign of the leftXInput comparison
+    if (invertControls) {
+      leftXInput = -leftXInput;
+    }
+    
     // Selection logic
     if (!initialSelectionMade) {
       // Initial selection from center
@@ -173,46 +181,34 @@ public class Align extends Command {
     // Set target angle based on target ID
     switch ((int)LimelightLib.getFiducialID(limelightName)) {
       case 17: // 60°
-      targetAngle = 60;
-      break;
-    case 8: // 60°
-      targetAngle = 60;
-      break;
+      case 8: // 60°
+        targetAngle = 60;
+        break;
 
-    case 18: // 0°
-      targetAngle = 0;
-      break;
-    case 7: // 0°
-      targetAngle = 0;
-      break;
+      case 18: // 0°
+      case 7: // 0°
+        targetAngle = 0;
+        break;
 
-    case 19: // -60°
-      targetAngle = -60;
-      break;
-    case 6: // -60°
-      targetAngle = -60;
-      break;
+      case 19: // -60°
+      case 6: // -60°
+        targetAngle = -60;
+        break;
 
-    case 20: // -120°
-      targetAngle = -120;
-      break;
-    case 11: // -120°
-      targetAngle = -120;
-      break;
+      case 20: // -120°
+      case 11: // -120°
+        targetAngle = -120;
+        break;
 
-    case 21: // 180°
-      targetAngle = 180;
-      break;
-    case 10: // 180°
-      targetAngle = 180;
-      break;
+      case 21: // 180°
+      case 10: // 180°
+        targetAngle = 180;
+        break;
 
-    case 22: // 120°
-      targetAngle = 120;
-      break;
-    case 9: // 120°
-      targetAngle = 120;
-      break;  
+      case 22: // 120°
+      case 9: // 120°
+        targetAngle = 120;
+        break;  
     }
 
     double angleError = targetAngle - drivetrain.getHeading();
