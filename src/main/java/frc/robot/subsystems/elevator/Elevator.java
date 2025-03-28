@@ -182,7 +182,6 @@ public class Elevator extends SubsystemBase {
     private void updateSmartDashboardPositionData(double currentPosition) {
         SmartDashboard.putNumber("ElevatorPID/Current Position", currentPosition);
         SmartDashboard.putNumber("ElevatorPID/Target Position", targetPosition);
-        SmartDashboard.putNumber("ElevatorPID/Position Error", pid.getPositionError());
         SmartDashboard.putNumber("ElevatorPID/PID Output", pidOutput);
         SmartDashboard.putNumber("ElevatorPID/Motor Output", masterMotor.getAppliedOutput());
     }

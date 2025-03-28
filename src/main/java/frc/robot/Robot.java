@@ -16,10 +16,6 @@ import frc.robot.utils.Elastic;
  */
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-
-  public Robot() {
-  }
-
   private RobotContainer m_robotContainer;
 
   /**
