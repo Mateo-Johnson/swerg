@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.utils.LimelightLib;
+import frc.robot.utils.Constants.DriveConstants;
 
 public class AlignLeft extends Command {
     private final Drivetrain m_drivetrain;
@@ -34,7 +35,7 @@ public class AlignLeft extends Command {
         SmartDashboard.putNumber("x", targetOffsetX);
         SmartDashboard.putNumber("y", targetOffsetY);
 
-        double xPidOutput = xPID.calculate(targetOffsetX, 0.17);
+        double xPidOutput = xPID.calculate(targetOffsetX, 0.20);
         m_drivetrain.drive(0, -xPidOutput, 0, false);
     }
 
