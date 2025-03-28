@@ -96,16 +96,9 @@ public class RobotContainer {
 
     // L1-L4 commands with intake
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1
-    primary.povRight().onTrue(new MoveToPoint(m_elevator, 5)); // L2
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 19.5, new Intake(m_coral, 0.3))); // L3
-    primary.povUp().onTrue(new MoveToPoint(m_elevator, 43, new Intake(m_coral, 0.3))); // L4
-
-    // Commands with automatic outtake
-    // primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1
-    // primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7))); // L2
-    // primary.povLeft().onTrue(new MoveToPoint(m_elevator, 17.5, new Intake(m_coral, 0.7))); // L3
-    // primary.povUp().onTrue(new L4(m_elevator, m_coral)); // L4
-
+    primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.6))); // L2
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 19.5, new Intake(m_coral, 0.6))); // L3
+    primary.povUp().onTrue(new MoveToPoint(m_elevator, 43, new Intake(m_coral, 0.3))); // L4 - Make sure to go up and outtake more if no hold
 
     // CORAL - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // Left trigger to purge coral
