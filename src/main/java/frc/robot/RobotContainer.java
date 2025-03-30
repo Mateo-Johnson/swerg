@@ -74,8 +74,9 @@ public class RobotContainer {
   private void registerNamedCommands() {
     NamedCommands.registerCommand("AlignLeft", new AlignLeft(m_drivetrain).withTimeout(1.5));
     NamedCommands.registerCommand("AlignForward", new Forward(m_drivetrain).withTimeout(2));
-    NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 43, new Intake(m_coral, 0.3)));
-    NamedCommands.registerCommand("L4", new Intake(m_coral, 0.2));
+    NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.3)).withTimeout(3));
+    NamedCommands.registerCommand("up", new MoveManual(m_elevator, 0.2).withTimeout(0.3));
+    NamedCommands.registerCommand("L4", new Intake(m_coral, 0.2).withTimeout(2));
 
   }
 

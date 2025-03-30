@@ -35,7 +35,7 @@ public class AlignLeft extends Command {
         SmartDashboard.putNumber("x", targetOffsetX);
         SmartDashboard.putNumber("y", targetOffsetY);
 
-        double xPidOutput = xPID.calculate(targetOffsetX, 0.20);
+        double xPidOutput = xPID.calculate(targetOffsetX, -0.16);
         m_drivetrain.drive(0, -xPidOutput, 0, false);
     }
 

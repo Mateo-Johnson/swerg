@@ -27,18 +27,6 @@
           "data": {
             "name": "L3"
           }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "L4"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "I4-hp1"
-          }
         }
       ]
     }

@@ -20,7 +20,7 @@ public class Elevator extends SubsystemBase {
     
     // Position control
     private final PIDController pid;
-    private final DigitalInput limitSwitch;
+    // private final DigitalInput limitSwitch;
     
     // Configuration constants
     private static final double gravComp = ElevatorConstants.gravityCompensation;
@@ -66,7 +66,7 @@ public class Elevator extends SubsystemBase {
         followerEncoder = followerMotor.getEncoder();
         
         // Limit switch
-        limitSwitch = new DigitalInput(limPort);
+        // limitSwitch = new DigitalInput(limPort);
         
         // PID Controller with more comprehensive gains
         pid = new PIDController(kP, kI, kD);
@@ -123,10 +123,7 @@ public class Elevator extends SubsystemBase {
         }
         
         speed = Math.max(-maxManualSpeed, Math.min(speed, maxManualSpeed));
-        
-        if (isAtLowerLimit() && speed < 0) {
-            speed = 0;
-        }
+
         
         double output = speed;
         if (speed >= 0) {
@@ -161,6 +158,10 @@ public class Elevator extends SubsystemBase {
             
             // Clamp output
             motorOutput = Math.min(Math.max(motorOutput, -1.0), 1.0);
+
+            if (currentPosition <= 0) {
+                motorOutput = 0;
+            }
             
             // Set motor output
             masterMotor.set(motorOutput);
@@ -188,7 +189,7 @@ public class Elevator extends SubsystemBase {
 
     private void updateSmartDashboardGeneralData() {
         SmartDashboard.putNumber("Elevator/Position", getPosition());
-        SmartDashboard.putBoolean("Elevator/Lower Limit", isAtLowerLimit());
+        // SmartDashboard.putBoolean("Elevator/Lower Limit", isAtLowerLimit());
         SmartDashboard.putString("Elevator/State", currentState.toString());
         SmartDashboard.putNumber("Elevator/Height", getHeightPercentage());
     }
@@ -212,7 +213,7 @@ public class Elevator extends SubsystemBase {
     }
 
     public void resetEncodersIfAtLimit() {
-        if (isAtLowerLimit()) {
+        if (this.getPosition() <= 0.01) {
             resetEncoders();
         }
     }
@@ -226,9 +227,9 @@ public class Elevator extends SubsystemBase {
         return followerEncoder.getPosition(); 
     }
 
-    public boolean isAtLowerLimit() { 
-        return limitSwitch.get(); 
-    }
+    // public boolean isAtLowerLimit() { 
+    //     return limitSwitch.get(); 
+    // }
 
     public boolean areEncodersSynchronized(double toleranceRotations) {
         return Math.abs(masterEncoder.getPosition() - followerEncoder.getPosition()) < toleranceRotations;
