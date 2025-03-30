@@ -63,10 +63,10 @@ public class Align extends Command {
     // Reset PID controllers when command starts
     yPID.reset();
     xPID.reset();
-    currentSetpoint = AutoConstants.centerSetpoint; // Start with center setpoint temporarily
-    initialSelectionMade = false; // Start with no selection made
+    currentSetpoint = AutoConstants.leftSetpoint; // Start with left setpoint
+    initialSelectionMade = true; // Start with selection already made
     lastXInput = 0;
-    currentState = AlignmentState.SIDE_SELECTION; // Start in side selection state
+    currentState = AlignmentState.SIDE_ALIGNMENT; // Start in side alignment state since we already selected a side
 
     isAligning = true;
     

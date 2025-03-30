@@ -15,7 +15,6 @@ public class AlignLeft extends Command {
     public AlignLeft(Drivetrain drivetrain) {
         this.m_drivetrain = drivetrain;
 
-        // Add requirements to ensure command interacts with the swerve drive subsystem
         addRequirements(drivetrain);
     }
 
