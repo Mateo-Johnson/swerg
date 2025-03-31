@@ -1,11 +1,14 @@
 package frc.robot.subsystems.drivetrain;
 
+import java.util.OptionalInt;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -138,6 +141,8 @@ public class Drivetrain extends SubsystemBase {
             m_rearLeft.getPosition(),
             m_rearRight.getPosition()
         });
+
+    getFMSData();
     
     // Get vision data from Limelight
     Pose2d limelightPose = LimelightLib.getBotPose2d_wpiBlue(LLN);
@@ -432,4 +437,32 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("POSITION/vision_pose_y", visionPose.getY());
     SmartDashboard.putNumber("POSITION/vision_latency", latencySeconds);
   }
+
+    public void getFMSData() {
+        // Get match information
+        String eventName = DriverStation.getEventName();
+        int matchNumber = DriverStation.getMatchNumber();
+        DriverStation.MatchType matchType = DriverStation.getMatchType();
+        
+        // Get alliance information
+        boolean isRed = DriverStation.getAlliance().equals(DriverStation.Alliance.Red);
+        OptionalInt station = DriverStation.getLocation();
+        
+        // Get game phase information
+        boolean isAutonomous = DriverStation.isAutonomous();
+        boolean isTeleop = DriverStation.isTeleop();
+        double matchTime = DriverStation.getMatchTime();
+        
+        // Get robot status
+        boolean isEnabled = DriverStation.isEnabled();
+        boolean isDSAttached = DriverStation.isDSAttached();
+        boolean isFMSAttached = DriverStation.isFMSAttached();
+
+        String matchData = eventName + " " + matchType + " " + matchNumber;
+
+        SmartDashboard.putString("FMSInfo/Match Title", matchData);
+        SmartDashboard.putBoolean("FMSInfo/Enabled", isEnabled);
+        SmartDashboard.putBoolean("FMSInfo/Driverstation Attached", isDSAttached);
+        SmartDashboard.putBoolean("FMSInfo/FMS Attached", isFMSAttached);
+    }
 }
