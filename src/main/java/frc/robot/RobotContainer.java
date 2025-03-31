@@ -17,8 +17,8 @@ import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.AlignLeft;
 import frc.robot.subsystems.drivetrain.commands.AlignRight;
-import frc.robot.subsystems.drivetrain.commands.AutoAlignLeft;
-import frc.robot.subsystems.drivetrain.commands.Forward;
+import frc.robot.subsystems.drivetrain.commands.auto.AutoAlignLeft;
+import frc.robot.subsystems.drivetrain.commands.auto.AutoForward;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
@@ -69,12 +69,12 @@ public class RobotContainer {
         }, m_drivetrain)
     );
 
-  SmartDashboard.putData("Auto Chooser", autoChooser); // Put the auto chooser on the dashboard
-}
+    SmartDashboard.putData("Auto Chooser", autoChooser); // Put the auto chooser on the dashboard
+  } 
 
   private void registerNamedCommands() {
     NamedCommands.registerCommand("AlignLeft", new AutoAlignLeft(m_drivetrain).withTimeout(1.5));
-    NamedCommands.registerCommand("AlignForward", new Forward(m_drivetrain).withTimeout(2));
+    NamedCommands.registerCommand("AlignForward", new AutoForward(m_drivetrain).withTimeout(2));
     NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.3)).withTimeout(3));
     NamedCommands.registerCommand("up", new MoveManual(m_elevator, 0.2).withTimeout(0.3));
     NamedCommands.registerCommand("L4", new Intake(m_coral, 0.2).withTimeout(2));
@@ -86,7 +86,7 @@ public class RobotContainer {
     // Elevator Heights
     // L1 = 0
     // L2 = 5
-    // L3 = 17.5
+    // L3 = 19.5
     // L4 = 42 ish
 
     // Drivetrain Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -99,8 +99,8 @@ public class RobotContainer {
 
     // L1-L4 commands with intake (a to outtake at height)
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1
-    primary.povRight().onTrue(new MoveToPoint(m_elevator, 5.0, new Intake(m_coral, 0.6), () -> primary.a().getAsBoolean())); // L2, 
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 19.5, new Intake(m_coral, 0.6), () -> primary.a().getAsBoolean())); // L3
+    primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7), () -> primary.a().getAsBoolean())); // L2, 
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 19.5, new Intake(m_coral, 0.7), () -> primary.a().getAsBoolean())); // L3
     primary.povUp().onTrue(new MoveToPoint(m_elevator, 43, new Intake(m_coral, 0.3), () -> primary.a().getAsBoolean())); // L4 - Make sure to go up and outtake more if no hold
 
     // CORAL - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -110,28 +110,6 @@ public class RobotContainer {
     // ALGAE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     primary.y().whileTrue(new L3_Remove(m_elevator, m_algae));
     primary.b().whileTrue(new L2_Remove(m_elevator, m_algae));
-
-    // Bound -
-    // Right Trigger - Intake/Outtake
-    // Right Bumper - Elevator Up
-    // Left Trigger - Purge (Realign Coral)
-    // Left Bumper - Elevator Down
-    // Left Stick X - Drive Left/Right
-    // Left Stick Y - Drive Forward/Backward
-    // Right Stick X - Rotate
-    // POV Up - L4
-    // POV Down - L1
-    // POV Left - L3
-    // POV Right - L2
-    // B - Remove Algae L2
-    // Y - Remove Algae L3
-    // A - Align to Reef
-
-    // Unbound -
-    // Left Stick Button
-    // Right Stick Y
-    // Right Stick Button
-    // X
   }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

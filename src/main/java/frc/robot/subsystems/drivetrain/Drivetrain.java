@@ -444,14 +444,14 @@ public class Drivetrain extends SubsystemBase {
         int matchNumber = DriverStation.getMatchNumber();
         DriverStation.MatchType matchType = DriverStation.getMatchType();
         
-        // Get alliance information
-        boolean isRed = DriverStation.getAlliance().equals(DriverStation.Alliance.Red);
-        OptionalInt station = DriverStation.getLocation();
+        // // Get alliance information
+        // boolean isRed = DriverStation.getAlliance().equals(DriverStation.Alliance.Red);
+        // OptionalInt station = DriverStation.getLocation();
         
-        // Get game phase information
-        boolean isAutonomous = DriverStation.isAutonomous();
-        boolean isTeleop = DriverStation.isTeleop();
-        double matchTime = DriverStation.getMatchTime();
+        // // Get game phase information
+        // boolean isAutonomous = DriverStation.isAutonomous();
+        // boolean isTeleop = DriverStation.isTeleop();
+        // double matchTime = DriverStation.getMatchTime();
         
         // Get robot status
         boolean isEnabled = DriverStation.isEnabled();

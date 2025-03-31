@@ -1,4 +1,4 @@
-package frc.robot.subsystems.drivetrain.commands;
+package frc.robot.subsystems.drivetrain.commands.auto;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;

@@ -1,11 +1,10 @@
-package frc.robot.subsystems.drivetrain.commands;
+package frc.robot.subsystems.drivetrain.commands.auto;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.utils.LimelightLib;
-import frc.robot.utils.Constants.DriveConstants;
 
 public class AutoAlignLeft extends Command {
     private final Drivetrain m_drivetrain;

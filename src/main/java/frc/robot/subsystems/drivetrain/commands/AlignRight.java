@@ -26,7 +26,6 @@ public class AlignRight extends Command {
   
   // Alignment state tracking
   private static final double SIDE_ALIGNMENT_THRESHOLD = 0.05; // Threshold for side-to-side alignment (in meters)
-  private static final double LATERAL_ALIGNMENT_THRESHOLD = 0.05; // Threshold for lateral (forward/backward) alignment (in meters)
   
   // Alignment state machine
   private enum AlignmentState {
@@ -130,7 +129,6 @@ public class AlignRight extends Command {
         
       case LATERAL_ALIGNMENT:
         // Now focus on lateral (forward/backward) alignment
-        double longitudinalError = longitudinalOffset - 0.3; // Target 0.3m from target
         double longitudinalOutput = xPID.calculate(longitudinalOffset, 0.3);
         longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.7, 0.7);
         
