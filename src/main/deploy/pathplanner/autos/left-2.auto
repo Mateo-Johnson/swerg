@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "left-i4"
+            "pathName": "left-I4"
           }
         },
         {
@@ -56,6 +56,24 @@
           "type": "path",
           "data": {
             "pathName": "hp1-l4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AlignLeft"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AlignForward"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "L3"
           }
         },
         {
