@@ -70,7 +70,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    Elastic.selectTab(1); // Move to the autonomous tab
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
 
@@ -94,7 +93,6 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    Elastic.selectTab(0); // Move to the teleop tab
   }
 
   /** This function is called periodically during operator control. */
