@@ -1,5 +1,6 @@
 package frc.robot.subsystems.drivetrain.commands;
 
+import java.util.Arrays;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -12,35 +13,43 @@ import frc.robot.utils.Constants.AutoConstants;
 import frc.robot.utils.Constants.OIConstants;
 import frc.robot.utils.LimelightLib;
 
+/**
+ * Command to align the robot to the right setpoint
+ */
 public class AlignRight extends Command {
   private final Drivetrain drivetrain;
-  private final PIDController yPID = new PIDController(0.5, 0.0, 0.00);
-  private final PIDController xPID = new PIDController(0.5, 0.0, 0.00);
-  private final PIDController turnPID = new PIDController(0.032, 0, 0.0015);
+  private final double targetSetpoint;
+  private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); 
+  private final PIDController xPID = new PIDController(0.5, 0.0, 0.00); 
   private final CommandXboxController prim = Constants.primary;
   private final String limelightName = "limelight-front";
-  private double targetAngle;
-  double turnOutput;
   
-  // New variables for sequential alignment
-  private static final double XY_DISTANCE_THRESHOLD = 0.25; // Threshold for when to start rotation (in meters)
-  private boolean positionAligned = false; // Track if XY position is close enough
+  // Alignment state tracking
+  private static final double SIDE_ALIGNMENT_THRESHOLD = 0.05; // Threshold for side-to-side alignment (in meters)
+  private static final double LATERAL_ALIGNMENT_THRESHOLD = 0.05; // Threshold for lateral (forward/backward) alignment (in meters)
+  
+  // Alignment state machine
+  private enum AlignmentState {
+    SIDE_ALIGNMENT, // Moving to the selected side
+    LATERAL_ALIGNMENT // Moving forward/backward to target position
+  }
+  
+  private AlignmentState currentState = AlignmentState.SIDE_ALIGNMENT;
   
   public static boolean isAligning = false;
   
   /**
-   * Creates a new AlignLeft command that always aligns to the left of an AprilTag/target.
-   * Now with sequential alignment - position first, then rotation.
+   * Creates a new AlignRight command that aligns to the right setpoint
    *
    * @param drivetrain The drivetrain subsystem to control
    */
   public AlignRight(Drivetrain drivetrain) {
     this.drivetrain = drivetrain;
+    this.targetSetpoint = AutoConstants.rightSetpoint;
     
     // Configure PID controllers
     yPID.setTolerance(0);
     xPID.setTolerance(0);
-    turnPID.setTolerance(0);
     
     addRequirements(drivetrain);
   }
@@ -50,25 +59,33 @@ public class AlignRight extends Command {
     // Reset PID controllers when command starts
     yPID.reset();
     xPID.reset();
-    turnPID.reset();
-    turnPID.enableContinuousInput(-180, 180);
-    positionAligned = false; // Reset position alignment flag
-    
+    currentState = AlignmentState.SIDE_ALIGNMENT;
+
     isAligning = true;
+    
     SmartDashboard.putBoolean("Vision/AlignmentActive", true);
+    SmartDashboard.putString("Vision/AlignmentState", currentState.toString());
   }
 
   @Override
   public void execute() {
-    // Always use left setpoint
-    double currentSetpoint = AutoConstants.rightSetpoint;
+    // Get stick input for manual control components
+    double leftXInput = MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband);
+    
+    // Determine if controls should be inverted based on target ID
+    boolean invertControls = Arrays.asList(20, 21, 22, 9, 10, 11).contains((int)LimelightLib.getFiducialID(limelightName));
+    
+    // If controls are inverted, change the sign of the leftXInput
+    if (invertControls) {
+      leftXInput = -leftXInput;
+    }
     
     // Check if we have a valid target
-    if (!LimelightLib.getTV(limelightName)) {
+    if (!Arrays.asList(6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 21, 22).contains((int)LimelightLib.getFiducialID(limelightName))) { // Checking if we are at the reef
       // No valid target found, allow normal driving
       drivetrain.drive(
         MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
-        MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband),
+        leftXInput,
         -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
         true
       );
@@ -87,112 +104,59 @@ public class AlignRight extends Command {
     
     // Extract the lateral offset (X-axis in camera space)
     double lateralOffset = targetPose.getX();
-    double longitudinalOffset = targetPose.getY(); // Added to calculate XY distance
+    double longitudinalOffset = targetPose.getZ();
     
-    // Calculate position error magnitude
-    double xyErrorMagnitude = Math.sqrt(
-      Math.pow(lateralOffset - currentSetpoint, 2) + 
-      Math.pow(longitudinalOffset, 2)
-    );
-    
-    // Update position aligned flag
-    if (xyErrorMagnitude <= XY_DISTANCE_THRESHOLD) {
-      positionAligned = true;
-    }
-    
-    // Calculate PID outputs
-    double lateralOutput = yPID.calculate(lateralOffset, currentSetpoint);
-    double longitudinalOutput = xPID.calculate(longitudinalOffset, 0);
-    
-    // Clamp the outputs to valid ranges
-    lateralOutput = MathUtil.clamp(lateralOutput, -0.5, 0.5);
-    longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.5, 0.5);
-
-    // Set target angle based on target ID
-    switch ((int)LimelightLib.getFiducialID(limelightName)) {
-        case 17: // 60°
-        targetAngle = 60;
+    // State machine for alignment process
+    switch (currentState) {
+      case SIDE_ALIGNMENT:
+        // Calculate PID output for side-to-side movement
+        double lateralError = lateralOffset - targetSetpoint;
+        double lateralOutput = yPID.calculate(lateralOffset, targetSetpoint);
+        lateralOutput = MathUtil.clamp(lateralOutput, -0.7, 0.7);
+        
+        // Check if we've achieved side-to-side alignment
+        if (Math.abs(lateralError) <= SIDE_ALIGNMENT_THRESHOLD) {
+          currentState = AlignmentState.LATERAL_ALIGNMENT;
+        }
+        
+        // Apply side-to-side movement while using joystick for forward/backward and rotation
+        drivetrain.drive(
+          MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
+          -lateralOutput,
+          -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
+          false
+        );
         break;
-      case 8: // 60°
-        targetAngle = 60;
-        break;
-
-      case 18: // 0°
-        targetAngle = 0;
-        break;
-      case 7: // 0°
-        targetAngle = 0;
-        break;
-
-      case 19: // -60°
-        targetAngle = -60;
-        break;
-      case 6: // -60°
-        targetAngle = -60;
-        break;
-
-      case 20: // -120°
-        targetAngle = -120;
-        break;
-      case 11: // -120°
-        targetAngle = -120;
-        break;
-
-      case 21: // 180°
-        targetAngle = 180;
-        break;
-      case 10: // 180°
-        targetAngle = 180;
-        break;
-
-      case 22: // 120°
-        targetAngle = 120;
-        break;
-      case 9: // 120°
-        targetAngle = 120;
+        
+      case LATERAL_ALIGNMENT:
+        // Now focus on lateral (forward/backward) alignment
+        double longitudinalError = longitudinalOffset - 0.3; // Target 0.3m from target
+        double longitudinalOutput = xPID.calculate(longitudinalOffset, 0.3);
+        longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.7, 0.7);
+        
+        // Side-to-side fine-tuning (with reduced gain)
+        lateralError = lateralOffset - targetSetpoint;
+        lateralOutput = yPID.calculate(lateralOffset, targetSetpoint);
+        lateralOutput = MathUtil.clamp(lateralOutput, -0.5, 0.5); // Reduced maximum speed
+        
+        // Apply both lateral and longitudinal corrections, with manual rotation control
+        drivetrain.drive(
+          -longitudinalOutput,
+          -lateralOutput,
+          -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
+          false
+        );
         break;
     }
-
-    double angleError = targetAngle - drivetrain.getHeading();
-    if (angleError > 180) {
-      angleError -= 360;
-    } else if (angleError < -180) {
-      angleError += 360;
-    }
-
-    double currentAngleError = Math.abs(angleError);
-
-    // Only perform rotational alignment if XY position is close enough
-    if (positionAligned) {
-      turnOutput = turnPID.calculate(drivetrain.getHeading(), targetAngle);
-      
-      if (currentAngleError <= 5) { 
-        // If we're under 5 degrees away from target use the joystick
-        turnOutput = -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband);
-      }
-    } else {
-      // Use joystick for rotation while positioning
-      turnOutput = -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband);
-    }
-    
-    // Apply both lateral and rotational corrections
-    drivetrain.drive(
-      longitudinalOutput, // Use PID for forward/backward instead of joystick while aligning
-      -lateralOutput,
-      -turnOutput,
-      false
-    );
 
     // Log data for debugging
-    SmartDashboard.putNumber("Vision/LateralOffset", lateralOffset);
+    SmartDashboard.putString("Vision/AlignmentState", currentState.toString());
     SmartDashboard.putNumber("Vision/LongitudinalOffset", longitudinalOffset);
-    SmartDashboard.putNumber("Vision/LateralOutput", lateralOutput);
-    SmartDashboard.putNumber("Vision/CurrentSetpoint", currentSetpoint);
+    SmartDashboard.putNumber("Vision/LateralOffset", lateralOffset);
+    SmartDashboard.putNumber("Vision/CurrentSetpoint", targetSetpoint);
     SmartDashboard.putBoolean("Vision/TargetInView", true);
     SmartDashboard.putNumber("Vision/TargetID", LimelightLib.getFiducialID(limelightName));
     SmartDashboard.putBoolean("Vision/LateralAtSetpoint", yPID.atSetpoint());
-    SmartDashboard.putNumber("Vision/XYErrorMagnitude", xyErrorMagnitude);
-    SmartDashboard.putBoolean("Vision/PositionAligned", positionAligned);
   }
 
   @Override
@@ -214,7 +178,7 @@ public class AlignRight extends Command {
       return false;
     }
     
-    // Check if we're at the setpoint
-    return yPID.atSetpoint();
+    // Command never finishes on its own - must use D-pad to exit
+    return false;
   }
 }

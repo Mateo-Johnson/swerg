@@ -17,6 +17,8 @@ import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.Align;
 import frc.robot.subsystems.drivetrain.commands.AlignLeft;
+import frc.robot.subsystems.drivetrain.commands.AlignRight;
+import frc.robot.subsystems.drivetrain.commands.AutoAlignLeft;
 import frc.robot.subsystems.drivetrain.commands.Forward;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
@@ -72,7 +74,7 @@ public class RobotContainer {
 }
 
   private void registerNamedCommands() {
-    NamedCommands.registerCommand("AlignLeft", new AlignLeft(m_drivetrain).withTimeout(1.5));
+    NamedCommands.registerCommand("AlignLeft", new AutoAlignLeft(m_drivetrain).withTimeout(1.5));
     NamedCommands.registerCommand("AlignForward", new Forward(m_drivetrain).withTimeout(2));
     NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.3)).withTimeout(3));
     NamedCommands.registerCommand("up", new MoveManual(m_elevator, 0.2).withTimeout(0.3));
@@ -89,17 +91,18 @@ public class RobotContainer {
     // L4 = 42 ish
 
     // Drivetrain Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    primary.a().toggleOnTrue(new Align(m_drivetrain)); // Align the robot to the reef apriltags
+    primary.back().toggleOnTrue(new AlignRight(m_drivetrain));
+    primary.start().toggleOnTrue(new AlignLeft(m_drivetrain));
 
     // Elevator Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // Left bumper to move elevator down
 
-    // L1-L4 commands with intake
+    // L1-L4 commands with intake (a to outtake at height)
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1
-    primary.povRight().onTrue(new MoveToPoint(m_elevator, 5.0, new Intake(m_coral, 0.6), () -> primary.back().getAsBoolean())); // L2, 
-    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 19.5, new Intake(m_coral, 0.6), () -> primary.back().getAsBoolean())); // L3
-    primary.povUp().onTrue(new MoveToPoint(m_elevator, 43, new Intake(m_coral, 0.3), () -> primary.back().getAsBoolean())); // L4 - Make sure to go up and outtake more if no hold
+    primary.povRight().onTrue(new MoveToPoint(m_elevator, 5.0, new Intake(m_coral, 0.6), () -> primary.a().getAsBoolean())); // L2, 
+    primary.povLeft().onTrue(new MoveToPoint(m_elevator, 19.5, new Intake(m_coral, 0.6), () -> primary.a().getAsBoolean())); // L3
+    primary.povUp().onTrue(new MoveToPoint(m_elevator, 43, new Intake(m_coral, 0.3), () -> primary.a().getAsBoolean())); // L4 - Make sure to go up and outtake more if no hold
 
     // CORAL - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // Left trigger to purge coral
