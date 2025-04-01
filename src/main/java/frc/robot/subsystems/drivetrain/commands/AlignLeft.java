@@ -68,6 +68,54 @@ public class AlignLeft extends Command {
 
   @Override
   public void execute() {
+
+        double targetAngle = 0;
+
+        // Set target angle based on target ID
+        switch ((int)LimelightLib.getFiducialID(limelightName)) {
+            case 17: // 60°
+            targetAngle = 60;
+            break;
+          case 8: // 60°
+            targetAngle = 60;
+            break;
+      
+          case 18: // 0°
+            targetAngle = 0;
+            break;
+          case 7: // 0°
+            targetAngle = 0;
+            break;
+      
+          case 19: // -60°
+            targetAngle = -60;
+            break;
+          case 6: // -60°
+            targetAngle = -60;
+            break;
+      
+          case 20: // -120°
+            targetAngle = -120;
+            break;
+          case 11: // -120°
+            targetAngle = -120;
+            break;
+      
+          case 21: // 180°
+            targetAngle = 180;
+            break;
+          case 10: // 180°
+            targetAngle = 180;
+            break;
+      
+          case 22: // 120°
+            targetAngle = 120;
+            break;
+          case 9: // 120°
+            targetAngle = 120;
+            break;  
+          }
+
     // Get stick input for manual control components
     double leftXInput = MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband);
     
