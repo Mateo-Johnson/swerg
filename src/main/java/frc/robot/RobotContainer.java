@@ -90,8 +90,8 @@ public class RobotContainer {
     // L4 = 42 ish
 
     // Drivetrain Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    primary.start().toggleOnTrue(new AlignRight(m_drivetrain));
-    primary.back().toggleOnTrue(new AlignLeft(m_drivetrain));
+    primary.back().toggleOnTrue(new AlignRight(m_drivetrain));
+    primary.start().toggleOnTrue(new AlignLeft(m_drivetrain));
 
     // Elevator Commands - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.rightBumper().whileTrue(new MoveManual(m_elevator, 0.2)); // Right bumper to move elevator up 

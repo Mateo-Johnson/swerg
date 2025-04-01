@@ -129,7 +129,7 @@ public class AlignLeft extends Command {
         
       case LATERAL_ALIGNMENT:
         // Now focus on lateral (forward/backward) alignment
-        double longitudinalOutput = xPID.calculate(longitudinalOffset, 0.3);
+        double longitudinalOutput = xPID.calculate(longitudinalOffset, 0.21);
         longitudinalOutput = MathUtil.clamp(longitudinalOutput, -0.7, 0.7);
         
         // Side-to-side fine-tuning (with reduced gain)
@@ -139,7 +139,7 @@ public class AlignLeft extends Command {
         
         // Apply both lateral and longitudinal corrections, with manual rotation control
         drivetrain.drive(
-          -longitudinalOutput,
+          longitudinalOutput,
           -lateralOutput,
           -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
           false
