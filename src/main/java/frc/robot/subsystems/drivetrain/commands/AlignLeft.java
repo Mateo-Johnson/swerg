@@ -119,13 +119,13 @@ public class AlignLeft extends Command {
     // Get stick input for manual control components
     double leftXInput = MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband);
     
-    // Determine if controls should be inverted based on target ID
-    boolean invertControls = Arrays.asList(20, 21, 22, 9, 10, 11).contains((int)LimelightLib.getFiducialID(limelightName));
+    // // Determine if controls should be inverted based on target ID
+    // boolean invertControls = Arrays.asList(20, 21, 22, 9, 10, 11).contains((int)LimelightLib.getFiducialID(limelightName));
     
-    // If controls are inverted, change the sign of the leftXInput
-    if (invertControls) {
-      leftXInput = -leftXInput;
-    }
+    // // If controls are inverted, change the sign of the leftXInput
+    // if (invertControls) {
+    //   leftXInput = -leftXInput;
+    // }
     
     // Check if we have a valid target
     if (!Arrays.asList(6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 21, 22).contains((int)LimelightLib.getFiducialID(limelightName))) { // Checking if we are at the reef
