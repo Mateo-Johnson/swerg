@@ -1,4 +1,4 @@
-package frc.robot.subsystems.drivetrain.commands.auto;
+package frc.robot.subsystems.auto;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;

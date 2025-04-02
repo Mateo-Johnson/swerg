@@ -11,14 +11,15 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.algae.Algae;
 import frc.robot.subsystems.algae.commands.L2_Remove;
 import frc.robot.subsystems.algae.commands.L3_Remove;
+import frc.robot.subsystems.auto.AutoAlignLeft;
+import frc.robot.subsystems.auto.AutoForward;
+import frc.robot.subsystems.auto.AutoIntake;
 import frc.robot.subsystems.coral.Coral;
 import frc.robot.subsystems.coral.commands.Intake;
 import frc.robot.subsystems.coral.commands.Purge;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.commands.AlignLeft;
 import frc.robot.subsystems.drivetrain.commands.AlignRight;
-import frc.robot.subsystems.drivetrain.commands.auto.AutoAlignLeft;
-import frc.robot.subsystems.drivetrain.commands.auto.AutoForward;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.commands.MoveManual;
 import frc.robot.subsystems.elevator.commands.MoveToPoint;
@@ -73,11 +74,14 @@ public class RobotContainer {
   } 
 
   private void registerNamedCommands() {
-    NamedCommands.registerCommand("AlignLeft", new AutoAlignLeft(m_drivetrain).withTimeout(1.5));
-    NamedCommands.registerCommand("AlignForward", new AutoForward(m_drivetrain).withTimeout(2));
-    NamedCommands.registerCommand("L3", new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.3)).withTimeout(3));
-    NamedCommands.registerCommand("up", new MoveManual(m_elevator, 0.2).withTimeout(0.3));
-    NamedCommands.registerCommand("L4", new Intake(m_coral, 0.2).withTimeout(2));
+    NamedCommands.registerCommand("AlignLeft", new AlignLeft(m_drivetrain).withTimeout(1));
+    NamedCommands.registerCommand("Forward", new AutoForward(m_drivetrain).withTimeout(0.7));
+    NamedCommands.registerCommand("Up", new MoveManual(m_elevator, 0.2).withTimeout(0.2));
+    NamedCommands.registerCommand("L4", new MoveToPoint(m_elevator, 44.3).withTimeout(1));
+    NamedCommands.registerCommand("Outtake", new AutoIntake(m_coral, 0.3).withTimeout(1.2));
+    NamedCommands.registerCommand("Intake", new Intake(m_coral, 0.7).withTimeout(1));
+    NamedCommands.registerCommand("L1", new MoveToPoint(m_elevator, 0).withTimeout(1));
+    NamedCommands.registerCommand("L2", new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7)));
 
   }
 
@@ -101,7 +105,7 @@ public class RobotContainer {
     primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1
     primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7), () -> primary.a().getAsBoolean())); // L2, 
     primary.povLeft().onTrue(new MoveToPoint(m_elevator, 19.5, new Intake(m_coral, 0.7), () -> primary.a().getAsBoolean())); // L3
-    primary.povUp().onTrue(new MoveToPoint(m_elevator, 43, new Intake(m_coral, 0.3), () -> primary.a().getAsBoolean())); // L4 - Make sure to go up and outtake more if no hold
+    primary.povUp().onTrue(new MoveToPoint(m_elevator, 43.1, new AutoIntake(m_coral, 0.3), () -> primary.a().getAsBoolean())); // L4 - Make sure to go up and outtake more if no hold
 
     // CORAL - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     primary.leftTrigger().whileTrue(new Purge(m_coral, 0.5)); // Left trigger to purge coral
