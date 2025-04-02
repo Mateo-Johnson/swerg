@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "left-I4"
+            "pathName": "mid-h4"
           }
         },
         {
@@ -41,28 +41,9 @@
           }
         },
         {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "L1"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "I4-hp1"
-                }
-              }
-            ]
-          }
-        },
-        {
           "type": "named",
           "data": {
-            "name": "Intake"
+            "name": "L1"
           }
         }
       ]

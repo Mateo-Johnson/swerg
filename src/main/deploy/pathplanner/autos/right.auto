@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "left-I4"
+            "pathName": "right-f4"
           }
         },
         {
@@ -45,24 +45,18 @@
           "data": {
             "commands": [
               {
+                "type": "path",
+                "data": {
+                  "pathName": "f4-hp2"
+                }
+              },
+              {
                 "type": "named",
                 "data": {
                   "name": "L1"
                 }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "I4-hp1"
-                }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Intake"
           }
         }
       ]
