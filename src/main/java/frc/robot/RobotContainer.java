@@ -77,8 +77,8 @@ public class RobotContainer {
     NamedCommands.registerCommand("AlignLeft", new AlignLeft(m_drivetrain).withTimeout(1));
     NamedCommands.registerCommand("Forward", new AutoForward(m_drivetrain).withTimeout(0.7));
     NamedCommands.registerCommand("Up", new MoveManual(m_elevator, 0.2).withTimeout(0.2));
-    NamedCommands.registerCommand("L4", new MoveToPoint(m_elevator, 44.3).withTimeout(1));
-    NamedCommands.registerCommand("Outtake", new AutoIntake(m_coral, 0.3).withTimeout(1.2));
+    NamedCommands.registerCommand("L4", new MoveToPoint(m_elevator, 43).withTimeout(1));
+    NamedCommands.registerCommand("Outtake", new AutoIntake(m_coral, 0.3).withTimeout(2));
     NamedCommands.registerCommand("Intake", new Intake(m_coral, 0.7).withTimeout(1));
     NamedCommands.registerCommand("L1", new MoveToPoint(m_elevator, 0).withTimeout(1));
     NamedCommands.registerCommand("L2", new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7)));
@@ -102,7 +102,7 @@ public class RobotContainer {
     primary.leftBumper().whileTrue(new MoveManual(m_elevator, -0.1)); // Left bumper to move elevator down
 
     // L1-L4 commands with intake (a to outtake at height)
-    primary.povDown().onTrue(new MoveToPoint(m_elevator, 0)); // L1
+    primary.povDown().onTrue(new MoveToPoint(m_elevator, 0, new AutoIntake(m_coral, 0.3), ()-> primary.a().getAsBoolean())); // L1
     primary.povRight().onTrue(new MoveToPoint(m_elevator, 5, new Intake(m_coral, 0.7), () -> primary.a().getAsBoolean())); // L2, 
     primary.povLeft().onTrue(new MoveToPoint(m_elevator, 19.5, new Intake(m_coral, 0.7), () -> primary.a().getAsBoolean())); // L3
     primary.povUp().onTrue(new MoveToPoint(m_elevator, 43.1, new AutoIntake(m_coral, 0.3), () -> primary.a().getAsBoolean())); // L4 - Make sure to go up and outtake more if no hold

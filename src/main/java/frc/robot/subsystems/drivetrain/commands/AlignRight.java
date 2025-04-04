@@ -18,7 +18,7 @@ import frc.robot.utils.LimelightLib;
  */
 public class AlignRight extends Command {
   private final Drivetrain drivetrain;
-  private final double targetSetpoint;
+  private double targetSetpoint;
   private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); 
   private final PIDController xPID = new PIDController(0.5, 0.0, 0.00); 
   private final CommandXboxController prim = Constants.primary;
@@ -44,7 +44,6 @@ public class AlignRight extends Command {
    */
   public AlignRight(Drivetrain drivetrain) {
     this.drivetrain = drivetrain;
-    this.targetSetpoint = AutoConstants.rightSetpoint;
     
     // Configure PID controllers
     yPID.setTolerance(0);
@@ -76,7 +75,9 @@ public class AlignRight extends Command {
     
     // If controls are inverted, change the sign of the leftXInput
     if (invertControls) {
-      leftXInput = -leftXInput;
+      targetSetpoint = AutoConstants.leftSetpoint;
+    } else {
+      targetSetpoint = AutoConstants.rightSetpoint;
     }
     
     // Check if we have a valid target

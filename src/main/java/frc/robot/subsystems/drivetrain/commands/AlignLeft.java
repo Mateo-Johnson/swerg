@@ -18,7 +18,7 @@ import frc.robot.utils.LimelightLib;
  */
 public class AlignLeft extends Command {
   private final Drivetrain drivetrain;
-  private final double targetSetpoint;
+  private double targetSetpoint;
   private final PIDController yPID = new PIDController(0.5, 0.0, 0.00); 
   private final PIDController xPID = new PIDController(0.5, 0.0, 0.00); 
   private final CommandXboxController prim = Constants.primary;
@@ -44,7 +44,6 @@ public class AlignLeft extends Command {
    */
   public AlignLeft(Drivetrain drivetrain) {
     this.drivetrain = drivetrain;
-    this.targetSetpoint = AutoConstants.leftSetpoint;
     
     // Configure PID controllers
     yPID.setTolerance(0);
@@ -68,71 +67,23 @@ public class AlignLeft extends Command {
 
   @Override
   public void execute() {
-
-        double targetAngle = 0;
-
-        // Set target angle based on target ID
-        switch ((int)LimelightLib.getFiducialID(limelightName)) {
-            case 17: // 60°
-            targetAngle = 60;
-            break;
-          case 8: // 60°
-            targetAngle = 60;
-            break;
-      
-          case 18: // 0°
-            targetAngle = 0;
-            break;
-          case 7: // 0°
-            targetAngle = 0;
-            break;
-      
-          case 19: // -60°
-            targetAngle = -60;
-            break;
-          case 6: // -60°
-            targetAngle = -60;
-            break;
-      
-          case 20: // -120°
-            targetAngle = -120;
-            break;
-          case 11: // -120°
-            targetAngle = -120;
-            break;
-      
-          case 21: // 180°
-            targetAngle = 180;
-            break;
-          case 10: // 180°
-            targetAngle = 180;
-            break;
-      
-          case 22: // 120°
-            targetAngle = 120;
-            break;
-          case 9: // 120°
-            targetAngle = 120;
-            break;  
-          }
-
-    // Get stick input for manual control components
-    double leftXInput = MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband);
     
-    // // Determine if controls should be inverted based on target ID
-    // boolean invertControls = Arrays.asList(20, 21, 22, 9, 10, 11).contains((int)LimelightLib.getFiducialID(limelightName));
+    // Determine if controls should be inverted based on target ID
+    boolean invertControls = Arrays.asList(20, 21, 22, 9, 10, 11).contains((int)LimelightLib.getFiducialID(limelightName));
     
-    // // If controls are inverted, change the sign of the leftXInput
-    // if (invertControls) {
-    //   leftXInput = -leftXInput;
-    // }
+    // If controls are inverted, change the sign of the leftXInput
+    if (invertControls) {
+      targetSetpoint = AutoConstants.rightSetpoint;
+    } else {
+      targetSetpoint = AutoConstants.leftSetpoint;
+    }
     
     // Check if we have a valid target
     if (!Arrays.asList(6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 21, 22).contains((int)LimelightLib.getFiducialID(limelightName))) { // Checking if we are at the reef
       // No valid target found, allow normal driving
       drivetrain.drive(
         MathUtil.applyDeadband(prim.getLeftY(), OIConstants.kDriveDeadband),
-        leftXInput,
+        MathUtil.applyDeadband(prim.getLeftX(), OIConstants.kDriveDeadband),
         -MathUtil.applyDeadband(prim.getRightX(), OIConstants.kDriveDeadband),
         true
       );

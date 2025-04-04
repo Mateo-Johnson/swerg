@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "right-f4"
+            "pathName": "mid-h4"
           }
         },
         {
@@ -41,22 +41,21 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "f4-hp2"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "L1"
-                }
-              }
-            ]
+            "name": "Up"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Outtake"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "L1"
           }
         }
       ]

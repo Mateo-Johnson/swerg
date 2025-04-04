@@ -25,13 +25,19 @@
         {
           "type": "named",
           "data": {
-            "name": "Up"
+            "name": "L4"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "L4"
+            "name": "Outtake"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Up"
           }
         },
         {
@@ -57,12 +63,6 @@
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Intake"
           }
         }
       ]

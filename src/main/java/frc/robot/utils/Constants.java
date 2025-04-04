@@ -87,8 +87,8 @@ public final class Constants {
   public static final class AutoConstants {
 
     public static final double centerSetpoint = 0;
-    public static final double leftSetpoint = 0.24;
-    public static final double rightSetpoint = -0.12;
+    public static final double leftSetpoint = 0.22;
+    public static final double rightSetpoint = -0.14;
 
     public static final double kMaxSpeedMetersPerSecond = 3;
     public static final double kMaxAccelerationMetersPerSecondSquared = 3;
